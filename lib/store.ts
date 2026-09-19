@@ -34,7 +34,7 @@ const defaultUI: UIState = {
   showTownHall: false,
   toastMessage: null,
   toastType: 'info',
-  mapViewport: { x: -260, y: -90, zoom: 0.85 },
+  mapViewport: { x: -80, y: 40, zoom: 0.65 },
 };
 
 // ------ Store Interface -------------------------------------

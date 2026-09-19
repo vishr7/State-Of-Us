@@ -96,95 +96,66 @@ function classifyTile(tx: number, ty: number): TileInfo {
     return b ? { ground: 'road', bridge: b } : { ground: 'water' };
   }
 
-  // Cathedral of Learning — special tile in Oakland
-  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) {
-    return { ground: 'grass', cathedral: true };
-  }
-
-  // Major roads
-  if (tx === 3 || tx === 7 || tx === 11 || tx === 15 || tx === 19 || tx === 23) return { ground: 'road' };
-  if (ty === 1 || ty === 6 || ty === 11 || ty === 16 || ty === 21 || ty === 26) return { ground: 'road' };
-
-  // Mount Washington hillside (south of Mon, sloped terrain)
-  if (tx >= 10 && tx <= 22) {
-    const my = monY(tx);
-    if (ty >= my + 1.5 && ty <= my + 7) {
-      const elev = Math.min(4, Math.round(ty - my - 1));
-      const r = rng(tx, ty);
-      if (r > 0.85) return { ground: 'hillside', hillElevation: elev };
-      return { ground: 'hillside', hillElevation: elev, building: 'middle' };
-    }
-  }
-
-  // Parks
-  if (tx >= 10 && tx <= 13 && ty >= 18 && ty <= 21) return { ground: 'park' }; // Point State Park
-  if (tx >= 17 && tx <= 20 && ty >= 7  && ty <= 10) return { ground: 'park' }; // Schenley Park (Oakland)
-  if (tx >= 2  && tx <= 5  && ty >= 13 && ty <= 16) return { ground: 'park' }; // West side park
-
   const r = rng(tx, ty);
-
-  // Golden Triangle downtown towers (the wedge, nearest to The Point)
-  if (isInWedge(tx, ty) && tx >= 10 && tx <= 14) {
-    return r < 0.1 ? { ground: 'grass' } : { ground: 'grass', building: 'tower' };
-  }
-  // Mid-downtown / civic (wider part of wedge)
-  if (isInWedge(tx, ty) && tx >= 14 && tx <= 18) {
-    return r < 0.12 ? { ground: 'grass' } : { ground: 'grass', building: 'civic' };
-  }
-  // Shadyside — wealthy, northeast
-  if (tx >= 20 && tx <= 26 && isInWedge(tx, ty)) {
-    const mid = (alleghenyY(tx) + monY(tx)) / 2;
-    if (ty < mid) {
-      return r < 0.12 ? { ground: 'grass', tree: r > 0.1 } : { ground: 'grass', building: 'wealthy' };
-    }
+  // A wooded perimeter softens the edge of the model.
+  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) {
+    return { ground: 'park', tree: true };
   }
 
-  // Homewood — lower-income, far east between rivers
-  if (tx >= 22 && tx <= 27 && isInWedge(tx, ty)) {
-    const mid = (alleghenyY(tx) + monY(tx)) / 2;
-    if (ty >= mid) {
-      return r < 0.18 ? { ground: 'grass', tree: r > 0.12 } : { ground: 'grass', building: 'lower' };
-    }
+  // Shadyside: a garden neighborhood with a perimeter drive, a central
+  // village green, and detached villas instead of repeated apartment blocks.
+  if (tx <= 10 && ty <= 13) {
+    if (tx === 2 || tx === 9 || ty === 3 || ty === 12 || (ty === 8 && tx >= 9)) return { ground: 'road' };
+    if (tx >= 5 && tx <= 7 && ty >= 6 && ty <= 9) return { ground: 'park' };
+    if ((tx + ty) % 3 === 0 || tx === 1 || ty === 1) return { ground: 'grass', tree: true };
+    return { ground: 'grass', building: 'wealthy' };
   }
 
-  // Hill District / Oakland transition (wider wedge right side)
-  if (isInWedge(tx, ty) && tx >= 18 && tx <= 23) {
-    return r < 0.1 ? { ground: 'grass' } : { ground: 'grass', building: 'middle' };
+  // Main avenues tie the districts to the river crossings. Local streets
+  // use different block sizes, rather than a uniform grid across the city.
+  if ([11, 15, 19, 23].includes(tx)) return { ground: 'road' };
+  if ([3, 8, 13, 18, 24].includes(ty)) return { ground: 'road' };
+  if (tx < 11 && (tx === 4 || tx === 8 || ty === 21)) return { ground: 'road' };
+
+  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true };
+
+  // Downtown: compact masonry apartment blocks around a single civic square.
+  if (isInWedge(tx, ty) && tx < 22) {
+    if (tx >= 16 && tx <= 18 && ty >= 15 && ty <= 16) return { ground: 'park' };
+    if (tx === 17 && ty === 14) return { ground: 'grass', cathedral: true };
+    return { ground: 'grass', building: r < 0.18 ? 'middle' : 'tower' };
   }
 
-  // Strip District — along Allegheny, above the river (tx 12–16, just north)
-  if (tx >= 12 && tx <= 16) {
-    const ay = alleghenyY(tx);
-    if (ty >= ay - 5 && ty < ay - 0.5) {
-      return r < 0.1 ? { ground: 'grass', tree: r > 0.08 } : { ground: 'grass', building: 'middle' };
-    }
+  // Homewood: smaller rowhouse blocks, corner shops and community gardens.
+  if (isInWedge(tx, ty) && tx >= 22) {
+    if (tx === 25 && ty >= 16 && ty <= 17) return { ground: 'park' };
+    return { ground: 'grass', building: 'lower' };
   }
 
-  // Lawrenceville — NE along Allegheny, above the river
-  if (tx >= 16 && tx <= 23) {
-    const ay = alleghenyY(tx);
-    if (ty >= ay - 6 && ty < ay - 0.5) {
-      return r < 0.1 ? { ground: 'grass', tree: r > 0.08 } : { ground: 'grass', building: 'middle' };
-    }
+  // Lawrenceville: an active mixed-use riverfront with a linear park.
+  if (ty < alleghenyY(tx) && tx >= 11) {
+    if (tx >= 16 && tx <= 18 && ty >= 5 && ty <= 7) return { ground: 'park' };
+    return r < 0.12 ? { ground: 'grass', tree: true } : { ground: 'grass', building: 'middle' };
   }
 
-  // Outer areas — scattered trees on grass
-  if (r < 0.22) return { ground: 'grass', tree: true };
-  return { ground: 'grass', building: tx < 10 ? 'wealthy' : 'middle' };
+  // Hillside cottages gradually give way to woodland on the southern bank.
+  if (tx >= 10 && ty > monY(tx)) {
+    if (r < 0.5 || ty > 25) return { ground: 'hillside', tree: true };
+    return { ground: 'hillside', building: 'wealthy' };
+  }
+  return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'middle' };
 }
 
 // ── Colors ───────────────────────────────────────────────────
 // Bright pixel-art palette — no gradients anywhere.
-const SKY_COLOR    = '#244c48';
+const SKY_COLOR    = '#ded7c9';
 const GRASS_A      = '#718e51';
 const GRASS_B      = '#718e51';
 const PARK_COLOR   = '#71964e';
 const HILL_A       = '#6A9A50';
-const HILL_B       = '#507A3A';
-const WATER_COLOR  = '#277f99';
-const WATER_SHINE  = '#91d3d5';
+const WATER_COLOR  = '#567f99';
+const WATER_SHINE  = '#b5d0dc';
 const ROAD_COLOR   = '#59616a';
-const ROAD_MARK    = 'rgba(255,255,255,0.55)';
 
 // ── Drawing Primitives ───────────────────────────────────────
 function fillPoly(
@@ -349,8 +320,19 @@ export default function CityCanvas() {
 
   const zoom = storeViewport.zoom;
   const pan = storeViewport;
-  const setZoom = (value: number | ((z: number) => number)) => setMapViewport({ zoom: typeof value === 'function' ? value(zoom) : value });
-  const setPan = (value: { x: number; y: number }) => setMapViewport(value);
+  const setZoom = (value: number | ((z: number) => number)) => setMapViewport({ ...cameraRef.current, zoom: typeof value === 'function' ? value(cameraRef.current.zoom) : value });
+  const cameraRef = useRef({ ...storeViewport });
+  const badgeRefs = useRef(new Map<string, HTMLDivElement>());
+  const dragRef = useRef<{ id: number; x: number; y: number; time: number } | null>(null);
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    cameraRef.current = { ...storeViewport };
+    velocityRef.current = { x: 0, y: 0 };
+  }, [storeViewport]);
+  useEffect(() => () => {
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+  }, []);
   const [atlas, setAtlas] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
   const policies = useCityPulseStore(s => s.policies);
@@ -363,8 +345,6 @@ export default function CityCanvas() {
     img.src = '/sprites/city-atlas.png';
     return () => { img.onload = null; img.onerror = null; };
   }, []);
-  const [isDragging, setIsDragging]   = useState(false);
-  const [dragStart, setDragStart]     = useState({ x: 0, y: 0 });
   const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
   // Issue 4 fix: track mount state to avoid hydration mismatch
   const [mounted, setMounted]         = useState(false);
@@ -376,7 +356,8 @@ export default function CityCanvas() {
   useEffect(() => {
     if (!selectedNeighborhoodId) return;
     const centers: Record<string, ReturnType<typeof tileToScreen>> = {
-      shadyside:      tileToScreen(22, 13),
+      golden_triangle: tileToScreen(17, 14),
+      shadyside:      tileToScreen(6, 7),
       lawrenceville:  tileToScreen(19, 7),
       homewood:       tileToScreen(24, 17),
     };
@@ -396,7 +377,7 @@ export default function CityCanvas() {
     const startT = performance.now();
 
     const updateSize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width  = container.clientWidth  * dpr;
       canvas.height = container.clientHeight * dpr;
       canvas.style.width  = `${container.clientWidth}px`;
@@ -421,30 +402,23 @@ export default function CityCanvas() {
 
     tiles.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
 
-    function render() {
-      if (!ctx || !canvas || !atlas) return;
-      const time = (performance.now() - startT) * 0.001;
-      const cw = canvas.width, ch = canvas.height;
-      const dpr = window.devicePixelRatio || 1;
-
-      ctx.clearRect(0, 0, cw, ch);
-
-      // ── Sky — flat pixel-art solid fill (NO gradient) ──────
-      ctx.fillStyle = SKY_COLOR;
-      ctx.fillRect(0, 0, cw, ch);
-
-      // ── Camera transform ────────────────────────────────────
-      ctx.save();
-      ctx.translate(cw / 2 + pan.x * dpr, ch / 2 + pan.y * dpr);
-      ctx.scale(zoom * dpr, zoom * dpr);
+    // Bake the detailed city once. Camera motion only composites this layer;
+    // no sprite scaling, street classification or policy lookup per drag frame.
+    const scene = document.createElement('canvas');
+    scene.width = GW * TW + 192;
+    scene.height = GH * TH + 320;
+    const sceneCtx = scene.getContext('2d');
+    if (!sceneCtx) { ro.disconnect(); return; }
+    {
+      const ctx = sceneCtx;
+      ctx.translate(scene.width / 2, scene.height / 2);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-
       // ── Pass 1: Ground tiles ────────────────────────────────
       for (const { tx, ty, cx, cy, info } of tiles) {
         switch (info.ground) {
           case 'water':
-            drawWater(ctx, cx, cy, time);
+            drawWater(ctx, cx, cy, 0);
             break;
           case 'road':
             drawRoad(ctx, cx, cy, info.bridge ? undefined : tx, info.bridge ? undefined : ty);
@@ -474,12 +448,12 @@ export default function CityCanvas() {
         let sprite: number | null = null;
         if (info.cathedral) sprite = 14;
         else if (info.tree) sprite = 12;
-        else if (info.ground === 'park') sprite = (tx + ty) % 3 === 0 ? 10 : 12;
+        else if (info.ground === 'park') sprite = (tx === 6 && ty === 7) || (tx === 17 && ty === 15) ? 10 : ((tx + ty) % 4 === 0 ? 13 : 12);
         else if (info.building) {
-          const options = { wealthy: [1, 5, 7], middle: [0, 2, 3, 6], lower: [0, 4, 6], tower: [4, 5, 8], civic: [7, 8, 9, 14] };
+          const options = { wealthy: [1, 1, 1, 5], middle: [0, 2, 3, 6], lower: [0, 0, 4, 6], tower: [4, 5, 5, 2], civic: [7, 8, 9, 14] };
           const choices = options[info.building];
           sprite = choices[Math.floor(rng(tx, ty) * choices.length)];
-          const centers = [{ id: 'shadyside', x: 22, y: 13 }, { id: 'lawrenceville', x: 19, y: 7 }, { id: 'homewood', x: 24, y: 17 }];
+          const centers = [{ id: 'golden_triangle', x: 17, y: 14 }, { id: 'shadyside', x: 6, y: 7 }, { id: 'lawrenceville', x: 19, y: 7 }, { id: 'homewood', x: 24, y: 17 }];
           const neighborhood = centers.sort((a, b) => Math.hypot(tx-a.x, ty-a.y) - Math.hypot(tx-b.x, ty-b.y))[0].id;
           const policy = policies.find(p => p.status === 'active' &&
             ['housing', 'environment', 'transit'].includes(p.category) &&
@@ -499,9 +473,56 @@ export default function CityCanvas() {
           ctx.fillStyle = '#ce7454'; ctx.fillRect(cx + 30, cy - 5, 4, 4);
           ctx.fillStyle = '#e8bc8d'; ctx.fillRect(cx + 31, cy - 7, 2, 2);
         }
+      }
+    }
+    const trafficTiles = tiles.filter(t => t.info.ground === 'road' && !t.info.bridge && (t.tx + t.ty) % 5 === 0).map(t => ({ ...t, alongX: classifyTile(t.tx + 1, t.ty).ground === 'road' || classifyTile(t.tx - 1, t.ty).ground === 'road' }));
+    const openWater = tiles.filter(t => t.info.ground === 'water' && [[-1, 0], [1, 0], [0, -1], [0, 1]].every(([dx, dy]) => classifyTile(t.tx + dx, t.ty + dy).ground === 'water'));
+    const badgeWorld = {
+      golden_triangle: tileToScreen(17, 14),
+      shadyside: tileToScreen(6, 7),
+      lawrenceville: tileToScreen(19, 7),
+      homewood: tileToScreen(24, 17),
+    };
+    let previousTime = performance.now();
+    function render() {
+      if (!ctx || !canvas) return;
+      const now = performance.now();
+      const dt = Math.min(32, now - previousTime);
+      previousTime = now;
+      const time = (now - startT) * 0.001;
+      const camera = cameraRef.current;
+      const velocity = velocityRef.current;
+      if (!dragRef.current && (velocity.x || velocity.y)) {
+        camera.x += velocity.x * dt;
+        camera.y += velocity.y * dt;
+        const friction = Math.exp(-dt / 85);
+        velocity.x *= friction; velocity.y *= friction;
+        if (Math.hypot(velocity.x, velocity.y) < 0.015) {
+          velocity.x = 0; velocity.y = 0;
+          setMapViewport({ ...camera });
+        }
+      }
+      const cw = canvas.width, ch = canvas.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      ctx.fillStyle = SKY_COLOR;
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.save();
+      ctx.translate(cw / 2 + camera.x * dpr, ch / 2 + camera.y * dpr);
+      ctx.scale(camera.zoom * dpr, camera.zoom * dpr);
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(scene, -scene.width / 2, -scene.height / 2);
+      ctx.strokeStyle = WATER_SHINE;
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.18 + Math.sin(time) * 0.08;
+      ctx.beginPath();
+      for (const { cx, cy } of openWater) {
+        const drift = Math.sin(time * 0.5 + cx) * 4;
+        ctx.moveTo(cx - 8 + drift, cy + 5); ctx.lineTo(cx + 8 + drift, cy + 5);
+      }
+      ctx.stroke(); ctx.globalAlpha = 1;
+      for (const { tx, ty, cx, cy, info, alongX } of trafficTiles) {
         if (info.ground === 'road' && !info.bridge && (tx + ty) % 5 === 0) {
           const progress = isPlaying ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
-          const alongX = classifyTile(tx + 1, ty).ground === 'road' || classifyTile(tx - 1, ty).ground === 'road';
           const vx = cx + (progress - 0.5) * TW * (alongX ? 1 : -1);
           const vy = cy + (progress - 0.5) * TH;
           ctx.fillStyle = ['#f2ca69', '#cf6654', '#d9e9e9'][tx % 3];
@@ -509,40 +530,91 @@ export default function CityCanvas() {
           ctx.fillStyle = '#263e50'; ctx.fillRect(vx-2, vy-3, 5, 3);
         }
       }
-
+      for (const [id, position] of Object.entries(badgeWorld)) {
+        const badge = badgeRefs.current.get(id);
+        if (!badge) continue;
+        badge.style.left = `${cw / dpr / 2 + camera.x + position.x * camera.zoom}px`;
+        badge.style.top = `${ch / dpr / 2 + camera.y + position.y * camera.zoom}px`;
+      }
       ctx.restore();
       animId = requestAnimationFrame(render);
     }
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [pan.x, pan.y, zoom, atlas, policies, turn, isPlaying]);
+  }, [atlas, policies, turn, isPlaying, setMapViewport]);
 
   // ── Input handlers ───────────────────────────────────────────
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.hud-ctrl, button, [data-map-badge]')) return;
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  const commitCamera = () => setMapViewport({ ...cameraRef.current });
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !e.isPrimary || (e.target as HTMLElement).closest('.hud-ctrl, button, [data-map-badge]')) return;
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    velocityRef.current = { x: 0, y: 0 };
+    dragRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY, time: performance.now() };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.style.cursor = 'grabbing';
   };
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.id !== e.pointerId) return;
+    const now = performance.now();
+    const dt = Math.max(8, now - drag.time);
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    cameraRef.current.x += dx;
+    cameraRef.current.y += dy;
+    velocityRef.current = { x: Math.max(-0.6, Math.min(0.6, dx / dt)), y: Math.max(-0.6, Math.min(0.6, dy / dt)) };
+    dragRef.current = { id: drag.id, x: e.clientX, y: e.clientY, time: now };
   };
-  const handleMouseUp   = () => setIsDragging(false);
-  const handleWheel     = (e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom(z => Math.min(3.0, Math.max(0.4, z * (e.deltaY < 0 ? 1.15 : 0.88))));
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.id !== e.pointerId) return;
+    if (e.type !== 'pointerup' || performance.now() - drag.time > 80) velocityRef.current = { x: 0, y: 0 };
+    dragRef.current = null;
+    e.currentTarget.style.cursor = 'grab';
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    if (!velocityRef.current.x && !velocityRef.current.y) commitCamera();
   };
+
+  // Non-passive wheel listener permits trackpad zoom without scrolling the page.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault();
+      velocityRef.current = { x: 0, y: 0 };
+      const rect = container.getBoundingClientRect();
+      const px = e.clientX - rect.left - rect.width / 2;
+      const py = e.clientY - rect.top - rect.height / 2;
+      const camera = cameraRef.current;
+      const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rect.height : 1);
+      const nextZoom = Math.max(0.4, Math.min(3, camera.zoom * Math.exp(-delta * 0.0015)));
+      const ratio = nextZoom / camera.zoom;
+      camera.x = px - (px - camera.x) * ratio;
+      camera.y = py - (py - camera.y) * ratio;
+      camera.zoom = nextZoom;
+      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = setTimeout(() => setMapViewport({ ...cameraRef.current }), 120);
+    };
+    container.addEventListener('wheel', wheel, { passive: false });
+    return () => container.removeEventListener('wheel', wheel);
+  }, [setMapViewport]);
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
   const handleZoomOut = () => setZoom(z => Math.max(0.4, z * 0.8));
-  const handleReset   = () => { setMapViewport({ x: -260, y: -90, zoom: 0.85 }); };
+  const handleReset   = () => { setMapViewport({ x: -80, y: 40, zoom: 0.65 }); };
 
   // ── Neighborhood badge definitions ───────────────────────────
   // Tile centers match classifyTile zone assignments above
   const badges = [
     {
+      id: 'golden_triangle', name: 'DOWNTOWN', subtitle: 'City Center',
+      wx: tileToScreen(17, 14).x, wy: tileToScreen(17, 14).y,
+      borderColor: '#d4c3a3', bgColor: 'rgba(43,38,34,0.94)', textColor: '#f2e6ce',
+      tooltip: 'Golden Triangle — Downtown Pittsburgh',
+      action: () => selectNeighborhood('golden_triangle'),
+    },
+    {
       id: 'shadyside', name: 'SHADYSIDE', subtitle: 'Wealthy',
-      wx: tileToScreen(22, 13).x, wy: tileToScreen(22, 13).y,
+      wx: tileToScreen(6, 7).x, wy: tileToScreen(6, 7).y,
       borderColor: '#FFB81C', bgColor: 'rgba(14,28,10,0.93)', textColor: '#FFD166',
       tooltip: 'Shadyside — Wealthy | 81% Happiness | $94K Median Income',
       action: () => selectNeighborhood('shadyside'),
@@ -567,11 +639,12 @@ export default function CityCanvas() {
     <div
       ref={containerRef}
       className="w-full h-full relative overflow-hidden select-none cursor-grab active:cursor-grabbing"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onWheel={handleWheel}
+      style={{ touchAction: 'none', background: SKY_COLOR }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onLostPointerCapture={handlePointerUp}
     >
       <canvas
         ref={canvasRef}
@@ -589,12 +662,12 @@ export default function CityCanvas() {
             const ch = containerRef.current?.clientHeight ?? 600;
             const sx = cw / 2 + pan.x + b.wx * zoom;
             const sy = ch / 2 + pan.y + b.wy * zoom;
-            if (sx < -220 || sx > cw + 220 || sy < -120 || sy > ch + 120) return null;
             const isSelected = selectedNeighborhoodId === b.id;
             const isHovered  = hoveredBadge === b.id;
             return (
               <div
                 data-map-badge
+                ref={node => { if (node) badgeRefs.current.set(b.id, node); else badgeRefs.current.delete(b.id); }}
                 role="button"
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.action(); } }}
