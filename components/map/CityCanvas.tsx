@@ -207,23 +207,21 @@ function drawRiverLabel(ctx: CanvasRenderingContext2D, label: string, x: number,
   ctx.restore();
 }
 
-function drawLandmarkLabel(ctx: CanvasRenderingContext2D, label: string, x: number, y: number, color = '#F4E7C5') {
+function drawLandmarkLabel(ctx: CanvasRenderingContext2D, label: string, x: number, top: number, width: number, color: string) {
   ctx.save();
   ctx.font = '900 10px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const width = Math.ceil(ctx.measureText(label).width) + 14;
   const bx = x - width / 2;
-  const by = y - (label === 'CATHEDRAL OF LEARNING' ? 175 : label === 'UPMC HOSPITAL' ? 118 : 58);
   ctx.fillStyle = 'rgba(12,24,38,0.88)';
   ctx.strokeStyle = 'rgba(255,184,28,0.65)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.roundRect(bx, by, width, 18, 5);
+  ctx.roundRect(bx, top, width, 18, 5);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = color;
-  ctx.fillText(label, x, by + 9);
+  ctx.fillText(label, x, top + 9);
   ctx.restore();
 }
 
@@ -288,24 +286,43 @@ function drawLandmark(ctx: CanvasRenderingContext2D, landmark: PittsburghLandmar
   const { x, y } = tileToScreen(landmark.tx, landmark.ty);
   if (landmark.kind === 'point') {
     drawPointFountain(ctx, x, y);
-    drawLandmarkLabel(ctx, landmark.label, x, y, '#BFE7F3');
     return;
   }
   if (landmark.kind === 'stadium') {
     drawStadium(ctx, x, y, landmark.label);
-    drawLandmarkLabel(ctx, landmark.label, x, y, '#F7D35B');
     return;
   }
   if (landmark.kind === 'incline') {
     drawIncline(ctx, x, y);
-    drawLandmarkLabel(ctx, landmark.label, x, y, '#F7D35B');
-    return;
   }
-  if (landmark.kind === 'bridgeCluster') {
-    drawLandmarkLabel(ctx, landmark.label, x, y, '#FFB81C');
-    return;
+}
+
+function drawLandmarkLabels(ctx: CanvasRenderingContext2D) {
+  const height = 18;
+  const gap = 4;
+  ctx.font = '900 10px system-ui, sans-serif';
+  // Place the widest labels first, then move nearby labels just far enough to clear them.
+  const labels = PITTSBURGH_LANDMARKS.map(landmark => ({
+    landmark,
+    width: Math.ceil(ctx.measureText(landmark.label).width) + 14,
+  })).sort((a, b) => b.width - a.width);
+  const placed: Array<{ left: number; right: number; top: number; bottom: number }> = [];
+  for (const { landmark, width } of labels) {
+    const { x, y } = tileToScreen(landmark.tx, landmark.ty);
+    const left = x - width / 2;
+    const right = x + width / 2;
+    const preferredTop = y - (landmark.kind === 'cathedral' ? 175 : landmark.kind === 'hospital' ? 118 : 58);
+    const nearby = placed.filter(box => left < box.right + gap && right + gap > box.left);
+    const candidates = [preferredTop, ...nearby.flatMap(box => [box.top - height - gap, box.bottom + gap])]
+      .sort((a, b) => Math.abs(a - preferredTop) - Math.abs(b - preferredTop) || a - b);
+    const top = candidates.find(candidate => nearby.every(box =>
+      candidate + height + gap <= box.top || candidate >= box.bottom + gap)) ?? preferredTop;
+    const color = landmark.kind === 'point' ? '#BFE7F3'
+      : landmark.kind === 'stadium' || landmark.kind === 'incline' ? '#F7D35B'
+      : landmark.kind === 'bridgeCluster' ? '#FFB81C' : '#F4E7C5';
+    drawLandmarkLabel(ctx, landmark.label, x, top, width, color);
+    placed.push({ left, right, top, bottom: top + height });
   }
-  drawLandmarkLabel(ctx, landmark.label, x, y, '#F4E7C5');
 }
 
 export default function CityCanvas() {
@@ -423,8 +440,13 @@ export default function CityCanvas() {
     const foreground = document.createElement('canvas');
     foreground.width = scene.width; foreground.height = scene.height;
     const foregroundCtx = foreground.getContext('2d');
-    if (!sceneCtx || !foregroundCtx) { ro.disconnect(); return; }
+    const labels = document.createElement('canvas');
+    labels.width = scene.width; labels.height = scene.height;
+    const labelsCtx = labels.getContext('2d');
+    if (!sceneCtx || !foregroundCtx || !labelsCtx) { ro.disconnect(); return; }
     foregroundCtx.translate(scene.width / 2, scene.height / 2);
+    labelsCtx.translate(scene.width / 2, scene.height / 2);
+    drawLandmarkLabels(labelsCtx);
     {
       const ctx = sceneCtx;
       ctx.translate(scene.width / 2, scene.height / 2);
@@ -569,6 +591,7 @@ export default function CityCanvas() {
       }
       // Transparent building/tree silhouettes occlude pedestrians behind them.
       ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
+      ctx.drawImage(labels, -labels.width / 2, -labels.height / 2);
       const hovered = walkerHitsRef.current.some(hit => hit.id === hoveredWalkerRef.current) ? positions.find(item => item.walker.resident.id === hoveredWalkerRef.current) : undefined;
       if (hovered) {
         ctx.save(); ctx.translate(hovered.position.x,hovered.position.y-18); ctx.scale(1/camera.zoom,1/camera.zoom);

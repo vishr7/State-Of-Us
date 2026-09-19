@@ -103,14 +103,35 @@ can reach it, and on its built-in mock engine when it can't. The TopBar badge
 shows which one is active (**Live · database** / **Offline · mock engine**).
 
 ```bash
-# No Postgres installed? Start the embedded one in its own terminal — it applies the
-# migrations + both seeds on first run and serves postgresql://postgres:postgres@localhost:5432/postgres
-npm run db:local            # data persists in .local-db; add -- --reset to start over
-
-# Otherwise apply database/supabase/migrations/*.sql, then seed_pittsburgh.sql, to your own
-# Postgres/Supabase. Either way, DATABASE_URL goes in .env.local, then:
-npm run dev
+# Local Postgres (see "Local database" below), then:
+npm run db:start            # also: db:stop, db:status, db:seed
+npm run dev                 # DATABASE_URL comes from .env.local
 ```
+
+### Local database
+
+The repo has no bundled database. On Windows, the simplest no-admin setup is a portable PostgreSQL
+kept **outside the project folder** — this repo may live in OneDrive, and syncing a live Postgres
+data directory can corrupt it. Once, in PowerShell:
+
+```powershell
+$root = "$env:LOCALAPPDATA\citypulse-pg"; New-Item -ItemType Directory -Force $root | Out-Null
+curl.exe -L -o "$root\pg.zip" https://get.enterprisedb.com/postgresql/postgresql-17.5-1-windows-x64-binaries.zip
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[IO.Compression.ZipFile]::ExtractToDirectory("$root\pg.zip", $root)   # ~30s; Expand-Archive is far slower
+Set-Content "$root\pw.txt" "postgres" -NoNewline
+& "$root\pgsql\bin\initdb.exe" -D "$root\data" -U postgres -E UTF8 --auth=scram-sha-256 --pwfile="$root\pw.txt"
+Remove-Item "$root\pw.txt", "$root\pg.zip"
+```
+
+Then `npm run db:start` and `npm run db:seed` (loads both migrations and both seeds). Put
+`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres` in `.env.local`. The password is
+`postgres` and the server only listens on localhost. Any other Postgres or a Supabase project works
+too — just point `DATABASE_URL` at it and apply the SQL in `database/supabase/`.
+
+`db:seed` applies migrations, so it only works on an empty database; to start over, stop Postgres,
+delete `%LOCALAPPDATA%\citypulse-pg\data`, and re-run `initdb` and `db:seed`. To put just the
+Pittsburgh game back to turn 0, re-run `seed_pittsburgh.sql` (it is safe to repeat).
 
 | Concern | Where it lives when connected |
 | --- | --- |
