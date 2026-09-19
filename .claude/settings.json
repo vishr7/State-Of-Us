@@ -22,7 +22,16 @@
       "Bash(git restore *)",
       "Bash(node -e ' *)",
       "Bash(node -e \"const v=JSON.parse\\(require\\('fs'\\).readFileSync\\(0,'utf8'\\)\\); console.log\\(v.filter\\(x=>x.startsWith\\('3.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(grep -rn \"from '@/\\\\|from \\\\\"@/\" app lib database)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('package.json OK'\\)\")",
+      "Bash(npm test *)",
+      "Bash(npm run *)",
+      "Bash(PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c \"select 1\")",
+      "Bash(echo \"exit $?\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('package-lock.json','utf8'\\)\\); console.log\\('both JSON OK'\\)\")",
+      "Bash(grep -n \"^\\\\.next\\\\|/\\\\.next\" .gitignore)"
     ],
     "additionalDirectories": [
       "\\tmp"

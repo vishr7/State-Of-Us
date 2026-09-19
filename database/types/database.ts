@@ -62,6 +62,21 @@ export const RESIDENT_ARCHETYPES = [
 ] as const;
 export type ResidentArchetype = (typeof RESIDENT_ARCHETYPES)[number];
 
+export const SIGNAL_CATEGORIES = [
+  'employment',
+  'housing',
+  'infrastructure',
+  'public_finance',
+  'policy',
+] as const;
+export type SignalCategory = (typeof SIGNAL_CATEGORIES)[number];
+
+export const SIGNAL_GEOGRAPHY_SCOPES = ['city', 'county', 'metro', 'state', 'national'] as const;
+export type SignalGeographyScope = (typeof SIGNAL_GEOGRAPHY_SCOPES)[number];
+
+export const SIGNAL_STATUSES = ['proposed', 'announced', 'in_progress', 'completed'] as const;
+export type SignalStatus = (typeof SIGNAL_STATUSES)[number];
+
 /* -------------------------------------------------------------------------- */
 /* Row shapes                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -178,6 +193,31 @@ export interface SimulationSnapshot {
   city_id: string;
   turn: number;
   state: SimulationState;
+  created_at: string;
+}
+
+/**
+ * LLM-extracted fact scraped from an external source. Reference/audit data
+ * only — not city-scoped, no foreign key into canonical state, never read by
+ * the simulation engine. Mirrors `ExternalSignal` in lib/signals/types.ts.
+ */
+export interface ExternalSignalRow {
+  /** sha256([documentId, model, promptVersion, draft]) — stable across re-ingestion. */
+  id: string;
+  document_id: string;
+  category: SignalCategory;
+  headline: string;
+  summary: string;
+  geography_name: string;
+  geography_scope: SignalGeographyScope;
+  event_date: string | null;
+  status: SignalStatus;
+  /** Array of { quote: string }, verified verbatim against the source at extraction time. */
+  evidence: Json;
+  /** SourceReference: { title, url, publisher, publishedAt }. */
+  source: Json;
+  /** NormalizedDocument['provenance'] plus extractedAt/model/promptVersion. */
+  provenance: Json;
   created_at: string;
 }
 
@@ -372,6 +412,11 @@ export interface Database {
         Insert: Insert<SimulationSnapshot, 'id' | 'created_at'>;
         Update: Partial<SimulationSnapshot>;
       };
+      external_signals: {
+        Row: ExternalSignalRow;
+        Insert: Insert<ExternalSignalRow, 'created_at'>;
+        Update: Partial<ExternalSignalRow>;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -379,6 +424,9 @@ export interface Database {
       policy_category: PolicyCategory;
       housing_status: HousingStatus;
       resident_archetype: ResidentArchetype;
+      signal_category: SignalCategory;
+      signal_geography_scope: SignalGeographyScope;
+      signal_status: SignalStatus;
     };
     CompositeTypes: Record<string, never>;
   };
