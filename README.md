@@ -28,7 +28,7 @@ const CityCanvas = dynamic(
 )
 ```
 
-The map is drawn procedurally with PixiJS Graphics API — no external sprite sheets required, ensuring a clean zero-dependency Vercel deploy.
+The interactive map uses HTML Canvas 2D and a local illustrated sprite atlas (`public/sprites/city-atlas.png`). Individual buildings are layered over streets, parks, animated rivers, and stone waterfronts; pan, zoom, neighborhood selection, and policy project visuals remain interactive.
 
 ## Local Setup
 
@@ -108,7 +108,7 @@ All other components are presentational and stay unchanged.
 
 ## Known Simplifications
 
-- **Map art is procedural** — PixiJS Graphics API draws all buildings, bridges, and terrain as vector shapes. No external tileset sprites. This ensures a clean Vercel deploy with no CDN dependencies.
+- **Map art combines illustrated sprites and canvas terrain** — 16 local building and landscaping illustrations, with procedural streets, bridges, water, and street details. Geography is stylized rather than geographically exact.
 - **ElevenLabs speaker button** is visually wired but silent. Set `ELEVENLABS_API_KEY` to enable.
 - **Nemotron responses** are hardcoded per archetype in `mockAgents.ts`. Same output shape as real Nemotron.
 - **No auth, no settings panel, no dark/light toggle** — out of scope per spec.

@@ -5,16 +5,16 @@ import { useCityPulseStore } from '@/lib/store';
 
 // ============================================================
 // CityCanvas — Procedural Isometric Pittsburgh City Renderer
-// Pure HTML5 Canvas 2D, no image assets.
-// Art style: chunky retro pixel-art (Township / Design Home).
+// HTML5 Canvas 2D with an illustrated 4 × 4 sprite atlas.
+// Art style: detailed illustrated indie city with individually placed sprites.
 // Geography: Three Rivers confluence — Allegheny + Mon → Ohio.
 // ============================================================
 
-const TW = 64;     // tile width (px)
-const TH = 32;     // tile height (px) = TW/2
+const TW = 96;     // tile width (px)
+const TH = 48;     // tile height (px) = TW/2
 const GW = 28;     // grid columns
 const GH = 28;     // grid rows
-const FLOOR_H = 22; // px per building floor
+
 
 // World origin is centered on the grid midpoint tile (14,14)
 const OX = 0;
@@ -26,7 +26,9 @@ function tileToScreen(tx: number, ty: number) {
 
 // Stable per-tile pseudo-random in [0,1)
 function rng(tx: number, ty: number): number {
-  return (((tx * 2654435761) ^ (ty * 2246822519)) >>> 0) / 4294967296;
+  let seed = Math.imul(tx + 71, 374761393) ^ Math.imul(ty + 137, 668265263);
+  seed = Math.imul(seed ^ (seed >>> 13), 1274126177);
+  return ((seed ^ (seed >>> 16)) >>> 0) / 4294967296;
 }
 
 // ── Pittsburgh River Math ────────────────────────────────────
@@ -60,10 +62,10 @@ function isInWedge(tx: number, ty: number) {
   return ty > alleghenyY(tx) + 0.5 && ty < monY(tx) - 0.5;
 }
 
-// The Three Sisters suspension bridges cross the Allegheny at tx=12,13,14
-const BRIDGE_TX = new Set([12, 13, 14]);
-// Smithfield truss bridge crosses the Mon at tx=11,12
-const MON_BRIDGE_TX = new Set([11, 12]);
+// Stylized Three Sisters crossings aligned with the street grid.
+const BRIDGE_TX = new Set([11, 15, 19]);
+// Truss crossings over the Mon.
+const MON_BRIDGE_TX = new Set([15, 23]);
 
 function isBridge(tx: number, ty: number) {
   if (BRIDGE_TX.has(tx) && isAllegheny(tx, ty)) return 'suspension';
@@ -99,6 +101,10 @@ function classifyTile(tx: number, ty: number): TileInfo {
     return { ground: 'grass', cathedral: true };
   }
 
+  // Major roads
+  if (tx === 3 || tx === 7 || tx === 11 || tx === 15 || tx === 19 || tx === 23) return { ground: 'road' };
+  if (ty === 1 || ty === 6 || ty === 11 || ty === 16 || ty === 21 || ty === 26) return { ground: 'road' };
+
   // Mount Washington hillside (south of Mon, sloped terrain)
   if (tx >= 10 && tx <= 22) {
     const my = monY(tx);
@@ -109,10 +115,6 @@ function classifyTile(tx: number, ty: number): TileInfo {
       return { ground: 'hillside', hillElevation: elev, building: 'middle' };
     }
   }
-
-  // Major roads
-  if (tx === 11 || tx === 15 || tx === 19 || tx === 23) return { ground: 'road' };
-  if (ty === 6  || ty === 11 || ty === 16 || ty === 21) return { ground: 'road' };
 
   // Parks
   if (tx >= 10 && tx <= 13 && ty >= 18 && ty <= 21) return { ground: 'park' }; // Point State Park
@@ -129,6 +131,22 @@ function classifyTile(tx: number, ty: number): TileInfo {
   if (isInWedge(tx, ty) && tx >= 14 && tx <= 18) {
     return r < 0.12 ? { ground: 'grass' } : { ground: 'grass', building: 'civic' };
   }
+  // Shadyside — wealthy, northeast
+  if (tx >= 20 && tx <= 26 && isInWedge(tx, ty)) {
+    const mid = (alleghenyY(tx) + monY(tx)) / 2;
+    if (ty < mid) {
+      return r < 0.12 ? { ground: 'grass', tree: r > 0.1 } : { ground: 'grass', building: 'wealthy' };
+    }
+  }
+
+  // Homewood — lower-income, far east between rivers
+  if (tx >= 22 && tx <= 27 && isInWedge(tx, ty)) {
+    const mid = (alleghenyY(tx) + monY(tx)) / 2;
+    if (ty >= mid) {
+      return r < 0.18 ? { ground: 'grass', tree: r > 0.12 } : { ground: 'grass', building: 'lower' };
+    }
+  }
+
   // Hill District / Oakland transition (wider wedge right side)
   if (isInWedge(tx, ty) && tx >= 18 && tx <= 23) {
     return r < 0.1 ? { ground: 'grass' } : { ground: 'grass', building: 'middle' };
@@ -150,75 +168,23 @@ function classifyTile(tx: number, ty: number): TileInfo {
     }
   }
 
-  // Shadyside — wealthy, northeast
-  if (tx >= 20 && tx <= 26 && isInWedge(tx, ty)) {
-    const mid = (alleghenyY(tx) + monY(tx)) / 2;
-    if (ty < mid) {
-      return r < 0.12 ? { ground: 'grass', tree: r > 0.1 } : { ground: 'grass', building: 'wealthy' };
-    }
-  }
-
-  // Homewood — lower-income, far east between rivers
-  if (tx >= 22 && tx <= 27 && isInWedge(tx, ty)) {
-    const mid = (alleghenyY(tx) + monY(tx)) / 2;
-    if (ty >= mid) {
-      return r < 0.18 ? { ground: 'grass', tree: r > 0.12 } : { ground: 'grass', building: 'lower' };
-    }
-  }
-
   // Outer areas — scattered trees on grass
-  if (r < 0.14) return { ground: 'grass', tree: true };
-  return { ground: 'grass' };
+  if (r < 0.22) return { ground: 'grass', tree: true };
+  return { ground: 'grass', building: tx < 10 ? 'wealthy' : 'middle' };
 }
 
 // ── Colors ───────────────────────────────────────────────────
 // Bright pixel-art palette — no gradients anywhere.
-const SKY_COLOR    = '#87CEEB';
-const GRASS_A      = '#52A83C';
-const GRASS_B      = '#458A32';
-const PARK_COLOR   = '#3FA832';
+const SKY_COLOR    = '#244c48';
+const GRASS_A      = '#718e51';
+const GRASS_B      = '#718e51';
+const PARK_COLOR   = '#71964e';
 const HILL_A       = '#6A9A50';
 const HILL_B       = '#507A3A';
-const WATER_COLOR  = '#1E7EC8';
-const WATER_SHINE  = '#5AB4F8';
-const ROAD_COLOR   = '#5A6475';
+const WATER_COLOR  = '#277f99';
+const WATER_SHINE  = '#91d3d5';
+const ROAD_COLOR   = '#59616a';
 const ROAD_MARK    = 'rgba(255,255,255,0.55)';
-
-// Zone colors [top (lit roof), left face, right face (darkest)]
-const ZONE_PAL: Record<Zone, Array<[string, string, string]>> = {
-  tower: [
-    ['#C8E0F8', '#7AAAC8', '#4878A0'],
-    ['#D0D8E8', '#8898B0', '#607080'],
-    ['#B8D0B0', '#78A070', '#507848'],
-  ],
-  civic: [
-    ['#E8E0C0', '#C0B888', '#A09860'],
-    ['#D8D0B0', '#B0A880', '#908860'],
-  ],
-  wealthy: [
-    ['#E0C880', '#C8A050', '#A87830'],  // cream/gold roof, warm brick
-    ['#D04840', '#A83028', '#882018'],  // red roof, warm cream walls
-    ['#4860B8', '#3040A0', '#203880'],  // blue roof, cream
-  ],
-  middle: [
-    ['#B84838', '#983020', '#781810'],
-    ['#A05840', '#804030', '#602818'],
-    ['#8888A0', '#686880', '#484860'],
-  ],
-  lower: [
-    ['#908878', '#706858', '#504838'],
-    ['#A09080', '#807060', '#584840'],
-    ['#889088', '#688068', '#486048'],
-  ],
-};
-
-const ZONE_FLOORS: Record<Zone, [number, number]> = {
-  tower:  [8, 16],
-  civic:  [4, 7],
-  wealthy:[3, 5],
-  middle: [2, 4],
-  lower:  [1, 3],
-};
 
 // ── Drawing Primitives ───────────────────────────────────────
 function fillPoly(
@@ -238,164 +204,68 @@ function fillPoly(
 
 function diamond(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string) {
   const hw = TW / 2, hh = TH / 2;
-  fillPoly(ctx, [[cx, cy-hh],[cx+hw, cy],[cx, cy+hh],[cx-hw, cy]], color, 'rgba(0,0,0,0.22)');
+  fillPoly(ctx, [[cx, cy-hh],[cx+hw, cy],[cx, cy+hh],[cx-hw, cy]], color);
 }
 
-function buildingBox(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
-  bh: number,
-  topC: string, leftC: string, rightC: string,
-) {
-  const hw = TW / 2, hh = TH / 2;
-  const OL = 'rgba(0,0,0,0.38)';
-  // Left (SW) face
-  fillPoly(ctx, [
-    [cx-hw, cy],
-    [cx,    cy+hh],
-    [cx,    cy+hh-bh],
-    [cx-hw, cy-bh],
-  ], leftC, OL);
-  // Right (SE) face
-  fillPoly(ctx, [
-    [cx,    cy+hh],
-    [cx+hw, cy],
-    [cx+hw, cy-bh],
-    [cx,    cy+hh-bh],
-  ], rightC, OL);
-  // Top face (roof) — lit from upper-left
-  fillPoly(ctx, [
-    [cx-hw, cy-bh],
-    [cx,    cy-hh-bh],
-    [cx+hw, cy-bh],
-    [cx,    cy+hh-bh],
-  ], topC, OL);
+// Atlas cells are isolated transparent illustrations, rendered independently.
+function drawSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, index: number, x: number, y: number) {
+  const sw = atlas.naturalWidth / 4, sh = atlas.naturalHeight / 4;
+  const size = TW * 1.04;
+  ctx.drawImage(atlas, (index % 4) * sw, Math.floor(index / 4) * sh, sw, sh,
+    x - size / 2, y - size + TH * 0.5, size, size);
 }
 
-// Small even-spaced pixel windows on building faces
-function pixelWindows(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
-  bh: number, floors: number,
-  tx: number, ty: number,
-) {
-  const hw = TW / 2, hh = TH / 2;
-  const fh = bh / floors;
-  for (let f = 0; f < Math.min(floors, 10); f++) {
-    const baseY = cy + hh - (f + 0.6) * fh;
-    // 2 windows on left face
-    for (let w = 0; w < 2; w++) {
-      const t = (w + 1) / 3;
-      const wx = cx - hw + t * hw;
-      const wy = baseY - t * hh * 0.45;
-      const lit = rng(tx * 7 + w, ty * 5 + f) > 0.38;
-      ctx.fillStyle = lit ? '#FFE898' : '#263850';
-      ctx.fillRect(Math.round(wx - 2), Math.round(wy - 3), 4, 5);
-    }
-    // 2 windows on right face
-    for (let w = 0; w < 2; w++) {
-      const t = (w + 1) / 3;
-      const wx = cx + t * hw;
-      const wy = baseY + t * hh * 0.45;
-      const lit = rng(tx * 11 + w, ty * 3 + f) > 0.42;
-      ctx.fillStyle = lit ? '#FFE898' : '#263850';
-      ctx.fillRect(Math.round(wx - 2), Math.round(wy - 3), 4, 5);
+// Draw streets in tile-local coordinates so lanes meet at every intersection.
+function drawRoad(ctx: CanvasRenderingContext2D, cx: number, cy: number, tx?: number, ty?: number) {
+  ctx.save();
+  ctx.transform(TW / 2, TH / 2, -TW / 2, TH / 2, cx, cy);
+  ctx.fillStyle = '#b9b7a0';
+  ctx.fillRect(-0.5, -0.5, 1, 1);
+  const roadAt = (dx: number, dy: number) => tx === undefined || ty === undefined || classifyTile(tx + dx, ty + dy).ground === 'road';
+  const alongX = tx !== undefined && (roadAt(-1, 0) || roadAt(1, 0));
+  const alongY = roadAt(0, -1) || roadAt(0, 1);
+  ctx.fillStyle = ROAD_COLOR;
+  if (alongX) ctx.fillRect(-0.5, -0.34, 1, 0.68);
+  if (alongY) ctx.fillRect(-0.34, -0.5, 0.68, 1);
+  ctx.strokeStyle = '#ddd5a5';
+  ctx.lineWidth = 0.018;
+  ctx.setLineDash([0.12, 0.1]);
+  if (!(alongX && alongY)) {
+    ctx.beginPath();
+    if (alongX) { ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); }
+    else { ctx.moveTo(0, -0.5); ctx.lineTo(0, 0.5); }
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#e6dfca';
+    for (let stripe = -0.26; stripe < 0.3; stripe += 0.1) {
+      ctx.fillRect(stripe, -0.46, 0.055, 0.12);
+      ctx.fillRect(stripe, 0.34, 0.055, 0.12);
+      ctx.fillRect(-0.46, stripe, 0.12, 0.055);
+      ctx.fillRect(0.34, stripe, 0.12, 0.055);
     }
   }
-}
-
-// Cathedral of Learning — tall gothic tower with pointed spire
-function drawCathedral(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
-  const hw = TW / 2, hh = TH / 2;
-  const bh = 20 * FLOOR_H; // very tall
-  const OL = 'rgba(0,0,0,0.4)';
-  const topC = '#D8D0A8', leftC = '#B0A878', rightC = '#888850';
-
-  // Main tower body
-  buildingBox(ctx, cx, cy, bh, topC, leftC, rightC);
-  pixelWindows(ctx, cx, cy, bh, 16, CATHEDRAL_TX, CATHEDRAL_TY);
-
-  // Gothic spire on top (triangle above roof)
-  const spireH = 60;
-  const roofY = cy - hh - bh;
-  fillPoly(ctx, [
-    [cx, roofY - spireH],
-    [cx + hw * 0.4, roofY],
-    [cx - hw * 0.4, roofY],
-  ], '#C8C098', OL);
-  // Spire right face (darker)
-  fillPoly(ctx, [
-    [cx, roofY - spireH],
-    [cx + hw * 0.4, roofY],
-    [cx, roofY - 10],
-  ], '#A8A070', OL);
-
-  // Label
-  ctx.save();
-  ctx.font = 'bold 8px monospace';
-  ctx.fillStyle = '#FFD166';
-  ctx.textAlign = 'center';
-  ctx.fillText('CATHEDRAL', cx, roofY - spireH - 6);
   ctx.restore();
 }
 
-// Drop shadow: soft right-down shadow from a building
-function dropShadow(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
-  bh: number,
-) {
-  ctx.save();
-  ctx.globalAlpha = 0.12;
-  ctx.fillStyle = '#000';
-  // Simple parallelogram shadow to lower-right
-  const hw = TW / 2, hh = TH / 2;
-  const ox = 10, oy = 5; // shadow offset
-  fillPoly(ctx, [
-    [cx + ox,      cy + oy - hh],
-    [cx + hw + ox, cy + oy],
-    [cx + ox,      cy + oy + hh],
-    [cx - hw + ox, cy + oy],
-  ], '#000');
-  ctx.restore();
-}
-
-// Lollipop tree — chunky, bright, flat colors
-function drawTree(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number) {
-  const trunkH = Math.round(14 * scale);
-  const cr = Math.round(10 * scale);
-  // Shadow
-  ctx.save(); ctx.globalAlpha = 0.15;
-  ctx.fillStyle = '#000';
-  ctx.beginPath();
-  ctx.ellipse(cx + 4 * scale, cy - 2, cr * 0.7, cr * 0.3, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-  // Trunk
-  ctx.fillStyle = '#7B5230';
-  ctx.fillRect(Math.round(cx - 2 * scale), cy - trunkH, Math.round(4 * scale), trunkH);
-  // Dark canopy base (outline/shadow)
-  ctx.fillStyle = '#1E5C2A';
-  ctx.beginPath(); ctx.arc(cx, cy - trunkH, cr + 1, 0, Math.PI * 2); ctx.fill();
-  // Main canopy
-  ctx.fillStyle = '#2E8B3A';
-  ctx.beginPath(); ctx.arc(cx, cy - trunkH, cr, 0, Math.PI * 2); ctx.fill();
-  // Highlight
-  ctx.fillStyle = '#4CC858';
-  ctx.beginPath(); ctx.arc(cx - Math.round(2 * scale), cy - trunkH - Math.round(2 * scale), Math.round(cr * 0.55), 0, Math.PI * 2); ctx.fill();
-}
-
-// Road tile with dashed centerline
-function drawRoad(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
-  diamond(ctx, cx, cy, ROAD_COLOR);
-  ctx.save();
-  ctx.setLineDash([5, 4]);
-  ctx.strokeStyle = ROAD_MARK;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(cx - TW * 0.33, cy); ctx.lineTo(cx + TW * 0.33, cy);
-  ctx.stroke();
-  ctx.restore();
+// Stone embankments follow the actual river edges.
+function drawQuay(ctx: CanvasRenderingContext2D, tx: number, ty: number, cx: number, cy: number) {
+  const edges = [
+    { dx: -1, dy: 0, a: [-48, 0], b: [0, -24] },
+    { dx: 0, dy: -1, a: [0, -24], b: [48, 0] },
+    { dx: 1, dy: 0, a: [48, 0], b: [0, 24] },
+    { dx: 0, dy: 1, a: [0, 24], b: [-48, 0] },
+  ];
+  for (const edge of edges) {
+    if (!isWater(tx + edge.dx, ty + edge.dy)) continue;
+    const [ax, ay] = edge.a, [bx, by] = edge.b;
+    fillPoly(ctx, [[cx+ax,cy+ay],[cx+bx,cy+by],[cx+bx,cy+by+8],[cx+ax,cy+ay+8]], '#777c72');
+    ctx.strokeStyle = '#d9cfaa'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx+ax,cy+ay); ctx.lineTo(cx+bx,cy+by); ctx.stroke();
+    for (let t = 0; t <= 1; t += 0.2) {
+      const px = cx+ax+(bx-ax)*t, py = cy+ay+(by-ay)*t;
+      ctx.fillStyle = '#414e49'; ctx.fillRect(px-0.8,py-5,1.6,6);
+    }
+  }
 }
 
 // Suspension bridge tile (Three Sisters — yellow towers)
@@ -458,55 +328,13 @@ function drawWater(ctx: CanvasRenderingContext2D, cx: number, cy: number, time: 
   ctx.save(); ctx.globalAlpha = alpha;
   ctx.strokeStyle = WATER_SHINE; ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(cx - TW * 0.3, cy - 3); ctx.lineTo(cx + TW * 0.3, cy - 3);
+  for (let i = 0; i < 4; i++) {
+    const offset = Math.sin(time * 0.5 + i + cx) * 4;
+    const ry = cy - 12 + i * 7;
+    ctx.moveTo(cx - 12 + offset, ry); ctx.lineTo(cx + 8 + offset, ry);
+  }
   ctx.stroke();
   ctx.restore();
-}
-
-// Hillside tile (elevated, darker green for slope)
-function drawHillside(ctx: CanvasRenderingContext2D, cx: number, cy: number, elev: number) {
-  const lift = elev * 14;
-  const color = elev > 2 ? HILL_B : HILL_A;
-  // Draw elevated ground diamond
-  const hw = TW / 2, hh = TH / 2;
-  const OL = 'rgba(0,0,0,0.25)';
-  // Slope face (south-facing cliff side)
-  fillPoly(ctx, [
-    [cx - hw, cy],
-    [cx,      cy + hh],
-    [cx,      cy + hh - lift],
-    [cx - hw, cy - lift],
-  ], '#3A6828', OL);
-  fillPoly(ctx, [
-    [cx,      cy + hh],
-    [cx + hw, cy],
-    [cx + hw, cy - lift],
-    [cx,      cy + hh - lift],
-  ], '#305820', OL);
-  // Top surface
-  fillPoly(ctx, [
-    [cx,    cy-hh-lift],
-    [cx+hw, cy-lift],
-    [cx,    cy+hh-lift],
-    [cx-hw, cy-lift],
-  ], color, OL);
-}
-
-// Pixelated blocky cloud shape (no smooth curves)
-function drawCloud(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  ctx.fillStyle = '#F8FCFF';
-  // Base rectangle
-  ctx.fillRect(x, y, w, h);
-  // Bumps on top (blocky 3x3 squares)
-  const bumps = Math.floor(w / 14);
-  for (let i = 0; i < bumps; i++) {
-    ctx.fillRect(x + 4 + i * 14, y - 6, 10, 8);
-  }
-  // Round-off bottom corners a tiny bit
-  ctx.clearRect(x, y + h - 2, 3, 2);
-  ctx.clearRect(x + w - 3, y + h - 2, 3, 2);
-  ctx.fillStyle = 'rgba(200,220,240,0.5)';
-  ctx.fillRect(x + 2, y + h - 2, w - 4, 2); // soft underside
 }
 
 // ── Main Component ───────────────────────────────────────────
@@ -519,8 +347,22 @@ export default function CityCanvas() {
   const setMapViewport         = useCityPulseStore(s => s.setMapViewport);
   const storeViewport          = useCityPulseStore(s => s.ui.mapViewport);
 
-  const [zoom, setZoom]               = useState(1);
-  const [pan, setPan]                 = useState({ x: 0, y: 0 });
+  const zoom = storeViewport.zoom;
+  const pan = storeViewport;
+  const setZoom = (value: number | ((z: number) => number)) => setMapViewport({ zoom: typeof value === 'function' ? value(zoom) : value });
+  const setPan = (value: { x: number; y: number }) => setMapViewport(value);
+  const [atlas, setAtlas] = useState<HTMLImageElement | null>(null);
+  const [assetError, setAssetError] = useState(false);
+  const policies = useCityPulseStore(s => s.policies);
+  const turn = useCityPulseStore(s => s.city.turn);
+  const isPlaying = useCityPulseStore(s => s.ui.isPlaying);
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setAtlas(img);
+    img.onerror = () => setAssetError(true);
+    img.src = '/sprites/city-atlas.png';
+    return () => { img.onload = null; img.onerror = null; };
+  }, []);
   const [isDragging, setIsDragging]   = useState(false);
   const [dragStart, setDragStart]     = useState({ x: 0, y: 0 });
   const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
@@ -528,7 +370,7 @@ export default function CityCanvas() {
   const [mounted, setMounted]         = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { setMapViewport({ x: pan.x, y: pan.y, zoom }); }, [pan, zoom, setMapViewport]);
+
 
   // Center on neighborhood selection
   useEffect(() => {
@@ -539,19 +381,14 @@ export default function CityCanvas() {
       homewood:       tileToScreen(24, 17),
     };
     const c = centers[selectedNeighborhoodId];
-    if (c) { setPan({ x: -c.x, y: -c.y }); setZoom(1.3); }
-  }, [selectedNeighborhoodId]);
-
-  useEffect(() => {
-    if (storeViewport && Math.abs(storeViewport.x - pan.x) > 40)
-      setPan({ x: storeViewport.x, y: storeViewport.y });
-  }, [storeViewport, pan.x]);
+    if (c) setMapViewport({ x: -c.x * 1.3, y: -c.y * 1.3, zoom: 1.3 });
+  }, [selectedNeighborhoodId, setMapViewport]);
 
   // ── Render loop ──────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container) return;
+    if (!canvas || !container || !atlas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -569,40 +406,7 @@ export default function CityCanvas() {
     const ro = new ResizeObserver(updateSize);
     ro.observe(container);
 
-    function render() {
-      if (!ctx || !canvas) return;
-      const time = (performance.now() - startT) * 0.001;
-      const cw = canvas.width, ch = canvas.height;
-      const dpr = window.devicePixelRatio || 1;
-
-      ctx.clearRect(0, 0, cw, ch);
-
-      // ── Sky — flat pixel-art solid fill (NO gradient) ──────
-      ctx.fillStyle = SKY_COLOR;
-      ctx.fillRect(0, 0, cw, ch);
-
-      // Blocky pixel-art clouds (rectangles, not smooth ellipses)
-      ([
-        [0.10, 0.07, 90, 20],
-        [0.50, 0.04, 120, 24],
-        [0.78, 0.08, 72, 18],
-        [0.32, 0.12, 56, 16],
-      ] as [number, number, number, number][]).forEach(([rx, ry, w, h]) => {
-        drawCloud(
-          ctx,
-          rx * cw + Math.sin(time * 0.035 + rx * 8) * 12,
-          ry * ch,
-          w, h,
-        );
-      });
-
-      // ── Camera transform ────────────────────────────────────
-      ctx.save();
-      ctx.translate(cw / 2 + pan.x * dpr, ch / 2 + pan.y * dpr);
-      ctx.scale(zoom * dpr, zoom * dpr);
-      ctx.imageSmoothingEnabled = false;
-
-      // Precompute tiles once
+    // Static geography is shared by every animation frame.
       const tiles: Array<{
         tx: number; ty: number;
         cx: number; cy: number;
@@ -615,6 +419,27 @@ export default function CityCanvas() {
         }
       }
 
+    tiles.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
+
+    function render() {
+      if (!ctx || !canvas || !atlas) return;
+      const time = (performance.now() - startT) * 0.001;
+      const cw = canvas.width, ch = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
+
+      ctx.clearRect(0, 0, cw, ch);
+
+      // ── Sky — flat pixel-art solid fill (NO gradient) ──────
+      ctx.fillStyle = SKY_COLOR;
+      ctx.fillRect(0, 0, cw, ch);
+
+      // ── Camera transform ────────────────────────────────────
+      ctx.save();
+      ctx.translate(cw / 2 + pan.x * dpr, ch / 2 + pan.y * dpr);
+      ctx.scale(zoom * dpr, zoom * dpr);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
       // ── Pass 1: Ground tiles ────────────────────────────────
       for (const { tx, ty, cx, cy, info } of tiles) {
         switch (info.ground) {
@@ -622,15 +447,13 @@ export default function CityCanvas() {
             drawWater(ctx, cx, cy, time);
             break;
           case 'road':
-            if      (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
-            else if (info.bridge === 'truss')      drawTrussBridge(ctx, cx, cy);
-            else                                   drawRoad(ctx, cx, cy);
+            drawRoad(ctx, cx, cy, info.bridge ? undefined : tx, info.bridge ? undefined : ty);
             break;
           case 'park':
             diamond(ctx, cx, cy, PARK_COLOR);
             break;
           case 'hillside':
-            drawHillside(ctx, cx, cy, info.hillElevation ?? 0);
+            diamond(ctx, cx, cy, HILL_A);
             break;
           default: {
             const shade = rng(tx, ty) > 0.5 ? GRASS_A : GRASS_B;
@@ -640,50 +463,51 @@ export default function CityCanvas() {
         }
       }
 
-      // ── Pass 2: Buildings, trees, special structures ────────
       for (const { tx, ty, cx, cy, info } of tiles) {
-        // Cathedral of Learning — special, drawn before other buildings
-        if (info.cathedral) {
-          drawCathedral(ctx, cx, cy);
-          continue;
-        }
+        if (info.ground !== 'water' && !info.bridge) drawQuay(ctx, tx, ty, cx, cy);
+      }
 
-        // Trees
-        if (info.tree && !info.building) {
-          const scale = 0.65 + rng(tx * 3, ty * 3) * 0.55;
-          drawTree(ctx, cx, cy - TH / 2, scale);
-          continue;
-        }
-
-        // Park trees
-        if (info.ground === 'park') {
-          if (rng(tx, ty) > 0.25) {
-            const scale = 0.55 + rng(tx * 5, ty * 7) * 0.65;
-            const ox = (rng(tx, ty + 1) - 0.5) * 22;
-            drawTree(ctx, cx + ox, cy - TH / 2, scale);
+      // Painter's order prevents distant buildings covering nearer ones.
+      for (const { tx, ty, cx, cy, info } of tiles) {
+        if (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
+        else if (info.bridge === 'truss') drawTrussBridge(ctx, cx, cy);
+        let sprite: number | null = null;
+        if (info.cathedral) sprite = 14;
+        else if (info.tree) sprite = 12;
+        else if (info.ground === 'park') sprite = (tx + ty) % 3 === 0 ? 10 : 12;
+        else if (info.building) {
+          const options = { wealthy: [1, 5, 7], middle: [0, 2, 3, 6], lower: [0, 4, 6], tower: [4, 5, 8], civic: [7, 8, 9, 14] };
+          const choices = options[info.building];
+          sprite = choices[Math.floor(rng(tx, ty) * choices.length)];
+          const centers = [{ id: 'shadyside', x: 22, y: 13 }, { id: 'lawrenceville', x: 19, y: 7 }, { id: 'homewood', x: 24, y: 17 }];
+          const neighborhood = centers.sort((a, b) => Math.hypot(tx-a.x, ty-a.y) - Math.hypot(tx-b.x, ty-b.y))[0].id;
+          const policy = policies.find(p => p.status === 'active' &&
+            ['housing', 'environment', 'transit'].includes(p.category) &&
+            (!p.affectedNeighborhoods.length || p.affectedNeighborhoods.includes(neighborhood)));
+          // Representative project lots; no invented numerical simulation effects.
+          if (policy && (tx + ty) % 7 === 0) {
+            sprite = turn <= (policy.turnEnacted ?? turn) ? 11 :
+              policy.category === 'environment' ? 13 : policy.category === 'transit' ? 15 : 4;
           }
-          continue;
         }
-
-        if (!info.building) continue;
-
-        const zone = info.building;
-        const r    = rng(tx, ty);
-        const [lo, hi] = ZONE_FLOORS[zone];
-        const floors   = lo + Math.round(r * (hi - lo));
-
-        // Hillside buildings are shorter
-        const floorMult = info.ground === 'hillside' ? 0.65 : 1;
-        const bh = Math.round(floors * FLOOR_H * floorMult);
-
-        const pal = ZONE_PAL[zone];
-        const ci  = Math.floor(rng(tx + 1, ty) * pal.length);
-        const [topC, leftC, rightC] = pal[ci];
-
-        // Drop shadow behind building
-        dropShadow(ctx, cx, cy, bh);
-        buildingBox(ctx, cx, cy, bh, topC, leftC, rightC);
-        if (zoom > 0.55) pixelWindows(ctx, cx, cy, bh, floors, tx, ty);
+        if (sprite !== null) drawSprite(ctx, atlas, sprite, cx, cy);
+        if (info.ground === 'road' && !info.bridge && (tx + ty) % 3 === 0) {
+          const lx = cx - 34, ly = cy;
+          ctx.fillStyle = '#344b47'; ctx.fillRect(lx, ly - 18, 2, 20);
+          ctx.fillStyle = '#f3dca0'; ctx.fillRect(lx - 2, ly - 20, 6, 4);
+          ctx.fillStyle = '#293d45'; ctx.fillRect(cx + 31, cy - 2, 2, 5);
+          ctx.fillStyle = '#ce7454'; ctx.fillRect(cx + 30, cy - 5, 4, 4);
+          ctx.fillStyle = '#e8bc8d'; ctx.fillRect(cx + 31, cy - 7, 2, 2);
+        }
+        if (info.ground === 'road' && !info.bridge && (tx + ty) % 5 === 0) {
+          const progress = isPlaying ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
+          const alongX = classifyTile(tx + 1, ty).ground === 'road' || classifyTile(tx - 1, ty).ground === 'road';
+          const vx = cx + (progress - 0.5) * TW * (alongX ? 1 : -1);
+          const vy = cy + (progress - 0.5) * TH;
+          ctx.fillStyle = ['#f2ca69', '#cf6654', '#d9e9e9'][tx % 3];
+          fillPoly(ctx, [[vx-7,vy-3],[vx,vy-6],[vx+9,vy],[vx+2,vy+4]], ctx.fillStyle);
+          ctx.fillStyle = '#263e50'; ctx.fillRect(vx-2, vy-3, 5, 3);
+        }
       }
 
       ctx.restore();
@@ -692,11 +516,11 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [pan, zoom]);
+  }, [pan.x, pan.y, zoom, atlas, policies, turn, isPlaying]);
 
   // ── Input handlers ───────────────────────────────────────────
   const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.hud-ctrl')) return;
+    if ((e.target as HTMLElement).closest('.hud-ctrl, button, [data-map-badge]')) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
   };
@@ -711,7 +535,7 @@ export default function CityCanvas() {
   };
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
   const handleZoomOut = () => setZoom(z => Math.max(0.4, z * 0.8));
-  const handleReset   = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+  const handleReset   = () => { setMapViewport({ x: -260, y: -90, zoom: 0.85 }); };
 
   // ── Neighborhood badge definitions ───────────────────────────
   // Tile centers match classifyTile zone assignments above
@@ -754,6 +578,9 @@ export default function CityCanvas() {
         className="absolute inset-0 w-full h-full block pointer-events-none"
       />
 
+      {!atlas && <div className="absolute inset-0 grid place-items-center text-slate-200 bg-slate-900" role="status">
+        {assetError ? 'City artwork could not load. Refresh to try again.' : 'Loading your illustrated city…'}
+      </div>}
       {/* Neighborhood badges — only rendered client-side (avoids hydration mismatch) */}
       {mounted && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -767,6 +594,10 @@ export default function CityCanvas() {
             const isHovered  = hoveredBadge === b.id;
             return (
               <div
+                data-map-badge
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.action(); } }}
                 key={b.id}
                 className="absolute pointer-events-auto transition-transform hover:scale-105 active:scale-95 cursor-pointer z-10"
                 style={{ left: sx, top: sy, transform: 'translate(-50%, -100%)' }}
