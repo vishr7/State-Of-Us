@@ -8,6 +8,7 @@
 'use client';
 
 import { create } from 'zustand';
+import { personaResidents } from './personas';
 import {
   GameState, City, Neighborhood, Resident, AgentGroup,
   Policy, Bridge, GameEvent, SimulationSnapshot, QueuedEffect,
@@ -74,7 +75,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   // Initial game state
   city: initialCity,
   neighborhoods: initialNeighborhoods,
-  residents: initialResidents,
+  residents: personaResidents,
   agentGroups: initialAgentGroups,
   policies: initialPolicies,
   bridges: initialBridges,

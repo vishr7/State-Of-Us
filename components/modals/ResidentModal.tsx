@@ -64,6 +64,16 @@ export default function ResidentModal() {
           >✕</button>
         </div>
 
+        {resident.persona && <section className="rounded-xl p-3 mb-4 text-xs text-slate-300 border border-slate-700 bg-slate-800/50">
+          <h3 className="font-semibold text-amber-200 mb-2">Synthetic persona · NVIDIA Nemotron</h3>
+          <p className="leading-relaxed">{resident.persona.biography}</p>
+          <p className="mt-2"><strong>Education:</strong> {resident.persona.education.replace(/_/g, ' ')}</p>
+          <p className="mt-1"><strong>Source location:</strong> {resident.persona.sourceCity}, {resident.persona.sourceState}</p>
+          <p className="mt-2"><strong>Interests:</strong> {resident.persona.interests.join(' · ') || 'Not provided'}</p>
+          <p className="mt-2"><strong>Skills:</strong> {resident.persona.skills.join(' · ') || 'Not provided'}</p>
+          <p className="mt-3 text-slate-400">Adapted for this city. Finances, housing, household size, commute, sentiment, dialogue, and appearance below are game-generated; they are not dataset facts.</p>
+          <a href="https://huggingface.co/datasets/nvidia/Nemotron-Personas-USA" target="_blank" rel="noreferrer" className="inline-block mt-2 text-blue-300 underline">Dataset attribution · CC BY 4.0</a>
+        </section>}
         {/* Bio stats */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           {[
@@ -113,7 +123,7 @@ export default function ResidentModal() {
           <div className="rounded-xl p-4 mb-4" style={{ background: '#0D2035', border: '1px solid #1E3050' }}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-bold" style={{ color: '#94A3B8' }}>
-                🤖 AI REASONING — "{samplePolicy.name}"
+                SIMULATED REACTION — "{samplePolicy.name}"
               </h3>
               <span
                 className="badge"
