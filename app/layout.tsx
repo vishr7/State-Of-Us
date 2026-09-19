@@ -16,11 +16,11 @@ const pressStart2P = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: 'CityPulse — Pittsburgh City Management',
+  title: 'State of US — Pittsburgh City Management',
   description: 'AI-powered city management simulation set in Pittsburgh, PA. Shape your city through housing, transit, and tax policy.',
   keywords: ['Pittsburgh', 'city management', 'simulation', 'AI', 'urban policy'],
   openGraph: {
-    title: 'CityPulse — Pittsburgh',
+    title: 'State of US — Pittsburgh',
     description: 'People. Policies. A Brighter Tomorrow.',
     type: 'website',
   },

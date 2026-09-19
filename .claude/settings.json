@@ -28,7 +28,10 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('package.json OK'\\)\")",
       "Bash(npm test *)",
       "Bash(npm run *)",
-      "Bash(PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c \"select 1\")"
+      "Bash(PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c \"select 1\")",
+      "Bash(echo \"exit $?\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('package-lock.json','utf8'\\)\\); console.log\\('both JSON OK'\\)\")",
+      "Bash(grep -n \"^\\\\.next\\\\|/\\\\.next\" .gitignore)"
     ],
     "additionalDirectories": [
       "\\tmp"

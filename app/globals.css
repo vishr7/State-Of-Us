@@ -209,3 +209,41 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Policy shelf: content-sized cards keep decisions and actions in view. */
+.policy-panel { flex-shrink: 0; display: flex; flex-direction: column; max-height: 45vh; background: #0b1524; border-top: 1px solid #29384c; box-shadow: 0 -8px 28px #02061726; }
+.policy-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 20px; flex-shrink: 0; }
+.policy-panel-symbol { color: #9eb4cf; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid #334155; border-radius: 7px; font-size: 20px; }
+.policy-category { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #9bacc2; border-left: 1px solid #334155; padding-left: 12px; }
+.policy-browse-button { display: flex; align-items: center; gap: 10px; color: #afcfff; font-size: 12px; font-weight: 500; padding: 7px 10px; border-radius: 7px; cursor: pointer; }
+.policy-browse-button:hover { background: #17283f; color: #e0ecff; }
+.policy-collapse-button { display: grid; place-items: center; height: 30px; width: 30px; border: 1px solid #2c3b50; border-radius: 8px; color: #a8b7ca; cursor: pointer; }
+.policy-collapse-button:hover { background: #1b2b40; }
+.policy-panel-cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(300px, 1fr); gap: 12px; overflow: auto; min-height: 0; padding: 1px 20px 14px; scrollbar-width: thin; scrollbar-color: #40536b transparent; scroll-snap-type: x proximity; }
+.policy-proposal { min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 13px 15px 11px; border: 1px solid #2b3c52; border-radius: 12px; background: linear-gradient(125deg, #17263a, #132032); scroll-snap-align: start; transition: border-color 150ms, background 150ms; }
+.policy-proposal:hover { border-color: #506785; }
+.policy-proposal-icon { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid; border-radius: 10px; flex-shrink: 0; font-size: 17px; }
+.policy-proposal-title { color: #edf2f8; font-size: 14px; font-weight: 600; line-height: 19px; min-height: 38px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.policy-proposal-description { color: #91a3ba; font-size: 12px; line-height: 16px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.policy-effects { min-height: 34px; display: flex; flex-direction: column; gap: 4px; }
+.policy-effects li { display: flex; align-items: center; gap: 7px; font-size: 12px; line-height: 16px; min-width: 0; }
+.policy-effect-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+.policy-effect-delay { margin-left: auto; color: #8496ae; font-size: 10px; flex-shrink: 0; }
+.policy-proposal-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #2b3b50; padding-top: 9px; margin-top: auto; }
+.policy-enact-button { display: flex; align-items: center; gap: 14px; white-space: nowrap; flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 9px 12px; color: #f0f6ff; background: #285dba; border: 1px solid #5685d3; border-radius: 7px; cursor: pointer; transition: background 150ms; }
+.policy-enact-button:hover { background: #3472d6; }
+.policy-panel button:focus-visible { outline: 2px solid #bfdbfe; outline-offset: 3px; }
+.policy-empty { min-height: 130px; display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px dashed #334155; border-radius: 12px; }
+@media (max-width: 700px) { .policy-category { display: none; } .policy-panel-header { padding: 10px 12px; } .policy-panel-cards { padding-left: 12px; padding-right: 12px; grid-auto-columns: minmax(285px, 85vw); } .policy-panel-symbol { display: none; } }
+
+/* State of US: warm civic wordmark and an architectural city seal. */
+.state-brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; padding-right: 12px; }
+.state-brand-emblem { width: 44px; height: 46px; flex-shrink: 0; display: grid; place-items: center; filter: drop-shadow(0 3px 9px #dfae4920); }
+.state-brand-copy { display: flex; flex-direction: column; gap: 5px; }
+.state-brand-wordmark { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; font-size: 24px; line-height: 25px; font-weight: 800; letter-spacing: -1.1px; color: #f4f0e7; }
+.state-brand-of { font-family: Georgia, 'Times New Roman', serif; font-size: 19px; font-weight: 400; font-style: italic; color: #aebbc8; letter-spacing: -0.6px; margin: 0 1px; }
+.state-brand-us { color: #f1c477; letter-spacing: -0.8px; }
+.state-brand-period { color: #f8e5c0; }
+.state-brand-tagline { display: flex; align-items: center; gap: 6px; color: #91a1b5; font-size: 9px; font-weight: 500; letter-spacing: 0.65px; line-height: 12px; }
+.state-brand-line { width: 13px; height: 1px; background: #d5a854; opacity: 0.8; }
+@media (max-width: 1200px) { .state-brand { gap: 7px; padding-right: 0; } .state-brand-wordmark { font-size: 21px; } .state-brand-tagline { font-size: 8px; letter-spacing: 0.2px; } }

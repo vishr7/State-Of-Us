@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { createWalkers, drawWalker, walkerPosition, hitTestWalker } from './residentWalkers';
 import { useCityPulseStore } from '@/lib/store';
 
 // ============================================================
@@ -185,6 +186,13 @@ function drawWater(ctx: CanvasRenderingContext2D, cx: number, cy: number, time: 
 export default function CityCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const residents = useCityPulseStore(s => s.residents);
+  const selectResident = useCityPulseStore(s => s.selectResident);
+  const walkers = useMemo(() => createWalkers(residents), [residents]);
+  const walkingTimeRef = useRef(0);
+  const hoveredWalkerRef = useRef<string | null>(null);
+  const clickStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const walkerHitsRef = useRef<Array<{ id: string; x: number; y: number }>>([]);
 
   const selectedNeighborhoodId = useCityPulseStore(s => s.ui.selectedNeighborhoodId);
   const selectNeighborhood     = useCityPulseStore(s => s.selectNeighborhood);
@@ -282,7 +290,11 @@ export default function CityCanvas() {
     scene.width = GW * TW + 192;
     scene.height = GH * TH + 320;
     const sceneCtx = scene.getContext('2d');
-    if (!sceneCtx) { ro.disconnect(); return; }
+    const foreground = document.createElement('canvas');
+    foreground.width = scene.width; foreground.height = scene.height;
+    const foregroundCtx = foreground.getContext('2d');
+    if (!sceneCtx || !foregroundCtx) { ro.disconnect(); return; }
+    foregroundCtx.translate(scene.width / 2, scene.height / 2);
     {
       const ctx = sceneCtx;
       ctx.translate(scene.width / 2, scene.height / 2);
@@ -338,17 +350,19 @@ export default function CityCanvas() {
               policy.category === 'environment' ? 13 : policy.category === 'transit' ? 15 : 4;
           }
         }
-        if (sprite !== null) drawSprite(ctx, atlas, sprite, cx, cy);
+        if (sprite !== null) {
+          drawSprite(ctx, atlas, sprite, cx, cy);
+          drawSprite(foregroundCtx, atlas, sprite, cx, cy);
+        }
         if (info.ground === 'road' && !info.bridge && (tx + ty) % 3 === 0) {
           const lx = cx - 34, ly = cy;
           ctx.fillStyle = '#344b47'; ctx.fillRect(lx, ly - 18, 2, 20);
           ctx.fillStyle = '#f3dca0'; ctx.fillRect(lx - 2, ly - 20, 6, 4);
-          ctx.fillStyle = '#293d45'; ctx.fillRect(cx + 31, cy - 2, 2, 5);
-          ctx.fillStyle = '#ce7454'; ctx.fillRect(cx + 30, cy - 5, 4, 4);
-          ctx.fillStyle = '#e8bc8d'; ctx.fillRect(cx + 31, cy - 7, 2, 2);
+
         }
       }
     }
+    const foregroundPixels = foregroundCtx.getImageData(0, 0, foreground.width, foreground.height).data;
     const trafficTiles = tiles.filter(t => t.info.ground === 'road' && !t.info.bridge && (t.tx + t.ty) % 5 === 0).map(t => ({ ...t, alongX: classifyTile(t.tx + 1, t.ty).ground === 'road' || classifyTile(t.tx - 1, t.ty).ground === 'road' }));
     const openWater = tiles.filter(t => t.info.ground === 'water' && [[-1, 0], [1, 0], [0, -1], [0, 1]].every(([dx, dy]) => classifyTile(t.tx + dx, t.ty + dy).ground === 'water'));
     const badgeWorld = {
@@ -364,6 +378,7 @@ export default function CityCanvas() {
       const dt = Math.min(32, now - previousTime);
       previousTime = now;
       const time = (now - startT) * 0.001;
+      if (isPlaying) walkingTimeRef.current += dt / 1000;
       const camera = cameraRef.current;
       const velocity = velocityRef.current;
       if (!dragRef.current && (velocity.x || velocity.y)) {
@@ -404,6 +419,31 @@ export default function CityCanvas() {
           ctx.fillStyle = '#263e50'; ctx.fillRect(vx-2, vy-3, 5, 3);
         }
       }
+      const walkingTime = walkingTimeRef.current;
+      const positions = walkers.map(walker => ({ walker, position: walkerPosition(walker, walkingTime) })).sort((a,b) => a.position.y-b.position.y);
+      walkerHitsRef.current = positions.filter(({position}) => {
+        const x = Math.round(position.x + foreground.width/2), y = Math.round(position.y-7 + foreground.height/2);
+        return x >= 0 && y >= 0 && x < foreground.width && y < foreground.height && foregroundPixels[(y*foreground.width+x)*4+3] < 128;
+      }).map(({walker,position}) => ({id:walker.resident.id, x:cw/dpr/2 + camera.x + position.x*camera.zoom, y:ch/dpr/2 + camera.y + (position.y-7)*camera.zoom}));
+      for (const {walker, position} of positions) {
+        drawWalker(ctx, walker, walkingTime);
+        if (hoveredWalkerRef.current === walker.resident.id) {
+          ctx.strokeStyle = '#f6d28e'; ctx.lineWidth = 1.5 / camera.zoom;
+          ctx.beginPath(); ctx.ellipse(position.x,position.y+1,7,3,0,0,Math.PI*2); ctx.stroke();
+        }
+      }
+      // Transparent building/tree silhouettes occlude pedestrians behind them.
+      ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
+      const hovered = walkerHitsRef.current.some(hit => hit.id === hoveredWalkerRef.current) ? positions.find(item => item.walker.resident.id === hoveredWalkerRef.current) : undefined;
+      if (hovered) {
+        ctx.save(); ctx.translate(hovered.position.x,hovered.position.y-18); ctx.scale(1/camera.zoom,1/camera.zoom);
+        ctx.font = '12px system-ui';
+        const label = `${hovered.walker.resident.name} · ${hovered.walker.resident.age}`;
+        const width = ctx.measureText(label).width+20;
+        ctx.fillStyle='#102033';ctx.fillRect(-width/2,-26,width,24);
+        ctx.strokeStyle='#d2b77f';ctx.lineWidth=1;ctx.strokeRect(-width/2,-26,width,24);
+        ctx.fillStyle='#f5e9d2';ctx.textAlign='center';ctx.fillText(label,0,-10);ctx.restore();
+      }
       for (const [id, position] of Object.entries(badgeWorld)) {
         const badge = badgeRefs.current.get(id);
         if (!badge) continue;
@@ -416,24 +456,33 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, policies, turn, isPlaying, setMapViewport]);
+  }, [atlas, policies, turn, isPlaying, setMapViewport, walkers]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0 || !e.isPrimary || (e.target as HTMLElement).closest('.hud-ctrl, button, [data-map-badge]')) return;
+    if (e.button !== 0 || !e.isPrimary || (e.target as HTMLElement).closest('.hud-ctrl, button, select, [data-map-badge]')) return;
     if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
     velocityRef.current = { x: 0, y: 0 };
     dragRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY, time: performance.now() };
+    clickStartRef.current = { x: e.clientX, y: e.clientY, moved: false };
     e.currentTarget.setPointerCapture(e.pointerId);
     e.currentTarget.style.cursor = 'grabbing';
   };
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
-    if (!drag || drag.id !== e.pointerId) return;
+    if (!drag) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const overControl = (e.target as HTMLElement).closest('.hud-ctrl, button, select, [data-map-badge]');
+      hoveredWalkerRef.current = overControl ? null : hitTestWalker(walkerHitsRef.current,e.clientX-rect.left,e.clientY-rect.top);
+      e.currentTarget.style.cursor = hoveredWalkerRef.current ? 'pointer' : 'grab';
+      return;
+    }
+    if (drag.id !== e.pointerId) return;
     const now = performance.now();
     const dt = Math.max(8, now - drag.time);
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (clickStartRef.current && Math.hypot(e.clientX-clickStartRef.current.x,e.clientY-clickStartRef.current.y)>5) clickStartRef.current.moved = true;
     cameraRef.current.x += dx;
     cameraRef.current.y += dy;
     velocityRef.current = { x: Math.max(-0.6, Math.min(0.6, dx / dt)), y: Math.max(-0.6, Math.min(0.6, dy / dt)) };
@@ -443,6 +492,14 @@ export default function CityCanvas() {
     const drag = dragRef.current;
     if (!drag || drag.id !== e.pointerId) return;
     if (e.type !== 'pointerup' || performance.now() - drag.time > 80) velocityRef.current = { x: 0, y: 0 };
+    if (e.type === 'pointerup' && clickStartRef.current && !clickStartRef.current.moved) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX-rect.left, y = e.clientY-rect.top;
+      const nearest = hitTestWalker(walkerHitsRef.current, x, y);
+      if (nearest) selectResident(nearest);
+      velocityRef.current = {x:0,y:0};
+    }
+    clickStartRef.current = null;
     dragRef.current = null;
     e.currentTarget.style.cursor = 'grab';
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
@@ -517,6 +574,7 @@ export default function CityCanvas() {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerLeave={() => { hoveredWalkerRef.current = null; }}
       onPointerCancel={handlePointerUp}
       onLostPointerCapture={handlePointerUp}
     >
@@ -576,6 +634,13 @@ export default function CityCanvas() {
         </div>
       )}
 
+      <div className="hud-ctrl absolute top-3 right-3 z-20 rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-xs text-slate-200">
+        <label htmlFor="map-resident-picker" className="block mb-1 text-[10px] text-slate-400">{walkers.length} synthetic residents · {isPlaying ? 'Walking' : 'Paused — press Play'}</label>
+        <select id="map-resident-picker" aria-label="Explore a resident" value="" onChange={e => selectResident(e.target.value)} className="w-44 bg-slate-900 text-slate-200 outline-none">
+          <option value="" disabled>Explore a resident…</option>
+          {residents.map(resident => <option key={resident.id} value={resident.id}>{resident.name} · {resident.age}</option>)}
+        </select>
+      </div>
       {/* HUD controls */}
       <div className="hud-ctrl absolute bottom-4 right-4 flex items-center gap-1.5 z-20">
         {([

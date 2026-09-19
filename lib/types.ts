@@ -92,6 +92,16 @@ export interface Neighborhood {
 // ------ Agent / Resident ------------------------------------
 
 export interface Resident {
+  persona?: {
+    dataset: string;
+    uuid: string;
+    education: string;
+    sourceCity: string;
+    sourceState: string;
+    biography: string;
+    interests: string[];
+    skills: string[];
+  };
   id: string;
   name: string;
   age: number;

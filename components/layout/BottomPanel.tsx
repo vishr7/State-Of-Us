@@ -1,90 +1,43 @@
 'use client';
 
+import { useState } from 'react';
 import { useCityPulseStore } from '@/lib/store';
-import { Policy } from '@/lib/types';
 import PolicyCard from '../ui/PolicyCard';
 
-// ============================================================
-// BottomPanel — full-width proposed policies strip
-// ============================================================
-
 export default function BottomPanel() {
+  const [collapsed, setCollapsed] = useState(false);
   const activeCategoryId = useCityPulseStore(s => s.ui.activeCategoryId);
   const policies = useCityPulseStore(s => s.policies);
   const setPolicyBrowser = useCityPulseStore(s => s.setPolicyBrowser);
-
-  // Show proposed policies for the active category (first 3)
-  const proposed = policies.filter(
-    p => p.status === 'proposed' && p.category === activeCategoryId
-  ).slice(0, 3);
-
-  // Fall back to any proposed if none for this category
-  const displayed = proposed.length > 0
-    ? proposed
-    : policies.filter(p => p.status === 'proposed').slice(0, 3);
+  const proposed = policies.filter(p => p.status === 'proposed' && p.category === activeCategoryId);
+  const displayed = proposed.slice(0, 3);
 
   return (
-    <div
-      className="flex flex-col flex-shrink-0"
-      style={{
-        height: 150,
-        background: '#0A1628',
-        borderTop: '1px solid #1E3050',
-        padding: '8px 12px 8px',
-      }}
-    >
-      {/* Header row */}
-      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-        <DocIcon />
-        <span className="text-sm font-bold" style={{ color: '#F0F4FA' }}>
-          Proposed Policies
-        </span>
-        <span className="text-xs ml-1" style={{ color: '#64748B' }}>
-          Choose a policy to shape your city. Each decision affects your budget, residents, and the future.
-        </span>
-        <div className="ml-auto flex-shrink-0">
-          <button
-            onClick={() => setPolicyBrowser(true)}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-            style={{
-              color: '#3B82F6',
-              background: '#3B82F620',
-              border: '1px solid #3B82F640',
-            }}
-          >
-            See All Policies →
+    <section aria-labelledby="policy-panel-heading" className="policy-panel">
+      <header className="policy-panel-header">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="policy-panel-symbol" aria-hidden="true">≡</span>
+          <h2 id="policy-panel-heading" className="text-sm font-semibold text-slate-100 whitespace-nowrap">Proposed policies</h2>
+          <span className="policy-category"><span className="capitalize">{activeCategoryId}</span><span className="text-slate-500">/</span>{proposed.length} available</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => setPolicyBrowser(true)} className="policy-browse-button">Browse all policies <span aria-hidden="true">↗</span></button>
+          <button onClick={() => setCollapsed(value => !value)} aria-expanded={!collapsed} aria-controls="proposed-policy-cards" aria-label={collapsed ? 'Expand proposed policies' : 'Collapse proposed policies'} className="policy-collapse-button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: collapsed ? 'rotate(180deg)' : undefined }}><path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         </div>
-      </div>
-
-      {/* Policy cards row */}
-      <div
-        className="flex gap-2 overflow-x-auto flex-1"
-        style={{ scrollbarWidth: 'thin' }}
-      >
-        {displayed.length === 0 ? (
-          <div
-            className="flex items-center justify-center flex-1 rounded-xl text-sm"
-            style={{ background: '#162236', border: '1px solid #1E3050', color: '#64748B' }}
-          >
-            All policies in this category have been enacted.
-          </div>
-        ) : (
-          displayed.map(policy => (
-            <PolicyCard key={policy.id} policy={policy} />
-          ))
-        )}
-      </div>
-    </div>
+      </header>
+      {!collapsed && (
+        <div id="proposed-policy-cards" className="policy-panel-cards">
+          {displayed.length ? displayed.map(policy => <PolicyCard key={policy.id} policy={policy} />) : (
+            <div className="policy-empty">
+              <span className="text-emerald-300 text-xl" aria-hidden="true">✓</span>
+              <div><p className="text-sm font-medium text-slate-200">You’re all caught up on <span className="capitalize">{activeCategoryId}</span></p><p className="text-xs text-slate-400 mt-1">Choose another category or browse all policies to plan your next move.</p></div>
+              <button onClick={() => setPolicyBrowser(true)} className="policy-browse-button ml-auto">Explore policies →</button>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
-
-// ------ Icons -----------------------------------------------
-const DocIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <rect x="2" y="1" width="10" height="14" rx="1.5" stroke="#64748B" strokeWidth="1.5"/>
-    <path d="M5 5h6M5 8h6M5 11h4" stroke="#64748B" strokeWidth="1.2" strokeLinecap="round"/>
-    <rect x="9" y="9" width="5" height="6" rx="1" fill="#3B82F6" stroke="#3B82F6" strokeWidth="0"/>
-    <path d="M11 11l1 1-1 1" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);

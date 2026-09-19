@@ -1,0 +1,2708 @@
+{
+  "dataset": "nvidia/Nemotron-Personas-USA",
+  "source": "https://huggingface.co/datasets/nvidia/Nemotron-Personas-USA",
+  "license": "CC-BY-4.0",
+  "importedAt": "2026-09-19T20:25:48.475965+00:00",
+  "sampling": "First 100 unique adults in train order; convenience sample, not representative of Pittsburgh or the USA.",
+  "residents": [
+    {
+      "uuid": "e7c0574639a244c8972c92aab9501035",
+      "name": "Mary Alberti",
+      "nameDerived": true,
+      "age": 28,
+      "occupation": "fast_food_or_counter_worker",
+      "education": "high_school",
+      "sourceCity": "Madison",
+      "sourceState": "WI",
+      "biography": "Mary Alberti is a routine‑obsessed, bullet‑journal aficionado who balances disciplined work ambition with a competitive edge, occasional craft‑brew indulgence, and a habit of double‑checking every receipt for hidden costs.",
+      "interests": [
+        "Bullet journaling",
+        "Home cooking and baking",
+        "Raised-bed gardening",
+        "Running around Lake Mendota",
+        "Reading self-help books",
+        "Solving Sudoku puzzles"
+      ],
+      "skills": [
+        "POS system operation",
+        "Cash handling",
+        "Food safety compliance",
+        "Inventory management",
+        "Team scheduling",
+        "Customer service"
+      ]
+    },
+    {
+      "uuid": "50f90a6f17de473f9ca15f00afdedf7a",
+      "name": "Alicia Gonzalez",
+      "nameDerived": true,
+      "age": 29,
+      "occupation": "computer_or_information_research_scientist",
+      "education": "bachelors",
+      "sourceCity": "Chico",
+      "sourceState": "CA",
+      "biography": "Alicia Gonzalez fuses scientific precision with artistic chaos, chasing novelty in code and canvas, juggling multiple projects with a laid‑back yet competitive edge, and occasionally losing track of deadlines while thriving on spontaneous bursts of creativity.",
+      "interests": [
+        "Abstract Painting",
+        "Generative Digital Art",
+        "Speculative Fiction Reading",
+        "Hiking",
+        "Cooking Colombian Dishes",
+        "Photography"
+      ],
+      "skills": [
+        "Machine Learning",
+        "Deep Learning",
+        "Natural Language Processing",
+        "Data Mining",
+        "Statistical Modeling",
+        "Python"
+      ]
+    },
+    {
+      "uuid": "f2f5dbaf4d3d43f68adeb7f318afa3a2",
+      "name": "Deeva Cintron",
+      "nameDerived": true,
+      "age": 85,
+      "occupation": "not_in_workforce",
+      "education": "some_college",
+      "sourceCity": "Saline",
+      "sourceState": "MI",
+      "biography": "Deeva Cintron, an 85‑year‑old garden‑loving quilt‑artisan and budget‑guru, balances a quiet competitive streak with a steadfast dedication to order, often double‑checking crossword answers and recipe measurements while insisting on a rigid daily routine.",
+      "interests": [
+        "vegetable gardening",
+        "bird watching",
+        "quilting",
+        "knitting",
+        "reading historical fiction",
+        "crossword puzzles"
+      ],
+      "skills": [
+        "budgeting",
+        "record keeping",
+        "schedule management",
+        "basic accounting",
+        "computer basics",
+        "gardening"
+      ]
+    },
+    {
+      "uuid": "5237e90a0ca3460dbbcba20adb61922f",
+      "name": "Maria Buendia",
+      "nameDerived": true,
+      "age": 34,
+      "occupation": "no_occupation",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Lilburn",
+      "sourceState": "GA",
+      "biography": "Maria Buendia, a 34‑year‑old, channels their curiosity and methodical energy into weaving art, food, and community together, yet they occasionally hoard seldom‑used kitchen gadgets and forget to water their garden during particularly busy weeks.",
+      "interests": [
+        "Ballet Folklórico dance",
+        "cooking Mexican cuisine and fusion dishes",
+        "visiting art galleries and museums",
+        "photography of everyday life",
+        "gardening and growing herbs",
+        "reading multicultural literature"
+      ],
+      "skills": [
+        "bilingual Spanish-English communication",
+        "traditional Mexican cooking",
+        "community event planning",
+        "household budgeting and finance management",
+        "social media community moderation",
+        "basic photography"
+      ]
+    },
+    {
+      "uuid": "e7035edf5bc744c9912694a7d4b2a99c",
+      "name": "Julio Simmons",
+      "nameDerived": true,
+      "age": 49,
+      "occupation": "not_in_workforce",
+      "education": "graduate",
+      "sourceCity": "Rochester",
+      "sourceState": "NY",
+      "biography": "Julio Simmons is a 49‑year‑old restless polymath whose analytical mind fuels bold artistic experiments, yet anxiety and a competitive streak often drive them between bursts of creative brilliance and bouts of self‑critical burnout.",
+      "interests": [
+        "Acrylic painting",
+        "Digital illustration",
+        "Experimental music composition",
+        "Improv theater",
+        "Tabletop RPGs",
+        "Puzzle solving (Escape rooms, Sudoku)"
+      ],
+      "skills": [
+        "Computational modeling",
+        "Statistical data analysis",
+        "Python programming",
+        "MATLAB",
+        "R programming",
+        "Scientific writing"
+      ]
+    },
+    {
+      "uuid": "d58d3c409dc44d8c8a2d4391f7b58c2e",
+      "name": "Nicole Lewis",
+      "nameDerived": true,
+      "age": 61,
+      "occupation": "personal_care_aide",
+      "education": "bachelors",
+      "sourceCity": "Morton Grove",
+      "sourceState": "IL",
+      "biography": "Nicole Lewis, a 61-year-old order-obsessed personal care aide, combines a love of meticulous gardening, crossword puzzles, and dog walks with a steadfast, calm demeanor that rarely shows anxiety, yet they secretly hoard extra yarn and sometimes forget to water their potted herbs during rainy weeks.",
+      "interests": [
+        "Gardening",
+        "Knitting",
+        "Crossword puzzles",
+        "Birdwatching",
+        "Cooking",
+        "Historical nonfiction reading"
+      ],
+      "skills": [
+        "Patient hygiene and grooming",
+        "Mobility assistance",
+        "Medication administration and monitoring",
+        "Vital signs measurement",
+        "Electronic health record documentation",
+        "Care plan development"
+      ]
+    },
+    {
+      "uuid": "4ddaf4c17316485982401f7c1221bfb4",
+      "name": "Michael Barron",
+      "nameDerived": true,
+      "age": 67,
+      "occupation": "not_in_workforce",
+      "education": "some_college",
+      "sourceCity": "Fairview",
+      "sourceState": "OR",
+      "biography": "Michael Barron blends a steadfast devotion to routine, a quiet competitive streak, and a lingering worry about the future into a life of handcrafted furniture, community mentorship, and meticulous budgeting, all wrapped in a reserved yet reliable demeanor that they maintain day after day.",
+      "interests": [
+        "Woodworking",
+        "Gardening",
+        "Fishing",
+        "Crossword puzzles",
+        "Classic movies",
+        "Local history"
+      ],
+      "skills": [
+        "Home maintenance",
+        "Woodworking",
+        "Garden landscaping",
+        "Vehicle maintenance",
+        "Budgeting and basic accounting",
+        "Computer troubleshooting"
+      ]
+    },
+    {
+      "uuid": "ddf1acf224ff464a99a667ccaefe0da8",
+      "name": "Osvaldo Vargas",
+      "nameDerived": true,
+      "age": 39,
+      "occupation": "civil_engineer",
+      "education": "bachelors",
+      "sourceCity": "Menomonee Falls",
+      "sourceState": "WI",
+      "biography": "Osvaldo Vargas is a community‑oriented civil engineer who balances precise technical work with vibrant cultural expression, loves soccer and art, and constantly seeks sustainable, inclusive solutions while occasionally over‑committing to projects and coffee, and they remain driven by a deep sense of service.",
+      "interests": [
+        "Soccer (community league)",
+        "Habitat for Humanity volunteering",
+        "Art gallery visits",
+        "Sketching and watercolor painting",
+        "Photography of architecture and nature",
+        "Hiking in Wisconsin state parks"
+      ],
+      "skills": [
+        "Structural analysis",
+        "AutoCAD",
+        "Revit (BIM)",
+        "Civil 3D",
+        "GIS mapping",
+        "Stormwater management"
+      ]
+    },
+    {
+      "uuid": "9db61a6cad314a4c9bfdc3803e848771",
+      "name": "Rose English",
+      "nameDerived": true,
+      "age": 32,
+      "occupation": "secretary_or_administrative_assistant",
+      "education": "associates",
+      "sourceCity": "Silex",
+      "sourceState": "MO",
+      "biography": "Rose English blends meticulous organization with vibrant sociability, using yoga and budgeting tools to tame anxiety while turning calendars, crafts, and community events into curated experiences that reflect their love for structure, creativity, and connection.",
+      "interests": [
+        "Book club participation",
+        "Community event volunteering",
+        "Gardening",
+        "Cooking and hosting potluck dinners",
+        "Yoga and mindfulness meditation",
+        "Line dancing and karaoke"
+      ],
+      "skills": [
+        "Microsoft Office Suite (Word, Excel, PowerPoint, Outlook)",
+        "Google Workspace (Docs, Sheets, Calendar)",
+        "Calendar and meeting management",
+        "Travel arrangements and expense reporting",
+        "Data entry and record-keeping",
+        "Document formatting and proofreading"
+      ]
+    },
+    {
+      "uuid": "8ab13dd84a2649998f9d18fdac98500d",
+      "name": "Yasuko Choi",
+      "nameDerived": true,
+      "age": 31,
+      "occupation": "construction_laborer",
+      "education": "less_than_9th",
+      "sourceCity": "San Dimas",
+      "sourceState": "CA",
+      "biography": "Yasuko Choi, a thirty‑one‑year‑old construction artist, blends steel‑to‑canvas creativity with a habit of starting too many DIY projects at once, leaving half‑finished sketches scattered across her apartment, yet thrives on turning chaos into bespoke living spaces.",
+      "interests": [
+        "Sketching and watercolor painting",
+        "DIY home improvement projects",
+        "Visiting art galleries and street murals",
+        "Reading speculative fiction and design magazines",
+        "Photography of urban and natural scenes",
+        "Cooking Korean and Japanese dishes"
+      ],
+      "skills": [
+        "Framing and carpentry",
+        "Concrete mixing and finishing",
+        "Light machinery operation (forklift, floor jack)",
+        "Basic blueprint reading",
+        "Site safety compliance (OSHA)",
+        "Creative problem solving"
+      ]
+    },
+    {
+      "uuid": "62dd72a8a64c4c8196feee2dbfbc455f",
+      "name": "William Wood",
+      "nameDerived": true,
+      "age": 57,
+      "occupation": "database_administrator_or_architect",
+      "education": "graduate",
+      "sourceCity": "Little Neck",
+      "sourceState": "NY",
+      "biography": "William Wood is a sociable, data‑driven mentor who mixes baseball camaraderie with wine‑paired cooking, jazz nights, and a penchant for photography, while they juggle a strategic push toward data‑architecture leadership and the occasional splurge on tech gadgets.",
+      "interests": [
+        "Community baseball league",
+        "Volunteer at local library (tech workshops)",
+        "Cooking and wine tasting",
+        "Jazz concerts",
+        "Photography of Long Island shoreline",
+        "Hiking in nearby parks"
+      ],
+      "skills": [
+        "SQL Server administration",
+        "Oracle database design",
+        "PostgreSQL performance tuning",
+        "MongoDB and Cassandra NoSQL expertise",
+        "Data modeling and schema design",
+        "Cloud data platform architecture (AWS, Azure, GCP)"
+      ]
+    },
+    {
+      "uuid": "92d0a5debc064decbf02f9694c7ffcc5",
+      "name": "Tucker Baker",
+      "nameDerived": true,
+      "age": 22,
+      "occupation": "assembler_or_fabricator",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Coeur D Alene",
+      "sourceState": "ID",
+      "biography": "Tucker Baker blends hands‑on technical expertise with a laid‑back love of the outdoors, maintaining a calm, structured work ethic while indulging in spontaneous fishing trips and DIY projects, all wrapped in a quietly cooperative spirit.",
+      "interests": [
+        "Fishing",
+        "Hiking",
+        "Hunting",
+        "Woodworking",
+        "Motorcycle restoration",
+        "Model kit assembly"
+      ],
+      "skills": [
+        "Blueprint reading",
+        "Manual assembly",
+        "Spot welding (MIG/TIG)",
+        "Basic CNC machine operation",
+        "Quality inspection",
+        "Safety compliance"
+      ]
+    },
+    {
+      "uuid": "5c7a4c6bd931407eb9390abd911ce338",
+      "name": "Rickey Barham",
+      "nameDerived": true,
+      "age": 31,
+      "occupation": "home_appliance_repairer",
+      "education": "associates",
+      "sourceCity": "Amsterdam",
+      "sourceState": "NY",
+      "biography": "Rickey Barham is an organized, art‑driven appliance expert whose worry‑prone nature fuels meticulous sustainable upgrades, community tutoring, and a lively mix of photography, guitar, and hiking, and they constantly seek balance between precision and creative expression.",
+      "interests": [
+        "Photography (industrial and urban)",
+        "Visiting art galleries and museums",
+        "DIY woodworking projects",
+        "Acoustic guitar playing",
+        "Local live‑music events and jam sessions",
+        "Hiking in the Adirondacks"
+      ],
+      "skills": [
+        "Appliance diagnostics",
+        "Electrical system repair",
+        "Mechanical component replacement",
+        "Smart‑home integration",
+        "Schematic reading",
+        "Multimeter and oscilloscope use"
+      ]
+    },
+    {
+      "uuid": "f19ccc1f8b5345caa6ea89ada97a4092",
+      "name": "Qiao Le",
+      "nameDerived": true,
+      "age": 18,
+      "occupation": "not_in_workforce",
+      "education": "associates",
+      "sourceCity": "Ellensburg",
+      "sourceState": "WA",
+      "biography": "Qiao Le is a sociable, curiosity-driven 18-year-old who blends spontaneous creativity with a laid-back approach to life, often juggling group projects, hiking adventures, and impromptu photo shoots while habitually misplacing their keys and forgetting to set alarms.",
+      "interests": [
+        "Hiking local trails",
+        "Karaoke with friends",
+        "Volunteering at community festivals",
+        "Playing volleyball",
+        "Photography",
+        "Cooking fusion dishes"
+      ],
+      "skills": [
+        "Effective communication",
+        "Team collaboration",
+        "Event coordination",
+        "Social media content creation",
+        "Basic graphic design",
+        "Photography"
+      ]
+    },
+    {
+      "uuid": "4a7db6a010474c5883a7bd81f70ebf6e",
+      "name": "Debra Reeves",
+      "nameDerived": true,
+      "age": 19,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Milwaukee",
+      "sourceState": "WI",
+      "biography": "Debra Reeves is a calm, community‑oriented 19‑year‑old who balances a love for quiet creativity with a laid‑back approach to planning, often letting spontaneous moments steer their routines.",
+      "interests": [
+        "Reading contemporary fiction",
+        "Journaling",
+        "Sketching and watercolor painting",
+        "Community gardening",
+        "Walking by the Milwaukee Lakefront",
+        "Baking breads and pastries"
+      ],
+      "skills": [
+        "Personal time management",
+        "Basic Microsoft Office (Word, Excel, PowerPoint)",
+        "Active listening and peer counseling",
+        "First‑aid and CPR certification",
+        "Basic cooking and meal planning",
+        "Community volunteer coordination"
+      ]
+    },
+    {
+      "uuid": "95c14eefefb64bd78c55f1acc9fe7a34",
+      "name": "Miguel Perezramos",
+      "nameDerived": true,
+      "age": 72,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Spring",
+      "sourceState": "TX",
+      "biography": "Miguel Perezramos is a nostalgic handyman‑mentor who, despite occasional anxiety‑driven forgetfulness and a penchant for disorganization, fuels his days with garden herbs, vibrant music, and community storytelling, leaving a lingering scent of sofrito wherever they go.",
+      "interests": [
+        "Gardening (herbs, tropical plants)",
+        "Cooking Puerto Rican dishes",
+        "Listening to bomba, plena, and salsa music",
+        "Attending church services and cultural festivals",
+        "Community storytelling events",
+        "Fishing at local lakes"
+      ],
+      "skills": [
+        "Home repair (plumbing, electrical, carpentry)",
+        "Gardening (herbs, tropical plants)",
+        "Puerto Rican cooking (mofongo, arroz con gandules, pasteles)",
+        "Basic computer use (email, video calls, social media)",
+        "Community volunteering (storytelling, senior center)",
+        "Vehicle maintenance (oil changes, tire rotations)"
+      ]
+    },
+    {
+      "uuid": "188c7cf4d08c465da99604340132fd19",
+      "name": "Jose Bonnet",
+      "nameDerived": true,
+      "age": 33,
+      "occupation": "not_in_workforce",
+      "education": "associates",
+      "sourceCity": "North Attleboro",
+      "sourceState": "MA",
+      "biography": "Jose Bonnet, a charismatic, competition‑driven community advocate, they blend a love for soccer, salsa, and spicy cuisine with a pragmatic, skeptical eye toward new opportunities, and often juggle too many projects yet never miss a beat.",
+      "interests": [
+        "Playing soccer",
+        "Salsa and bachata dancing",
+        "Cooking traditional Ecuadorian dishes",
+        "Hiking New England trails",
+        "Volunteering at community centers",
+        "Attending tech meetups"
+      ],
+      "skills": [
+        "Bilingual Spanish-English communication",
+        "Customer service",
+        "Project coordination",
+        "Event planning",
+        "Community outreach",
+        "Basic financial management"
+      ]
+    },
+    {
+      "uuid": "36028479b327434c897d1d3197b6ca28",
+      "name": "Terri Maxson",
+      "nameDerived": true,
+      "age": 65,
+      "occupation": "elementary_or_middle_school_teacher",
+      "education": "graduate",
+      "sourceCity": "Sterling Heights",
+      "sourceState": "MI",
+      "biography": "Terri Maxson balances a structured, community‑centric life with a lively social pulse, yet their tendency toward anxiety and occasional neglect of self‑care adds a touch of restless humanity to their otherwise orderly world.",
+      "interests": [
+        "Church choir participation",
+        "Community senior-center volunteering",
+        "Backyard gardening",
+        "Book club membership",
+        "Quilting circle",
+        "River trail walking"
+      ],
+      "skills": [
+        "Curriculum development",
+        "Differentiated instruction",
+        "Classroom management",
+        "Parent-teacher communication",
+        "Educational technology integration",
+        "Lesson planning"
+      ]
+    },
+    {
+      "uuid": "bb2ffb6c1c0245c28ffd2b4da70c6668",
+      "name": "Shoba Mehta",
+      "nameDerived": true,
+      "age": 51,
+      "occupation": "first_line_supervisor_of_food_preparation_or_serving_worker",
+      "education": "some_college",
+      "sourceCity": "Farmington",
+      "sourceState": "MI",
+      "biography": "Shoba Mehta is a fiercely organized, art‑obsessed culinary leader whose competitive drive fuels both meticulous kitchen operations and an ever‑expanding palate, tempered by a sociable spirit that thrives on community dance, yoga, and occasional indulgent splurges.",
+      "interests": [
+        "Visiting art galleries",
+        "Watercolor painting",
+        "Cooking experimental Indian fusion dishes",
+        "Attending food festivals",
+        "Traveling to India",
+        "Yoga practice"
+      ],
+      "skills": [
+        "Team Leadership",
+        "Food Safety (ServSafe)",
+        "Menu Planning",
+        "Recipe Development",
+        "Food Presentation & Plating",
+        "Staff Scheduling"
+      ]
+    },
+    {
+      "uuid": "3751d3e035e64593bfd8eb53a8f75020",
+      "name": "Sandi Chapman",
+      "nameDerived": true,
+      "age": 26,
+      "occupation": "waiter_or_waitress",
+      "education": "less_than_9th",
+      "sourceCity": "Modesto",
+      "sourceState": "CA",
+      "biography": "Sandi Chapman is a talkative, art‑obsessed hospitality enthusiast who thrives on spontaneity, juggling café dreams with endless improv jokes, occasional disorganization, and a knack for turning every customer interaction into a mini‑gallery tour.",
+      "interests": [
+        "Visiting art galleries",
+        "Live music concerts",
+        "Improvisational theater",
+        "Hiking in local parks",
+        "Cooking experimental recipes",
+        "Photography"
+      ],
+      "skills": [
+        "Customer service",
+        "Food safety compliance",
+        "Cash handling",
+        "Multitasking",
+        "Interpersonal communication",
+        "Basic Spanish"
+      ]
+    },
+    {
+      "uuid": "d866de38aeaa4ab5933b5a72f12647e5",
+      "name": "Brian Martin",
+      "nameDerived": true,
+      "age": 39,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Pompano Beach",
+      "sourceState": "FL",
+      "biography": "Brian Martin is a pragmatic, community‑oriented do‑er who balances meticulous planning with a lively social streak, yet wrestles with chronic worry that fuels both their drive and occasional overcommitment.",
+      "interests": [
+        "fishing",
+        "beach walks",
+        "pickup softball",
+        "gardening",
+        "photography",
+        "vintage car restoration"
+      ],
+      "skills": [
+        "home repair",
+        "basic carpentry",
+        "automotive maintenance",
+        "budget management",
+        "event planning",
+        "volunteer coordination"
+      ]
+    },
+    {
+      "uuid": "33f3ac37c7a54d59add8c203a508d6ab",
+      "name": "Jennifer Cuzzort",
+      "nameDerived": true,
+      "age": 27,
+      "occupation": "office_clerk_general",
+      "education": "some_college",
+      "sourceCity": "Worcester",
+      "sourceState": "MA",
+      "biography": "Jennifer Cuzzort, 27, balances a love for orderly spreadsheets and quiet puzzles with a restless mind that leans on yoga and herb‑scented baking to soothe a perpetual undercurrent of worry.",
+      "interests": [
+        "Reading contemporary fiction and personal‑development non‑fiction",
+        "Yoga and mindfulness meditation",
+        "Indoor herb gardening",
+        "Cooking and baking new recipes",
+        "Walking in local parks",
+        "Puzzle solving (crosswords, Sudoku)"
+      ],
+      "skills": [
+        "Microsoft Office Suite (Word, Excel, Outlook)",
+        "Data entry and database management",
+        "Scheduling and calendar management",
+        "Customer service and communication",
+        "Record keeping and filing",
+        "Basic bookkeeping"
+      ]
+    },
+    {
+      "uuid": "866d3bfd9060413caef42d80d52ae10a",
+      "name": "Antonio Gonzalez",
+      "nameDerived": true,
+      "age": 77,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Taunton",
+      "sourceState": "MA",
+      "biography": "Antonio Gonzalez, a pragmatic yet curious septuagenarian, they blend hands‑on craftsmanship, bilingual storytelling, and a competitive love of dominoes into a lively, slightly disorganized lifestyle that cherishes family, tradition, and the steady hum of a well‑kept garden.",
+      "interests": [
+        "gardening",
+        "woodworking",
+        "fishing",
+        "cooking Puerto Rican cuisine",
+        "listening to salsa and plena music",
+        "watching Boston Red Sox games"
+      ],
+      "skills": [
+        "mechanical repair",
+        "electrical troubleshooting",
+        "home maintenance",
+        "woodworking",
+        "bilingual communication (Spanish/English)",
+        "traditional Puerto Rican cooking"
+      ]
+    },
+    {
+      "uuid": "462c2ac6f3eb490fbabd979a0f20740d",
+      "name": "Alina Acosta",
+      "nameDerived": true,
+      "age": 67,
+      "occupation": "not_in_workforce",
+      "education": "bachelors",
+      "sourceCity": "Carlsbad",
+      "sourceState": "CA",
+      "biography": "Alina Acosta blends methodical organization with vibrant community spirit, nurturing a modest chili garden, leading senior tech classes, yet occasionally misplaces her glasses while searching for her favorite recipe card.",
+      "interests": [
+        "Vegetable Gardening",
+        "Traditional Mexican Cooking",
+        "Folkloric Dance",
+        "Beach Walking",
+        "Reading Historical Fiction",
+        "Book Club Participation"
+      ],
+      "skills": [
+        "Financial Management",
+        "Budgeting",
+        "Strategic Planning",
+        "Project Management",
+        "Microsoft Office (Excel, Word, PowerPoint)",
+        "Community Event Coordination"
+      ]
+    },
+    {
+      "uuid": "d59a8cf61ec54de199a3640e506ae608",
+      "name": "Pedro Jimenez",
+      "nameDerived": true,
+      "age": 75,
+      "occupation": "not_in_workforce",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Puyallup",
+      "sourceState": "WA",
+      "biography": "Pedro Jimenez, a 75‑year‑old garden‑loving handyman, balances meticulous budgeting with occasional splurges, confronts hypertension with disciplined monitoring yet skips therapy out of doubt, and channels competitive energy into perfecting home‑repair demos while habitually misplacing their garden shears.",
+      "interests": [
+        "Gardening (vegetables and herbs)",
+        "Cooking traditional Mexican dishes",
+        "Listening to boleros and mariachi music",
+        "Reading historical novels",
+        "Crossword puzzles",
+        "Woodworking small projects (birdhouses, carved spoons)"
+      ],
+      "skills": [
+        "Basic carpentry",
+        "Home plumbing repairs",
+        "Garden maintenance and horticulture",
+        "Automotive maintenance for older vehicles",
+        "Bilingual Spanish-English translation",
+        "Traditional Mexican cooking"
+      ]
+    },
+    {
+      "uuid": "33fab35062c94a3a986db018cf7ad130",
+      "name": "Joshua Williams",
+      "nameDerived": true,
+      "age": 26,
+      "occupation": "postsecondary_teacher",
+      "education": "graduate",
+      "sourceCity": "Long Beach",
+      "sourceState": "CA",
+      "biography": "Joshua Williams, a disciplined scholar‑mentor who pairs their love for structured curricula with late‑night chess puzzles, an unwavering habit of over‑stocking their spice rack, and a penchant for meticulously color‑coding lecture slides, they embody a thoughtful blend of predictability and creative quietude.",
+      "interests": [
+        "Reading contemporary African American literature",
+        "Writing poetry and essays",
+        "Playing chess",
+        "Cycling along the beach",
+        "Cooking Southern and Creole dishes",
+        "Urban photography"
+      ],
+      "skills": [
+        "Curriculum Development",
+        "Lesson Planning",
+        "Digital Pedagogy",
+        "Qualitative Research",
+        "Scholarly Writing",
+        "Grant Writing"
+      ]
+    },
+    {
+      "uuid": "78e5590f31e04d70a15bb8b80eba8781",
+      "name": "John Papagno",
+      "nameDerived": true,
+      "age": 36,
+      "occupation": "sales_manager",
+      "education": "bachelors",
+      "sourceCity": "Columbus",
+      "sourceState": "OH",
+      "biography": "John Papagno fuses analytical sales expertise with a restless creative spirit, channels intense emotions into mindful habits, and navigates life with a schedule‑driven yet occasionally impulsive approach to work, money, and pleasure.",
+      "interests": [
+        "Contemporary art gallery visits",
+        "Photography",
+        "Experimental cooking (Italian cuisine)",
+        "Pickup basketball",
+        "Improv comedy workshops",
+        "Weekend hiking trips"
+      ],
+      "skills": [
+        "Strategic sales planning",
+        "Technical product knowledge",
+        "Data-driven forecasting",
+        "CRM management (Salesforce)",
+        "Team leadership",
+        "Negotiation and closing"
+      ]
+    },
+    {
+      "uuid": "f0b90da25a244a1f9b9c6616cadd65e9",
+      "name": "Sherry Kirkus",
+      "nameDerived": true,
+      "age": 65,
+      "occupation": "not_in_workforce",
+      "education": "some_college",
+      "sourceCity": "Spirit Lake",
+      "sourceState": "ID",
+      "biography": "Sherry Kirkus, a 65‑year‑old garden‑loving volunteer, blends rigorous organization with a touch of worry, finding comfort in predictable hobbies, community service, and quiet, well‑planned routines.",
+      "interests": [
+        "Vegetable gardening",
+        "Birdwatching and species logging",
+        "Knitting scarves and blankets",
+        "Reading historical fiction and local Idaho history",
+        "Bridge (card game) with a small group",
+        "Volunteering at the county library (book shelving)"
+      ],
+      "skills": [
+        "Organizational and budgeting management",
+        "Community event coordination",
+        "Home maintenance and DIY repairs",
+        "Gardening and horticulture",
+        "Basic carpentry",
+        "Computer literacy (email, word processing, online banking)"
+      ]
+    },
+    {
+      "uuid": "f00db7d331e74b86a2491741396a9644",
+      "name": "Kennedi Terry",
+      "nameDerived": true,
+      "age": 40,
+      "occupation": "network_or_computer_systems_administrator",
+      "education": "bachelors",
+      "sourceCity": "Glassboro",
+      "sourceState": "NJ",
+      "biography": "Kennedi Terry blends a steadfast love for routine with a surprising dash of spontaneity, juggling meticulous network documentation and garden watering schedules while occasionally impulsively splurging on new camera gear or jazz tickets, a paradox that defines their resilient, community‑centered outlook.",
+      "interests": [
+        "Gardening",
+        "Reading mystery novels and African‑American biographies",
+        "Cooking soul‑food with healthy twists",
+        "Listening to jazz, neo‑soul, and classic R&B",
+        "Photography of urban and natural scenes",
+        "Playing chess and solving puzzles"
+      ],
+      "skills": [
+        "Network design and implementation",
+        "Cisco routing & switching",
+        "Juniper network configuration",
+        "Windows Server administration",
+        "Linux system administration",
+        "Virtualization (VMware vSphere, Hyper‑V)"
+      ]
+    },
+    {
+      "uuid": "68913ebfbcc3476498e19dc33ca4729c",
+      "name": "Arianna Deluca",
+      "nameDerived": true,
+      "age": 62,
+      "occupation": "insurance_sales_agent",
+      "education": "bachelors",
+      "sourceCity": "Springtown",
+      "sourceState": "TX",
+      "biography": "Arianna Deluca is a calm, creatively restless 62‑year‑old insurance virtuoso who converts abstract art into risk narratives, thrives on spontaneous, competitive sales gambits, and nurtures a solitary yet vibrant world of puzzles, piano, and prairie birds.",
+      "interests": [
+        "Abstract painting",
+        "Speculative fiction reading",
+        "Puzzle solving",
+        "Birdwatching",
+        "Native Texas gardening",
+        "Jazz piano"
+      ],
+      "skills": [
+        "Insurance sales",
+        "Risk analysis",
+        "Negotiation",
+        "Customer relationship management",
+        "Creative problem solving",
+        "Financial product design"
+      ]
+    },
+    {
+      "uuid": "c74fc3f9e84849b8a9f9ed857807c68f",
+      "name": "Keng Dayrit",
+      "nameDerived": true,
+      "age": 49,
+      "occupation": "not_in_workforce",
+      "education": "less_than_9th",
+      "sourceCity": "Queens Village",
+      "sourceState": "NY",
+      "biography": "Keng Dayrit is a creatively restless, anxiety‑prone 49‑year‑old who balances a disciplined budget and handyman duties with nightly experiments in fusion cuisine and impromptu art gallery trips, yet often succumbs to late‑night snack binges and occasional impulse buys of avant‑garde prints.",
+      "interests": [
+        "Visiting art galleries and museums",
+        "Experimenting with fusion cooking",
+        "Herb and vegetable gardening",
+        "Photography of urban landscapes",
+        "Listening to Southeast Asian and jazz music",
+        "Attending Filipino and Vietnamese cultural festivals"
+      ],
+      "skills": [
+        "Traditional Southeast Asian cooking (Filipino, Vietnamese)",
+        "Creative recipe experimentation",
+        "Basic handyman repairs (plumbing, electrical, carpentry)",
+        "Bilingual communication (English, Tagalog, conversational Vietnamese)",
+        "Household budgeting and financial organization",
+        "Community volunteering (senior center meals and cultural events)"
+      ]
+    },
+    {
+      "uuid": "cc086016d63c48b79246de8e710ec6b7",
+      "name": "Trisha Wheeler",
+      "nameDerived": true,
+      "age": 23,
+      "occupation": "dental_assistant",
+      "education": "high_school",
+      "sourceCity": "Hardin",
+      "sourceState": "IL",
+      "biography": "Trisha Wheeler blends competitive drive with a carefree, slightly disorganized streak, turning every dental appointment, softball game, and karaoke showdown into a lively arena where curiosity meets spontaneous fun.",
+      "interests": [
+        "Softball league",
+        "Zumba classes",
+        "Line dancing",
+        "Hiking",
+        "Fishing",
+        "Cooking experimental recipes"
+      ],
+      "skills": [
+        "Chairside assistance",
+        "Intra‑oral radiography",
+        "Instrument sterilization",
+        "Dental materials preparation",
+        "Patient education",
+        "Dental software (Dentrix)"
+      ]
+    },
+    {
+      "uuid": "8a3a330d3edd4a3f883fcb736afe3516",
+      "name": "Mariella Sanchez",
+      "nameDerived": true,
+      "age": 20,
+      "occupation": "host_or_hostess_restaurant_lounge_or_coffee_shop",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Fountain Valley",
+      "sourceState": "CA",
+      "biography": "Mariella Sanchez, the art‑loving coffee aficionado who balances meticulous hospitality work with spontaneous watercolor sketches, often loses track of time in galleries and forgets to water their houseplants, even though they swear they’ll remember tomorrow.",
+      "interests": [
+        "Visiting art galleries and murals",
+        "Sketching and watercolor painting",
+        "Coffee tasting and brewing experiments",
+        "Yoga and mindfulness",
+        "Hiking in local parks",
+        "Volunteering at cultural festivals"
+      ],
+      "skills": [
+        "Customer service",
+        "Bilingual communication (Spanish/English)",
+        "Reservation and seating management",
+        "Cash handling and POS operation",
+        "Conflict resolution",
+        "Team collaboration"
+      ]
+    },
+    {
+      "uuid": "527faef6dc3f4309885fe26706c5b3ac",
+      "name": "Man Mustapha",
+      "nameDerived": true,
+      "age": 24,
+      "occupation": "electrical_power_line_installer_or_repairer",
+      "education": "high_school",
+      "sourceCity": "Pittsburgh",
+      "sourceState": "PA",
+      "biography": "Man Mustapha, a 24-year-old introverted technician, balances an insatiable curiosity for emerging power-tech with an anxiety-driven habit of over-checking schematics late into the night while secretly hoarding quirky Arduino modules in a cluttered drawer.",
+      "interests": [
+        "Industrial sketching",
+        "Photography of urban infrastructure",
+        "Arduino/Raspberry Pi tinkering",
+        "Listening to South Asian classical and ambient electronic music",
+        "Reading speculative fiction and philosophy",
+        "Cooking fusion South Asian cuisine"
+      ],
+      "skills": [
+        "High‑voltage line installation",
+        "Electrical troubleshooting",
+        "OSHA safety compliance",
+        "Rigging and line climbing",
+        "Technical schematics reading",
+        "Basic PLC programming"
+      ]
+    },
+    {
+      "uuid": "3bab1a650de445ae88ec28c5536282b2",
+      "name": "Zoila Pizano",
+      "nameDerived": true,
+      "age": 19,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "El Paso",
+      "sourceState": "TX",
+      "biography": "Zoila Pizano is a curious, bilingual art‑lover who balances meticulous planning with spontaneous creativity, often fueled by coffee, occasional procrastination, and a deep devotion to family traditions, and they channel that energy into community murals.",
+      "interests": [
+        "Sketching and painting (mixed media)",
+        "Mural experimentation",
+        "Visiting galleries and museums",
+        "Photography of street and desert scenes",
+        "Reading graphic novels and sci‑fi",
+        "Listening to diverse music"
+      ],
+      "skills": [
+        "Digital illustration (Adobe Photoshop, Illustrator)",
+        "Traditional drawing and mural painting",
+        "Bilingual communication (English/Spanish)",
+        "Event planning and workshop coordination",
+        "Social media content creation",
+        "Photography composition"
+      ]
+    },
+    {
+      "uuid": "4913229383014b649940485b3acb73b1",
+      "name": "Kyle Joffrion",
+      "nameDerived": true,
+      "age": 18,
+      "occupation": "not_in_workforce",
+      "education": "bachelors",
+      "sourceCity": "Boston",
+      "sourceState": "MA",
+      "biography": "Kyle Joffrion is a restless 18‑year‑old tech‑savvy art enthusiast who swaps spreadsheets for sketchpads, bursts into spontaneous coding‑art marathons, and lives on a diet of coffee, concert tickets, and occasional procrastination.",
+      "interests": [
+        "Street art photography",
+        "Pickup basketball",
+        "Live concert attendance",
+        "Improv comedy",
+        "Digital illustration",
+        "3D modeling"
+      ],
+      "skills": [
+        "Python programming",
+        "JavaScript development",
+        "C++ coding",
+        "Data analysis (R, SQL)",
+        "Electronic circuit prototyping",
+        "Digital illustration"
+      ]
+    },
+    {
+      "uuid": "dbed952d9bec40ba80b4715a088c1f74",
+      "name": "Alan Russell",
+      "nameDerived": true,
+      "age": 52,
+      "occupation": "elementary_or_middle_school_teacher",
+      "education": "graduate",
+      "sourceCity": "Bloomfield Hills",
+      "sourceState": "MI",
+      "biography": "Alan Russell, a curious yet pragmatic educator, balances a love for hands‑on projects and scientific inquiry with a tendency to meticulously plan everything, even if it sometimes leads to over‑scheduling and occasional coffee‑induced procrastination.",
+      "interests": [
+        "Woodworking",
+        "Hiking in Michigan state parks",
+        "Reading popular science and historical non-fiction",
+        "Playing acoustic guitar",
+        "Cooking experimental recipes",
+        "Gardening (vegetable and herb garden)"
+      ],
+      "skills": [
+        "STEM curriculum design",
+        "Project‑based learning",
+        "Data‑driven assessment",
+        "Classroom management",
+        "Educational technology integration",
+        "Robotics and coding club facilitation"
+      ]
+    },
+    {
+      "uuid": "e8b9d4f627764bab903fffc467f1590a",
+      "name": "Jacob Bowden",
+      "nameDerived": true,
+      "age": 58,
+      "occupation": "painting_worker",
+      "education": "less_than_9th",
+      "sourceCity": "Redondo Beach",
+      "sourceState": "CA",
+      "biography": "Jacob Bowden is a pragmatic yet curious 58‑year‑old painter‑turned‑aspiring contractor who balances surf‑driven solitude with competitive craftsmanship, eco‑focused business ambitions, and a fondness for classic rock, vintage cars, and the coastal California lifestyle.",
+      "interests": [
+        "surfing",
+        "beach walks",
+        "car restoration",
+        "DIY home improvement projects",
+        "classic rock listening",
+        "photography (sunsets and work sites)"
+      ],
+      "skills": [
+        "surface preparation",
+        "paint mixing",
+        "colour matching",
+        "brush application",
+        "roller application",
+        "spray painting"
+      ]
+    },
+    {
+      "uuid": "58c03faba45d40f79f6dac7c3eb612fd",
+      "name": "Stanley Bates",
+      "nameDerived": true,
+      "age": 47,
+      "occupation": "computer_systems_analyst",
+      "education": "bachelors",
+      "sourceCity": "Bloomfield Hills",
+      "sourceState": "MI",
+      "biography": "Stanley Bates is a calm, curiosity‑driven tech veteran who balances classic‑car restoration with spontaneous home‑automation tinkering, often forgetting appointments but never missing a critical system deadline.",
+      "interests": [
+        "Classic car restoration",
+        "Raspberry Pi home‑automation projects",
+        "Landscape photography",
+        "Hiking in local parks",
+        "Reading science‑fiction and tech non‑fiction",
+        "Cooking experimental dishes"
+      ],
+      "skills": [
+        "Systems analysis",
+        "Enterprise architecture",
+        "Data modeling",
+        "SQL",
+        "Python programming",
+        "Cloud services (AWS, Azure)"
+      ]
+    },
+    {
+      "uuid": "0e2d3b13dbb74d16a7f43640cd47d571",
+      "name": "Milton Wells",
+      "nameDerived": true,
+      "age": 73,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Oklahoma City",
+      "sourceState": "OK",
+      "biography": "Milton Wells is a methodical 73‑year‑old who blends hands‑on projects, prairie photography, and steadfast community service with a habit of over‑watering their garden and misplacing receipts.",
+      "interests": [
+        "fishing",
+        "gardening",
+        "woodworking",
+        "model building",
+        "reading historical biographies",
+        "attending church events"
+      ],
+      "skills": [
+        "carpentry",
+        "plumbing repairs",
+        "mechanical troubleshooting",
+        "budget management",
+        "record-keeping",
+        "event planning"
+      ]
+    },
+    {
+      "uuid": "e4cc52624842450b80da0a10a4014f67",
+      "name": "Brittany Bradford",
+      "nameDerived": true,
+      "age": 38,
+      "occupation": "software_developer",
+      "education": "graduate",
+      "sourceCity": "Washington",
+      "sourceState": "DC",
+      "biography": "Brittany Bradford blends relentless curiosity with methodical discipline, thriving on high-energy social gatherings, data-driven decision-making, and a calm resilience that masks a hidden penchant for late-night wine tastings and occasional over-commitment to conference speaking slots.",
+      "interests": [
+        "Tech meetups and conferences",
+        "Hosting dinner parties",
+        "Wine tasting",
+        "Hiking the C&O Canal Trail",
+        "Playing tennis",
+        "Traveling to European cultural festivals"
+      ],
+      "skills": [
+        "Python",
+        "Java",
+        "JavaScript/React",
+        "AWS",
+        "Azure",
+        "SQL"
+      ]
+    },
+    {
+      "uuid": "9485b0e97a604fa39c8739fe524d13dd",
+      "name": "Bernadette Gangaram",
+      "nameDerived": true,
+      "age": 28,
+      "occupation": "industrial_truck_or_tractor_operator",
+      "education": "high_school",
+      "sourceCity": "Denver",
+      "sourceState": "CO",
+      "biography": "Bernadette Gangaram is a detail‑driven, art‑infused equipment operator who channels curiosity into sustainable logistics, balances disciplined budgeting with occasional creative splurges, and navigates health and fitness with a steady, solitary rhythm punctuated by a love for rugged landscapes and watercolor.",
+      "interests": [
+        "Visiting art galleries and museums",
+        "Sketching and watercolor painting of industrial and natural scenes",
+        "Landscape and machinery photography",
+        "Hiking in the Colorado mountains",
+        "Reading non-fiction on engineering, sustainability, and technology",
+        "DIY mechanical and home improvement projects"
+      ],
+      "skills": [
+        "Heavy-duty truck and tractor operation",
+        "Commercial Driver’s License (CDL) with endorsements",
+        "Preventative maintenance and minor diesel engine repairs",
+        "Hydraulic system troubleshooting",
+        "OSHA safety compliance and hazard identification",
+        "Logistics and route optimization using GPS and fleet-management software"
+      ]
+    },
+    {
+      "uuid": "cc3bced56fdd4120a84ce738286d4abb",
+      "name": "Jailyn Claybon",
+      "nameDerived": true,
+      "age": 21,
+      "occupation": "nursing_assistant",
+      "education": "some_college",
+      "sourceCity": "Jacksonville",
+      "sourceState": "FL",
+      "biography": "Jailyn Claybon blends a calm, resilient bedside manner with a love for spontaneous dance, community‑driven finance, and culinary experiments, all while occasionally letting a relaxed, disorganized habit sneak into her schedule.",
+      "interests": [
+        "Hip‑hop and Zumba dance classes",
+        "Volleyball with friends",
+        "Live music concerts and local jam sessions",
+        "Cooking soul food with modern twists",
+        "Volunteer work at community health fairs",
+        "Reading health‑related articles and podcasts"
+      ],
+      "skills": [
+        "Patient care and assistance with activities of daily living",
+        "Vital signs measurement",
+        "Basic wound care",
+        "Infection control procedures",
+        "CPR and BLS certification",
+        "Electronic health record documentation"
+      ]
+    },
+    {
+      "uuid": "4e5c3849a891432ba547a645a6e4be06",
+      "name": "Sonia Fernandez",
+      "nameDerived": true,
+      "age": 57,
+      "occupation": "mathematical_science_occupation",
+      "education": "high_school",
+      "sourceCity": "Houston",
+      "sourceState": "TX",
+      "biography": "Sonia Fernandez is a methodical, quietly competitive problem‑solver; they balance structured routines with a love for puzzles, garden‑fresh cooking, and cultural traditions, and they navigate retirement with disciplined finances and steady health habits.",
+      "interests": [
+        "Sudoku and crossword puzzles",
+        "Logic grid puzzles",
+        "Gardening (herbs and vegetables)",
+        "Cooking Mexican cuisine",
+        "Spanish‑language book club",
+        "Yoga"
+      ],
+      "skills": [
+        "statistical analysis",
+        "data management",
+        "quality control",
+        "laboratory instrumentation maintenance",
+        "technical troubleshooting",
+        "project scheduling"
+      ]
+    },
+    {
+      "uuid": "6c46851262b44c739e976eda5d8341e2",
+      "name": "Angel Diaz",
+      "nameDerived": true,
+      "age": 59,
+      "occupation": "painting_worker",
+      "education": "some_college",
+      "sourceCity": "Seal Beach",
+      "sourceState": "CA",
+      "biography": "Angel Diaz, a disciplined painter turned aspiring contractor, balances a structured work ethic with vibrant community life—early swims, salsa evenings, meticulous color matching—while planning a sustainable family business and battling the habitual tendency to over‑commit to projects.",
+      "interests": [
+        "Community Event Organization",
+        "Dancing (Mariachi & Salsa)",
+        "Gardening",
+        "Cooking Mexican Cuisine",
+        "Beach Walks & Swimming",
+        "Book Club (Mystery Novels)"
+      ],
+      "skills": [
+        "Surface Preparation",
+        "Interior & Exterior Painting",
+        "Color Matching",
+        "OSHA Safety Compliance",
+        "Project Planning",
+        "Team Coordination"
+      ]
+    },
+    {
+      "uuid": "0c66dcc7cb914fecaed9ca1be9e8d842",
+      "name": "Saba Guevara",
+      "nameDerived": true,
+      "age": 23,
+      "occupation": "retail_salesperson",
+      "education": "high_school",
+      "sourceCity": "Yuba City",
+      "sourceState": "CA",
+      "biography": "Saba Guevara blends competitive ambition with a laid‑back, flexible mindset, juggling retail aspirations, budget savvy, eclectic cultural interests, and occasional disorganized quirks into a vibrant, ever‑evolving young adult life.",
+      "interests": [
+        "Cooking traditional Central Asian dishes (plov, manty)",
+        "Exploring local river and hiking trails with photography",
+        "Participating in language‑exchange meetups (Uzbek, Russian, Spanish)",
+        "Reading contemporary fiction",
+        "Playing indie video games",
+        "Attending cultural festivals (Navruz, local fairs)"
+      ],
+      "skills": [
+        "Customer service",
+        "POS system operation",
+        "Cash handling",
+        "Inventory management",
+        "Bilingual communication (English & Uzbek/Russian)",
+        "Upselling and cross‑selling"
+      ]
+    },
+    {
+      "uuid": "36312309e76640b88d4739110f21ce47",
+      "name": "Irene Tangarife",
+      "nameDerived": true,
+      "age": 76,
+      "occupation": "preschool_or_kindergarten_teacher",
+      "education": "high_school",
+      "sourceCity": "Houston",
+      "sourceState": "TX",
+      "biography": "Irene Tangarife, a diligent yet habitually disorganized 76‑year‑old educator, channels her competitive spirit and love of tradition into structured classrooms, cautious finances, and heartfelt home‑cooked meals, all while wrestling with persistent worries and a penchant for solitary hobbies.",
+      "interests": [
+        "Vegetable gardening",
+        "Cooking Salvadoran cuisine",
+        "Knitting and crocheting",
+        "Reading historical fiction and biographies",
+        "Listening to boleros and cumbia music",
+        "Attending small community cultural events"
+      ],
+      "skills": [
+        "Early childhood curriculum design",
+        "Bilingual English‑Spanish instruction",
+        "Classroom routine and organization",
+        "Child development assessment",
+        "Creative storytelling and music integration",
+        "First aid and CPR certification"
+      ]
+    },
+    {
+      "uuid": "d5fe5ee20e6c4686af68be4c6f4c79b3",
+      "name": "Sarada Mongru",
+      "nameDerived": true,
+      "age": 34,
+      "occupation": "accountant_or_auditor",
+      "education": "bachelors",
+      "sourceCity": "West Chester",
+      "sourceState": "PA",
+      "biography": "Sarada Mongru blends disciplined accounting rigor with a vibrant community spirit, they channel cultural traditions into mentorship, mindful fitness, and experimental cooking while never missing a deadline, though they occasionally forget to pause for a coffee break.",
+      "interests": [
+        "Yoga",
+        "Zumba class",
+        "Hiking on local trails",
+        "Cooking Indian cuisine",
+        "Volunteering for financial literacy workshops",
+        "Reading business and self-improvement books"
+      ],
+      "skills": [
+        "Financial reporting",
+        "Tax compliance",
+        "Audit planning and execution",
+        "Advanced Excel data analysis",
+        "QuickBooks",
+        "Sage Intacct"
+      ]
+    },
+    {
+      "uuid": "daf1f3f963294f74ab1ee61533a05db6",
+      "name": "Judith Castillo",
+      "nameDerived": true,
+      "age": 34,
+      "occupation": "financial_manager",
+      "education": "graduate",
+      "sourceCity": "Lilburn",
+      "sourceState": "GA",
+      "biography": "Judith Castillo blends meticulous financial expertise with charismatic mentorship, balances structured budgeting and ESG investing, stays emotionally steady through yoga and puzzles, and fuels vibrant community engagement with spontaneous culinary experiments; they continually seek growth in both professional and personal realms.",
+      "interests": [
+        "Yoga",
+        "Hiking",
+        "Toastmasters/Public Speaking",
+        "Reading Business & Non-fiction Books",
+        "Cooking (exploring diverse cuisines)",
+        "Financial Literacy Volunteering"
+      ],
+      "skills": [
+        "Financial Analysis",
+        "Budgeting & Forecasting",
+        "Strategic Financial Planning",
+        "Risk Management",
+        "Regulatory Compliance (Georgia)",
+        "Financial Reporting"
+      ]
+    },
+    {
+      "uuid": "e439d23e891d40a683c73ab75828f4d6",
+      "name": "Joseph Giordano",
+      "nameDerived": true,
+      "age": 21,
+      "occupation": "electrician",
+      "education": "some_college",
+      "sourceCity": "Greensboro",
+      "sourceState": "NC",
+      "biography": "Joseph Giordano, a solitary, detail‑oriented future master electrician, balances a love for woodwork, vintage rock, and low‑key nature escapes with a disciplined budget and a habit of over‑working their back, all while they dream of a quiet family‑run contracting shop.",
+      "interests": [
+        "Woodworking",
+        "Model train building",
+        "DIY electronics projects",
+        "Fishing",
+        "Solo hiking",
+        "Gardening"
+      ],
+      "skills": [
+        "Residential wiring",
+        "Circuit troubleshooting",
+        "Blueprint reading",
+        "Conduit bending",
+        "Lighting fixture installation",
+        "HVAC electrical maintenance"
+      ]
+    },
+    {
+      "uuid": "d97dec16cb3046958f9e7ca72ace75e6",
+      "name": "Catherine Denis",
+      "nameDerived": true,
+      "age": 62,
+      "occupation": "food_service_manager",
+      "education": "bachelors",
+      "sourceCity": "Dallas",
+      "sourceState": "TX",
+      "biography": "Catherine Denis blends a lifelong devotion to routine with a quiet curiosity, orchestrating each day like a well‑kept ledger, yet they habitually lose track of time when solving crossword puzzles, letting the world slip by.",
+      "interests": [
+        "Traditional Honduran Cooking",
+        "Vegetable Gardening",
+        "Knitting",
+        "Crossword Puzzles",
+        "Reading Historical Biographies",
+        "Small‑Group Church Fellowship"
+      ],
+      "skills": [
+        "Operational Scheduling",
+        "Inventory Management",
+        "Food Safety & HACCP Compliance",
+        "Budgeting and Cost Control",
+        "Staff Training and Development",
+        "Lean Process Optimization"
+      ]
+    },
+    {
+      "uuid": "de1c74355255453dad0e9870410efe1a",
+      "name": "Iris Trujillo",
+      "nameDerived": true,
+      "age": 74,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Covington",
+      "sourceState": "GA",
+      "biography": "Iris Trujillo balances quiet curiosity with a steadfast love for home‑grown comforts, often misplacing their glasses while pruning roses, and they greet neighbors with fresh biscuits and a warm smile.",
+      "interests": [
+        "Reading historical fiction",
+        "Gardening",
+        "Quilting",
+        "Birdwatching",
+        "Classic country, folk, and jazz music",
+        "Baking and preserving"
+      ],
+      "skills": [
+        "Home cooking",
+        "Gardening",
+        "Volunteer coordination",
+        "Household budgeting",
+        "Basic digital literacy"
+      ]
+    },
+    {
+      "uuid": "c750eeb05b9440e79877a7ce3217371a",
+      "name": "Laura Bost",
+      "nameDerived": true,
+      "age": 26,
+      "occupation": "physical_scientist",
+      "education": "high_school",
+      "sourceCity": "Atwater",
+      "sourceState": "CA",
+      "biography": "Laura Bost, a 26‑year‑old physicist with a penchant for watercolor landscapes and a meticulous, anxiety‑prone mind, blends scientific rigor with artistic wonder, navigating life through careful budgeting, solo hikes, and a steady stream of yoga and puzzles.",
+      "interests": [
+        "Watercolor painting",
+        "Macro photography",
+        "Hiking",
+        "Amateur astronomy",
+        "Science‑fiction reading",
+        "Yoga"
+      ],
+      "skills": [
+        "Experimental design",
+        "Spectroscopy (Raman, FTIR)",
+        "Data analysis with Python",
+        "MATLAB modeling",
+        "Computational material simulation",
+        "Finite‑element analysis"
+      ]
+    },
+    {
+      "uuid": "abd1d304fb8a45d8ab436f3131570d57",
+      "name": "Alicia Mosquera",
+      "nameDerived": true,
+      "age": 78,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Coalinga",
+      "sourceState": "CA",
+      "biography": "Alicia Mosquera blends meticulous organization, heartfelt community service, and a love for traditional flavors, all while navigating the worries of age with disciplined routines and occasional indulgent treats.",
+      "interests": [
+        "Gardening (vegetables and herbs)",
+        "Cooking traditional Mexican dishes",
+        "Journaling for stress relief",
+        "Quilting and crocheting",
+        "Listening to classic Spanish boleros and rancheras",
+        "Reading historical novels"
+      ],
+      "skills": [
+        "Event planning and coordination",
+        "Budget management",
+        "Bilingual communication (Spanish/English)",
+        "Community volunteer leadership",
+        "Seasonal gardening and horticulture",
+        "Traditional cooking with emphasis on nutrition"
+      ]
+    },
+    {
+      "uuid": "a1006eb46d02423fbb88f3dd33c1ac9f",
+      "name": "Katherine Holder",
+      "nameDerived": true,
+      "age": 76,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Boynton Beach",
+      "sourceState": "FL",
+      "biography": "Katherine Holder is a meticulous, garden‑loving retiree who blends structured volunteer leadership with a habit of over‑packing their knitting bag, a lingering worry about health, and a soft spot for late‑night television reruns of classic sitcoms.",
+      "interests": [
+        "gardening",
+        "historical fiction reading",
+        "knitting",
+        "quilt making",
+        "birdwatching",
+        "volunteering at the library"
+      ],
+      "skills": [
+        "home gardening",
+        "comfort cooking",
+        "budget management",
+        "volunteer coordination",
+        "senior resource navigation",
+        "basic smartphone and email use"
+      ]
+    },
+    {
+      "uuid": "52c801c9194b400c9dc0c86378d7c82d",
+      "name": "Mikala Langley",
+      "nameDerived": true,
+      "age": 19,
+      "occupation": "not_in_workforce",
+      "education": "bachelors",
+      "sourceCity": "Cary",
+      "sourceState": "NC",
+      "biography": "Mikala Langley is a detail‑driven young archivist whose love for structured routines, anxiety‑managed mindfulness, and precise baking creates a uniquely organized yet emotionally sensitive outlook on life.",
+      "interests": [
+        "Reading",
+        "Journaling",
+        "Baking",
+        "Gardening",
+        "Yoga",
+        "Meditation"
+      ],
+      "skills": [
+        "Literature Review",
+        "Critical Writing",
+        "Project Management",
+        "Digital Archiving",
+        "Public Speaking",
+        "Event Coordination"
+      ]
+    },
+    {
+      "uuid": "4fdc0b8862924332a3ae5523f6a2c696",
+      "name": "Andrew Black",
+      "nameDerived": true,
+      "age": 70,
+      "occupation": "not_in_workforce",
+      "education": "some_college",
+      "sourceCity": "Payson",
+      "sourceState": "AZ",
+      "biography": "Andrew Black, a serene, endlessly curious septuagenarian, spends mornings chasing starlight with vintage cameras, afternoons painting desert vistas, and evenings lost in existential essays, all while habitually misplacing their reading glasses on the very canvas they just finished.",
+      "interests": [
+        "Reading Philosophy",
+        "Oil Painting",
+        "Birdwatching",
+        "Hiking",
+        "Collecting Vintage Cameras",
+        "Chess"
+      ],
+      "skills": [
+        "Woodworking",
+        "Digital Photography",
+        "Landscape Design",
+        "Creative Writing",
+        "Mentoring",
+        "Basic Architectural Drafting"
+      ]
+    },
+    {
+      "uuid": "8c2e19172e004d1f90c15b73a89e104c",
+      "name": "Baljinder Simmons",
+      "nameDerived": true,
+      "age": 41,
+      "occupation": "public_safety_telecommunicator",
+      "education": "some_college",
+      "sourceCity": "Glen Allen",
+      "sourceState": "VA",
+      "biography": "Baljinder Simmons is a 41‑year‑old emergency communications specialist who balances high‑pressure decision‑making with a passion for multicultural cooking, cricket, and mindfulness, and they navigate intense anxiety through structured self‑care.",
+      "interests": [
+        "Cooking Goan and Punjabi cuisine",
+        "Playing cricket in a local league",
+        "Volunteering at community safety fairs",
+        "Reading true crime and emergency services literature",
+        "Solving crosswords and Sudoku puzzles",
+        "Hiking and biking in the James River Park System"
+      ],
+      "skills": [
+        "Emergency call intake and triage",
+        "Crisis communication and de-escalation",
+        "Computer-Aided Dispatch (CAD) operation",
+        "Radio and VoIP telecommunications management",
+        "Geographic Information System (GIS) routing",
+        "Bilingual communication (English and Punjabi)"
+      ]
+    },
+    {
+      "uuid": "01b0d4d48fec4e20a068699d8fb1a8e2",
+      "name": "Hanh Gunasekara",
+      "nameDerived": true,
+      "age": 51,
+      "occupation": "financial_manager",
+      "education": "graduate",
+      "sourceCity": "Bel Air",
+      "sourceState": "MD",
+      "biography": "Hanh Gunasekara is a financially savvy, tech‑curious executive who thrives on solitary reflection, grapples with occasional disorganization, and secretly hoards vintage kitchen gadgets like an eccentric comfort collection.",
+      "interests": [
+        "gardening",
+        "Southeast Asian cooking",
+        "reading historical fiction",
+        "reading economics and technology non‑fiction",
+        "hiking",
+        "yoga"
+      ],
+      "skills": [
+        "financial analysis",
+        "budget forecasting",
+        "cash‑flow management",
+        "risk assessment",
+        "strategic investment analysis",
+        "ERP systems (SAP, Oracle)"
+      ]
+    },
+    {
+      "uuid": "9fffe766271d41b1a93aeb3f4cf523d2",
+      "name": "Carolyn Amos",
+      "nameDerived": true,
+      "age": 27,
+      "occupation": "driver_sales_worker_or_truck_driver",
+      "education": "some_college",
+      "sourceCity": "Sumiton",
+      "sourceState": "AL",
+      "biography": "Carolyn Amos blends a logistical mind with a restless artistic soul, juggling long‑haul routes and sales targets while painting abstract canvases and humming blues, all under a constant hum of curiosity and a tendency to worry about the next move.",
+      "interests": [
+        "Oil Painting & Acrylics",
+        "Digital Graphic Design",
+        "Creative Writing (Short Stories)",
+        "Science Fiction & Fantasy Reading",
+        "Live Blues & Gospel Concerts",
+        "Community Karaoke Nights"
+      ],
+      "skills": [
+        "Commercial Driver's License (Class A)",
+        "Vehicle Inspection & Maintenance",
+        "Route Optimization (GPS & Logistics Software)",
+        "Customer Service & Relationship Management",
+        "Sales & Upselling Techniques",
+        "Negotiation & Deal Closing"
+      ]
+    },
+    {
+      "uuid": "255a519d8d6e4460b3beeab84c08be55",
+      "name": "Sean Buckley",
+      "nameDerived": true,
+      "age": 50,
+      "occupation": "software_developer",
+      "education": "associates",
+      "sourceCity": "Livingston",
+      "sourceState": "MT",
+      "biography": "Sean Buckley is a methodical software veteran who balances a passion for reliable code, rugged outdoor pursuits, classic‑rock listening, and perfecting woodworking projects, while occasionally splurging on craft‑beer tastings and forgetting to schedule dental check‑ups.",
+      "interests": [
+        "Fly-fishing",
+        "Hiking",
+        "Camping",
+        "Woodworking",
+        "Gardening",
+        "Reading historical novels"
+      ],
+      "skills": [
+        "Java",
+        "C#",
+        "Python",
+        ".NET",
+        "Spring",
+        "Angular"
+      ]
+    },
+    {
+      "uuid": "c8f64324f09447879b996e99f49a526a",
+      "name": "Lashonda Brazzell",
+      "nameDerived": true,
+      "age": 19,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Orangeburg",
+      "sourceState": "SC",
+      "biography": "Lashonda Brazzell, they are a 19‑year‑old art enthusiast with a methodical mind and quiet charisma, curating community exhibits with precision, saving diligently, and occasionally forgetting to drink enough water between photo shoots.",
+      "interests": [
+        "Visiting museums and galleries",
+        "Digital photography",
+        "Poetry and journaling",
+        "Singing in church choir",
+        "Listening to jazz, soul, and R&B",
+        "Gardening"
+      ],
+      "skills": [
+        "Event planning",
+        "Volunteer coordination",
+        "Academic research",
+        "Creative writing",
+        "Digital photography",
+        "Basic graphic design (Canva, Photoshop)"
+      ]
+    },
+    {
+      "uuid": "b393ef6a3f294337ba31e078fe7631d5",
+      "name": "James Lee",
+      "nameDerived": true,
+      "age": 21,
+      "occupation": "not_in_workforce",
+      "education": "some_college",
+      "sourceCity": "Paso Robles",
+      "sourceState": "CA",
+      "biography": "James Lee is a charismatic, community-focused 21-year-old who blends sociable event planning, wine-tourism passion, and outdoor adventure into vibrant experiences, fueled by curiosity, occasional caffeine-induced jitters, and a habit of procrastinating on paperwork.",
+      "interests": [
+        "Beach volleyball",
+        "Hiking in the Santa Lucia foothills",
+        "Wine tasting and vineyard tours",
+        "Cooking with locally sourced ingredients",
+        "Photography (landscape and food)",
+        "Improvisational theater"
+      ],
+      "skills": [
+        "Interpersonal communication",
+        "Event planning and coordination",
+        "Social media content creation and management",
+        "Basic marketing strategy",
+        "Customer service",
+        "Team leadership"
+      ]
+    },
+    {
+      "uuid": "f2028fc8c5c84d31ac58327a561bd3b6",
+      "name": "Kailea Rubel",
+      "nameDerived": true,
+      "age": 49,
+      "occupation": "not_in_workforce",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Moss Point",
+      "sourceState": "MS",
+      "biography": "Kailea Rubel blends practical organization with Southern hospitality, juggling community events, a budding home bakery, and a disciplined budget, all while chasing garden blooms, quilting squares, and occasional fishing trips, even if they sometimes forget to floss after sugary pastries.",
+      "interests": [
+        "Gardening",
+        "Baking and pastry crafting",
+        "Quilting",
+        "Church choir singing",
+        "Community festival volunteering",
+        "River fishing"
+      ],
+      "skills": [
+        "Event planning",
+        "Volunteer coordination",
+        "Household budgeting",
+        "Large‑scale cooking and catering",
+        "Gardening and horticulture",
+        "Sewing and quilting"
+      ]
+    },
+    {
+      "uuid": "586295bacd314981b5671e5b50cbed37",
+      "name": "Christopher Montero",
+      "nameDerived": true,
+      "age": 24,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Huntsville",
+      "sourceState": "AL",
+      "biography": "Christopher Montero is a solitary, organized 24‑year‑old who fuses cultural art with tech, budgets meticulously, battles insomnia with data‑driven habits, and recharges through hikes and home‑cooked tradition.",
+      "interests": [
+        "Digital illustration",
+        "Reading speculative fiction and philosophy",
+        "Podcast listening (technology, design, art)",
+        "Hiking on Monte Sano trails",
+        "Cooking traditional Mexican dishes",
+        "Strategic video gaming"
+      ],
+      "skills": [
+        "Python programming",
+        "JavaScript web development",
+        "Data analysis with Excel",
+        "Graphic design (Adobe Photoshop, Illustrator)",
+        "Spanish fluency",
+        "Research and information synthesis"
+      ]
+    },
+    {
+      "uuid": "383fb54eea8a4775a0f973df0a1e5509",
+      "name": "Donovan Munoz",
+      "nameDerived": true,
+      "age": 39,
+      "occupation": "sales_representative_of_services",
+      "education": "high_school",
+      "sourceCity": "Hialeah",
+      "sourceState": "FL",
+      "biography": "Donovan Munoz channels relentless imagination into art and sales, but battles periodic anxiety that fuels late‑night coffee binges and a habit of over‑committing to projects.",
+      "interests": [
+        "Abstract painting",
+        "Digital illustration",
+        "Speculative fiction reading",
+        "Philosophy study",
+        "Guitar playing",
+        "Salsa dancing"
+      ],
+      "skills": [
+        "Bilingual Spanish-English communication",
+        "Consultative sales",
+        "Customer relationship management (CRM)",
+        "Negotiation and closing",
+        "Presentation and public speaking",
+        "Creative copywriting"
+      ]
+    },
+    {
+      "uuid": "78c87c61dcfb4347a0a83b8eb5778c3e",
+      "name": "Kerri Wilson",
+      "nameDerived": true,
+      "age": 54,
+      "occupation": "emergency_medical_technician",
+      "education": "high_school",
+      "sourceCity": "Fort Lauderdale",
+      "sourceState": "FL",
+      "biography": "Kerri Wilson blends seasoned emergency‑care expertise with a relentless curiosity for art and community service, navigating life with disciplined organization, a competitive edge, and a healthy dose of skeptical introspection.",
+      "interests": [
+        "Visiting local art galleries and museums",
+        "Painting with acrylics",
+        "Photography of cityscapes and nature",
+        "Reading contemporary fiction and non-fiction",
+        "Attending live music events, especially jazz and R&B",
+        "Cooking and exploring Caribbean and Southern cuisines"
+      ],
+      "skills": [
+        "Emergency medical care",
+        "Advanced cardiac life support (ACLS) basics",
+        "Trauma assessment and triage",
+        "CPR and AED operation",
+        "Patient transport coordination",
+        "Crisis communication"
+      ]
+    },
+    {
+      "uuid": "d1407440dc15455a870dbc3e5605979b",
+      "name": "David Mckethan",
+      "nameDerived": true,
+      "age": 46,
+      "occupation": "cashier",
+      "education": "some_college",
+      "sourceCity": "Angier",
+      "sourceState": "NC",
+      "biography": "David Mckethan blends a love for lively community gatherings, spontaneous grill‑side feasts, and a practical retail hustle with a lingering worry‑prone streak that fuels both disciplined financial steps and occasional stress‑filled late nights.",
+      "interests": [
+        "Pickup basketball",
+        "Church choir",
+        "Community festivals",
+        "Grilling and soul‑food cooking",
+        "Classic R&B movies",
+        "Jazz and hip‑hop music"
+      ],
+      "skills": [
+        "Cash handling",
+        "Customer service",
+        "Point-of-sale (POS) systems",
+        "Basic bookkeeping",
+        "Inventory management",
+        "Conflict resolution"
+      ]
+    },
+    {
+      "uuid": "078955adeb484df78b7115368eadbe22",
+      "name": "Chol Tran",
+      "nameDerived": true,
+      "age": 20,
+      "occupation": "correctional_officer_or_jailer",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Portland",
+      "sourceState": "OR",
+      "biography": "Chol Tran is a socially driven, competition‑focused corrections trainee who balances a relentless pursuit of career advancement with nightly yoga and meticulous budgeting, yet often spirals into over‑analysis and worry over both work incidents and personal interactions.",
+      "interests": [
+        "Pickup basketball",
+        "Indoor rock climbing",
+        "Volunteering at Southeast Asian cultural festivals",
+        "Cooking traditional Vietnamese cuisine",
+        "Yoga and mindfulness journaling",
+        "Reading crime thrillers"
+      ],
+      "skills": [
+        "Conflict De-escalation",
+        "Defensive Tactics & Physical Restraint",
+        "Report Writing & Incident Documentation",
+        "CCTV Surveillance & Monitoring",
+        "First Aid & CPR",
+        "Legal Procedure Compliance"
+      ]
+    },
+    {
+      "uuid": "935d50d4e4ea4f4a8b40355ab690b1bf",
+      "name": "Keith Moore",
+      "nameDerived": true,
+      "age": 60,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Apache Junction",
+      "sourceState": "AZ",
+      "biography": "Keith Moore is a pragmatic, competitively spirited retiree who channels curiosity into hands‑on desert pursuits, balances frugality with generous community mentorship, and maintains an unwavering focus on health and independence.",
+      "interests": [
+        "Hiking the Superstition Mountains",
+        "Bird watching",
+        "ATV off‑road riding",
+        "Woodworking",
+        "Desert gardening",
+        "Playing cards and board games"
+      ],
+      "skills": [
+        "Home appliance repair",
+        "Automotive and small‑engine maintenance",
+        "Carpentry and woodworking",
+        "Desert landscaping",
+        "Basic electrical wiring and troubleshooting",
+        "First aid and CPR"
+      ]
+    },
+    {
+      "uuid": "5a711d86edf44de7b54465613b1828fb",
+      "name": "Yesenia",
+      "nameDerived": true,
+      "age": 59,
+      "occupation": "marketing_manager",
+      "education": "associates",
+      "sourceCity": "Hanford",
+      "sourceState": "CA",
+      "biography": "Yesenia is a routine‑driven, anxiety‑prone marketing veteran who finds solace in gardening, journaling, and knitting, yet tends to postpone emails until late evenings, resulting in occasional night‑time stress.",
+      "interests": [
+        "Traditional Mexican cooking",
+        "Gardening",
+        "Knitting and crochet",
+        "Church choir participation",
+        "Small‑group book club (Mexican history)",
+        "Volunteering at community center"
+      ],
+      "skills": [
+        "Strategic marketing planning",
+        "Brand management",
+        "Email and direct‑mail campaign execution",
+        "Market research and data analysis",
+        "Budget allocation and financial oversight",
+        "Bilingual (Spanish/English) communication"
+      ]
+    },
+    {
+      "uuid": "e7c9dc3edc86436bb0ab71bdefb3d110",
+      "name": "Raki Roseberry",
+      "nameDerived": true,
+      "age": 37,
+      "occupation": "massage_therapist",
+      "education": "associates",
+      "sourceCity": "Indianapolis",
+      "sourceState": "IN",
+      "biography": "Raki Roseberry, a diligent massage therapist with a meticulous mind and a love for jazz, yoga, and soulful cooking, channels their anxiety into organized self‑care routines while dreaming of a community‑focused wellness hub.",
+      "interests": [
+        "Yoga",
+        "Gardening succulent plants",
+        "Reading psychology and self‑help books",
+        "Journaling",
+        "Cooking modern soul food",
+        "Attending jazz concerts"
+      ],
+      "skills": [
+        "Swedish massage",
+        "Deep tissue therapy",
+        "Sports massage",
+        "Myofascial release",
+        "Lymphatic drainage",
+        "Reflexology"
+      ]
+    },
+    {
+      "uuid": "dde8333d1cec4b8b9d486a36fe51b6f3",
+      "name": "Ellias Chand",
+      "nameDerived": true,
+      "age": 66,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Havre",
+      "sourceState": "MT",
+      "biography": "Ellias Chand is a compassionate, slightly disorganized elder who melds art, gardening, and storytelling into community service, combats worry with meditation, and they live a modest, purpose‑driven life rich in tradition and quiet curiosity.",
+      "interests": [
+        "Painting",
+        "Beadwork",
+        "Woodworking",
+        "Gardening",
+        "Folk and tribal music listening",
+        "Attending art fairs and powwows"
+      ],
+      "skills": [
+        "Traditional oral storytelling",
+        "Woodworking",
+        "Beadwork",
+        "Sustainable gardening",
+        "Peer counseling",
+        "Community mediation"
+      ]
+    },
+    {
+      "uuid": "9a43cbb670304065a69bfde53f411dac",
+      "name": "Tyler Brizendine",
+      "nameDerived": true,
+      "age": 69,
+      "occupation": "telephone_operator",
+      "education": "some_college",
+      "sourceCity": "Austin",
+      "sourceState": "TX",
+      "biography": "Tyler Brizendine is a curious, methodical 69‑year‑old who blends decades of call‑center mastery with a passion for art, hiking, and Tex‑Mex cooking, all while juggling a disciplined budget and a gentle habit of over‑seasoning his meals.",
+      "interests": [
+        "Visiting art galleries and museums",
+        "Attending jazz and folk concerts",
+        "Reading non-fiction",
+        "Hiking in Hill Country",
+        "Volunteer tutoring seniors on technology",
+        "Cooking Tex-Mex cuisine"
+      ],
+      "skills": [
+        "Telephone operations",
+        "Customer service",
+        "Active listening",
+        "Conflict resolution",
+        "Data entry",
+        "Scheduling and calendar management"
+      ]
+    },
+    {
+      "uuid": "9a38b78931004944aa0228e82b3db184",
+      "name": "Jeffrey Suarez",
+      "nameDerived": true,
+      "age": 32,
+      "occupation": "dining_room_or_cafeteria_attendant_or_bartender_helper",
+      "education": "some_college",
+      "sourceCity": "West Monroe",
+      "sourceState": "LA",
+      "biography": "Jeffrey Suarez, a highly organized 32‑year‑old who channels his love for Southern hospitality into a disciplined career path, meticulous budgeting, routine health monitoring, and a balanced blend of sports, music, and culinary traditions, yet wrestles with chronic worry that fuels late‑night journaling and occasional over‑commitments, and they often turn to structured routines for comfort.",
+      "interests": [
+        "Woodworking and DIY home improvement",
+        "Fishing at Lake Ouachita",
+        "Cooking Southern cuisine",
+        "Watching college football and LSU Tigers",
+        "Reading self‑help and productivity books",
+        "Journaling for stress management"
+      ],
+      "skills": [
+        "Food safety compliance (ServSafe certified)",
+        "Customer service and hospitality",
+        "Point-of-sale (POS) system operation",
+        "Inventory management and stock control",
+        "Cash handling and reconciliation",
+        "Scheduling and staff coordination"
+      ]
+    },
+    {
+      "uuid": "f2fbabf1053d4aa2aee2376aaa451cb5",
+      "name": "Demetrius Smith",
+      "nameDerived": true,
+      "age": 25,
+      "occupation": "security_guard_or_gambling_surveillance_officer",
+      "education": "associates",
+      "sourceCity": "Pittsburg",
+      "sourceState": "CA",
+      "biography": "Demetrius Smith is a competitively driven, socially energetic security professional who balances a rigid work ethic with a laid‑back, sometimes disorganized lifestyle, channeling stress into boxing and car mods while quietly wrestling with relentless worry.",
+      "interests": [
+        "Pickup basketball",
+        "Game nights (board games & video games)",
+        "Hip‑hop and R&B concerts",
+        "Boxing training and jogging",
+        "Car modification and car meets",
+        "Hiking in Contra Costa trails"
+      ],
+      "skills": [
+        "CCTV operation and maintenance",
+        "Surveillance software troubleshooting",
+        "Threat assessment",
+        "Emergency response and first aid",
+        "Conflict de‑escalation",
+        "Defensive tactics and basic martial arts"
+      ]
+    },
+    {
+      "uuid": "306229bb559742a5a589a827f37da19a",
+      "name": "Michele Jimmerson",
+      "nameDerived": true,
+      "age": 43,
+      "occupation": "architect",
+      "education": "graduate",
+      "sourceCity": "Elmhurst",
+      "sourceState": "IL",
+      "biography": "Michele Jimmerson, a 43‑year‑old architect who navigates life with regimented precision, an aversion to chaos, a penchant for puzzle‑solving, and a chronic habit of over‑checking spreadsheets.",
+      "interests": [
+        "Reading architectural journals and classic literature",
+        "Vegetable gardening",
+        "Baking precise pastries",
+        "Restorative yoga",
+        "Jigsaw and logic puzzles",
+        "Historical preservation volunteer work"
+      ],
+      "skills": [
+        "BIM Modeling (Revit)",
+        "AutoCAD Drafting",
+        "Construction Documentation",
+        "Cost Estimation and Budget Management",
+        "Project Scheduling and Workflow Optimization",
+        "LEED Sustainable Design"
+      ]
+    },
+    {
+      "uuid": "83ac74ececce47fea7bf26b33b771077",
+      "name": "Kim Goines",
+      "nameDerived": true,
+      "age": 20,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Lexington",
+      "sourceState": "KY",
+      "biography": "Kim Goines balances a methodical planner's precision with an impulsive art lover's zest, they wrestle with chronic anxiety, yet they channel that energy into championing inclusive community arts.",
+      "interests": [
+        "Visiting art galleries and street murals",
+        "Sketching and drawing",
+        "Digital photography",
+        "Listening to jazz and hip‑hop",
+        "Attending community theater",
+        "Social dancing (hip‑hop and lyrical)"
+      ],
+      "skills": [
+        "Event planning",
+        "Public speaking",
+        "Digital photography",
+        "Graphic design basics (Canva, Photoshop)",
+        "Social media content creation",
+        "Community outreach"
+      ]
+    },
+    {
+      "uuid": "cec209123a3c4b1686bfaa1289c451cb",
+      "name": "Julia Deleon",
+      "nameDerived": true,
+      "age": 30,
+      "occupation": "engineer",
+      "education": "bachelors",
+      "sourceCity": "Shepherdsville",
+      "sourceState": "KY",
+      "biography": "Julia Deleon blends a meticulous engineering mind with a quiet artistic soul, juggling eco‑focused career ambitions, a habit of collecting vintage drafting pens, and a love for solitary hikes that reset their creative circuits, and they often find themselves lost in detailed sketches late into the night.",
+      "interests": [
+        "Watercolor painting",
+        "Visiting art galleries",
+        "Science‑fiction reading",
+        "Popular‑science books",
+        "Hiking",
+        "Nature photography"
+      ],
+      "skills": [
+        "Mechanical design",
+        "SolidWorks",
+        "AutoCAD",
+        "ANSYS",
+        "MATLAB",
+        "Python"
+      ]
+    },
+    {
+      "uuid": "900a121cd5a04286949dc3482feb5dea",
+      "name": "Stephen Cate",
+      "nameDerived": true,
+      "age": 58,
+      "occupation": "first_line_supervisor_of_non_retail_sales_worker",
+      "education": "high_school",
+      "sourceCity": "Racine",
+      "sourceState": "WI",
+      "biography": "Stephen Cate is a structure‑loving, competition‑driven supervisor who balances a community‑centric lifestyle with disciplined work habits, an occasional skeptic’s streak, and a weekend ritual of fishing, bowling, and mystery novels; they often joke that a well‑ordered spreadsheet is their favorite bedtime read.",
+      "interests": [
+        "Bowling league",
+        "Rotary club membership",
+        "Lake Michigan fishing",
+        "Woodworking",
+        "Racine summer festivals",
+        "Green Bay Packers fandom"
+      ],
+      "skills": [
+        "Team leadership",
+        "B2B sales supervision",
+        "Performance management",
+        "CRM software proficiency",
+        "Scheduling and logistics coordination",
+        "Conflict resolution"
+      ]
+    },
+    {
+      "uuid": "37ffcd472c8f488cbfd4f821869b8638",
+      "name": "Denzal Thompson",
+      "nameDerived": true,
+      "age": 38,
+      "occupation": "food_preparation_worker",
+      "education": "some_college",
+      "sourceCity": "Mount Vernon",
+      "sourceState": "NY",
+      "biography": "Denzal Thompson is a methodical chef‑manager who channels competitive fire onto the basketball court, yet they hoard extra spice jars they never use, often staying up late fine‑tuning recipes instead of sleeping.",
+      "interests": [
+        "Home recipe experimentation (soul‑food twists)",
+        "Recreational basketball league",
+        "Weight training and fitness",
+        "Reading culinary and self‑improvement books",
+        "Maintaining a detailed meal‑prep journal",
+        "Volunteering at community food banks and church events"
+      ],
+      "skills": [
+        "Food safety & sanitation (ServSafe certified)",
+        "Inventory management and cost control",
+        "Meal‑prep scheduling and workflow optimization",
+        "Culinary techniques: grilling, sautéing, baking, butchering",
+        "Portion control and recipe standardization",
+        "Kitchen equipment maintenance"
+      ]
+    },
+    {
+      "uuid": "81f7325b80f84c8e84282734e815416b",
+      "name": "Ravin Vanchipura",
+      "nameDerived": true,
+      "age": 29,
+      "occupation": "economist",
+      "education": "bachelors",
+      "sourceCity": "Federal Way",
+      "sourceState": "WA",
+      "biography": "Ravin Vanchipura is a data‑driven economist who thrives on lively conversation, strategically favors flexibility over rigid plans, and balances a competitive edge with a habit of impulsively splurging on social events.",
+      "interests": [
+        "Attending networking events and meet‑ups",
+        "Improv comedy performances",
+        "Cooking South Asian cuisine",
+        "Hiking local trails",
+        "Playing badminton",
+        "Listening to and commenting on economics podcasts"
+      ],
+      "skills": [
+        "Quantitative economic analysis",
+        "Econometric modeling",
+        "Statistical forecasting",
+        "Policy evaluation",
+        "Python (pandas, NumPy, scikit‑learn)",
+        "R programming"
+      ]
+    },
+    {
+      "uuid": "528afb2d0c3545438a517fbc5acff425",
+      "name": "Ryan Marshall",
+      "nameDerived": true,
+      "age": 29,
+      "occupation": "landscaping_or_groundskeeping_worker",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Timmonsville",
+      "sourceState": "SC",
+      "biography": "Ryan Marshall is a detail‑driven landscaper who tempers a competitive edge and chronic worry with a love for gardening, woodworking, and soulful gospel, meticulously budgeting while occasionally splurging on premium wood.",
+      "interests": [
+        "Home vegetable gardening",
+        "Fishing at Lake Marion",
+        "Listening to Southern soul, R&B, and gospel music",
+        "Church attendance and community gatherings",
+        "Pick‑up basketball",
+        "Woodworking (bench and birdhouse making)"
+      ],
+      "skills": [
+        "Landscape design fundamentals",
+        "Plant identification and horticultural maintenance",
+        "Heavy equipment operation and maintenance",
+        "Irrigation system design, installation, and repair",
+        "Safety compliance and risk assessment",
+        "Job scheduling and crew coordination"
+      ]
+    },
+    {
+      "uuid": "47e553010106447ca9ddad5b3ac34ea4",
+      "name": "Ruth Gresham",
+      "nameDerived": true,
+      "age": 72,
+      "occupation": "not_in_workforce",
+      "education": "some_college",
+      "sourceCity": "Elba",
+      "sourceState": "AL",
+      "biography": "Ruth Gresham is a methodical, community‑focused septuagenarian who blends a love for genealogy, gardening, and quilting into a life of quiet stewardship, punctuated by a penchant for preserving newspaper clippings in towering piles that they lovingly sort each week.",
+      "interests": [
+        "Heirloom vegetable gardening",
+        "Quilting and crochet",
+        "Baking pies and preserves",
+        "Reading historical fiction",
+        "Genealogy research",
+        "Birdwatching"
+      ],
+      "skills": [
+        "Organizational planning",
+        "Budgeting and financial management",
+        "Event coordination",
+        "Record‑keeping",
+        "Basic computer use (email, spreadsheets)",
+        "Genealogy research"
+      ]
+    },
+    {
+      "uuid": "51f7c9ab7be44e52b05b97b6d3c777c3",
+      "name": "Owen Newsom",
+      "nameDerived": true,
+      "age": 56,
+      "occupation": "carpenter",
+      "education": "high_school",
+      "sourceCity": "Central Islip",
+      "sourceState": "NY",
+      "biography": "Owen Newsom is a solitary master carpenter whose quiet imagination transforms timber into narrative art, balancing meticulous craftsmanship with a restless curiosity and occasional anxiety.",
+      "interests": [
+        "Sketching and drawing",
+        "Scale model building (ships, architecture)",
+        "Reading art history, philosophy, speculative fiction",
+        "Nature walks and photography",
+        "Mindfulness meditation",
+        "Playing harmonica"
+      ],
+      "skills": [
+        "Residential framing",
+        "Custom cabinetry",
+        "Fine furniture making",
+        "Historic home restoration",
+        "Advanced joinery (dovetail, mortise-and-tenon)",
+        "Blueprint reading"
+      ]
+    },
+    {
+      "uuid": "04c5699017184cac8d5936643bbf7aad",
+      "name": "Carl Turner",
+      "nameDerived": true,
+      "age": 49,
+      "occupation": "financial_manager",
+      "education": "high_school",
+      "sourceCity": "Clifton",
+      "sourceState": "NJ",
+      "biography": "Carl Turner is a charismatic finance professional who blends analytical rigor with spontaneous curiosity, navigating work stress through basketball, meditation, and Southern cooking, all while juggling a modest habit of chronic over‑thinking and occasional disorganized paperwork.",
+      "interests": [
+        "Pickup basketball",
+        "Live jazz and R&B concerts",
+        "Financial‑literacy volunteering",
+        "Cooking Southern cuisine",
+        "Family gatherings",
+        "Fishing at Passaic River"
+      ],
+      "skills": [
+        "Financial analysis",
+        "Budgeting and forecasting",
+        "Regulatory compliance",
+        "Advanced Excel",
+        "SAP",
+        "QuickBooks"
+      ]
+    },
+    {
+      "uuid": "001e81a94d77422a881ae9573b69f22b",
+      "name": "Justin Edmonds",
+      "nameDerived": true,
+      "age": 26,
+      "occupation": "social_or_community_service_manager",
+      "education": "bachelors",
+      "sourceCity": "Chicago",
+      "sourceState": "IL",
+      "biography": "Justin Edmonds blends Midwestern pragmatism with urban creativity, juggling data‑driven nonprofit leadership, competitive financial planning, and they maintain a habit of late‑night guitar sessions that occasionally upset their sleep schedule.",
+      "interests": [
+        "Visiting art galleries",
+        "Street photography",
+        "Urban gardening",
+        "Playing acoustic guitar",
+        "Hiking in nearby nature preserves",
+        "Reading contemporary non-fiction"
+      ],
+      "skills": [
+        "Community program design",
+        "Grant writing",
+        "Strategic planning",
+        "Budget management",
+        "Stakeholder engagement",
+        "Data analysis"
+      ]
+    },
+    {
+      "uuid": "06a266e237354347aec81a7b71c40bf8",
+      "name": "Timothy Oyer",
+      "nameDerived": true,
+      "age": 43,
+      "occupation": "construction_laborer",
+      "education": "less_than_9th",
+      "sourceCity": "Deer Park",
+      "sourceState": "TX",
+      "biography": "Timothy Oyer, the organized, sociable foreman‑in‑training, transforms anxiety into meticulous project planning, fuels life with fishing trips, backyard barbecues, and hand‑made woodwork, while occasionally over‑spending on gadgets and neglecting routine health check‑ups.",
+      "interests": [
+        "Fishing on Galveston Bay",
+        "Backyard barbecues and hosting gatherings",
+        "Woodworking in his garage workshop",
+        "Playing acoustic guitar",
+        "Attending local high school football games",
+        "Participating in community soccer league"
+      ],
+      "skills": [
+        "Concrete Formwork",
+        "Wood Framing",
+        "Drywall Installation",
+        "Roof Sheathing",
+        "Power Tool Operation",
+        "Heavy Equipment Operation (forklift, backhoe)"
+      ]
+    },
+    {
+      "uuid": "5d43a8f04a0748e8b1ee7d55353c1d02",
+      "name": "Idolidia Alfonso",
+      "nameDerived": true,
+      "age": 48,
+      "occupation": "producer_or_director",
+      "education": "associates",
+      "sourceCity": "Wenonah",
+      "sourceState": "NJ",
+      "biography": "Idolidia Alfonso blends a methodical, competitive mindset with deep curiosity for storytelling, balancing high‑pressure production demands with solitary hikes, rooftop gardening, and acoustic folk music, all while they navigate occasional health nags and a disciplined financial plan.",
+      "interests": [
+        "Documentary photography",
+        "Reading contemporary Colombian literature",
+        "Cooking traditional Colombian dishes",
+        "Hiking in New Jersey state parks",
+        "Attending art exhibitions and film festivals",
+        "Playing acoustic guitar"
+      ],
+      "skills": [
+        "Film production management",
+        "Directing actors and crew",
+        "Script development and storyboarding",
+        "Budgeting and financial oversight",
+        "Scheduling and logistics coordination",
+        "Bilingual communication (Spanish/English)"
+      ]
+    },
+    {
+      "uuid": "30ab687b22c647f19d098bb00babd407",
+      "name": "Gabriel Vazquezgonzalez",
+      "nameDerived": true,
+      "age": 75,
+      "occupation": "not_in_workforce",
+      "education": "graduate",
+      "sourceCity": "Valley Stream",
+      "sourceState": "NY",
+      "biography": "Gabriel Vazquezgonzalez, the methodical, solitary scholar who balances curiosity with a skeptical, worry‑laden mind, finds solace in chess, garden order, and preserving cultural memories through writing and music.",
+      "interests": [
+        "Reading classic literature",
+        "Writing memoirs and essays",
+        "Chess",
+        "Classical music listening",
+        "Gardening",
+        "Cooking traditional Colombian dishes"
+      ],
+      "skills": [
+        "Literary criticism",
+        "Archival research",
+        "Spanish-English translation",
+        "Curating small art exhibitions",
+        "Classical music appreciation",
+        "Chess strategy"
+      ]
+    },
+    {
+      "uuid": "9932c06bd0864adaa080b8a5386d788c",
+      "name": "Kimberly Dimarco",
+      "nameDerived": true,
+      "age": 53,
+      "occupation": "software_developer",
+      "education": "bachelors",
+      "sourceCity": "Montclair",
+      "sourceState": "NJ",
+      "biography": "Kimberly Dimarco blends a methodical mindset with a warm, community‑focused heart, channeling love for structured code, garden‑grown herbs, and mentorship into daily life, even as chronic worry prompts endless spreadsheet updates and occasional over‑knitting of scarfs.",
+      "interests": [
+        "Gardening",
+        "Reading historical fiction",
+        "Yoga",
+        "Mindfulness meditation",
+        "Volunteering at after‑school coding clubs",
+        "Knitting"
+      ],
+      "skills": [
+        "Python",
+        "Java",
+        "JavaScript",
+        "C#",
+        "SQL",
+        "React"
+      ]
+    },
+    {
+      "uuid": "a8620e0f604542bfa1ad80dc75178b2f",
+      "name": "Chris Holley",
+      "nameDerived": true,
+      "age": 42,
+      "occupation": "cashier",
+      "education": "associates",
+      "sourceCity": "Due West",
+      "sourceState": "SC",
+      "biography": "Chris Holley is a 42‑year‑old solitary strategist who balances meticulous work habits with occasional disorganization, channels anxiety into fishing and model railways, and secretly hoards spare change for unpredictable emergencies.",
+      "interests": [
+        "Fishing",
+        "Hiking",
+        "Gardening",
+        "Reading mystery novels",
+        "Model railway building",
+        "Woodworking"
+      ],
+      "skills": [
+        "Cash handling",
+        "POS system operation",
+        "Basic inventory control",
+        "Simple bookkeeping",
+        "Customer assistance",
+        "Conflict de‑escalation"
+      ]
+    },
+    {
+      "uuid": "be1f5b9051194b56a47d4e2bb6bc4b00",
+      "name": "Jenny Todd",
+      "nameDerived": true,
+      "age": 68,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Trenton",
+      "sourceState": "MO",
+      "biography": "Jenny Todd blends relentless curiosity with meticulous planning, turning every community event into a well-orchestrated showcase while they secretly hoard extra paint tubes for late-night canvas sessions.",
+      "interests": [
+        "Watercolor painting",
+        "Community art workshops",
+        "Heirloom gardening",
+        "Quilting",
+        "Historical fiction reading",
+        "Genealogy research"
+      ],
+      "skills": [
+        "Event planning",
+        "Volunteer coordination",
+        "Budget management",
+        "Public speaking",
+        "Basic computer literacy",
+        "Community outreach"
+      ]
+    },
+    {
+      "uuid": "7fe2ec2e922f47ffaf0a793978bf8124",
+      "name": "Kevin Santos",
+      "nameDerived": true,
+      "age": 27,
+      "occupation": "tour_or_travel_guide",
+      "education": "less_than_9th",
+      "sourceCity": "Brooksville",
+      "sourceState": "FL",
+      "biography": "Kevin Santos, a 27‑year‑old nature‑loving tour guide, channels relentless curiosity and artistic solitude into immersive, eco‑centric experiences while battling high anxiety and a habit of over‑investing in camera gear.",
+      "interests": [
+        "Nature photography",
+        "Birdwatching",
+        "Sketching landscapes",
+        "Reading art history",
+        "Visiting local galleries",
+        "Cooking Puerto Rican cuisine"
+      ],
+      "skills": [
+        "Bilingual storytelling (English/Spanish)",
+        "Local history narration",
+        "Ecotourism guiding",
+        "Wildlife identification",
+        "First aid & CPR certification",
+        "Route planning"
+      ]
+    },
+    {
+      "uuid": "38af8f4e38a24366b0621fe5f327f727",
+      "name": "Juan Munozlopez",
+      "nameDerived": true,
+      "age": 57,
+      "occupation": "not_in_workforce",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Oakland Gardens",
+      "sourceState": "NY",
+      "biography": "Juan Munozlopez, a detail‑obsessed, competitive tinkerer at 57, channels his love for structured tasks into precise home repairs, disciplined budgeting, and a passion for baseball analytics, all while wrestling with chronic worry and a penchant for solitary perfectionism.",
+      "interests": [
+        "Baseball Watching (Statistics)",
+        "Cooking Dominican Cuisine",
+        "Balcony Herb Gardening",
+        "Jigsaw Puzzles",
+        "Wooden Model Building",
+        "Listening to Merengue and Bachata"
+      ],
+      "skills": [
+        "Carpentry",
+        "Drywall Repair",
+        "Basic Electrical Work",
+        "Automotive Maintenance",
+        "Dominican Cooking",
+        "Budgeting and Personal Finance Management"
+      ]
+    },
+    {
+      "uuid": "0ec0af5837654d67956e8ad79d964419",
+      "name": "Dirk Robinson",
+      "nameDerived": true,
+      "age": 30,
+      "occupation": "elementary_or_middle_school_teacher",
+      "education": "high_school",
+      "sourceCity": "Los Angeles",
+      "sourceState": "CA",
+      "biography": "Dirk Robinson, a 30‑year‑old Los Angeles teacher, captures city moments on a mirrorless camera, shreds skate parks, cooks daring Mexican‑Asian mash‑ups, and they balance spontaneous creativity with a chronic habit of last‑minute lesson planning.",
+      "interests": [
+        "Street photography",
+        "Skateboarding",
+        "Coastal hiking",
+        "Experimental cooking",
+        "Acoustic guitar",
+        "Board‑game nights"
+      ],
+      "skills": [
+        "Classroom management",
+        "Differentiated instruction",
+        "Technology integration (Google Classroom, interactive whiteboards)",
+        "Lesson improvisation",
+        "Student assessment and feedback",
+        "Conflict mediation"
+      ]
+    },
+    {
+      "uuid": "54254d14e5dc47de92121ecb63adccee",
+      "name": "Marco Gonzalezarellano",
+      "nameDerived": true,
+      "age": 58,
+      "occupation": "special_education_teacher",
+      "education": "bachelors",
+      "sourceCity": "Tampa",
+      "sourceState": "FL",
+      "biography": "Marco Gonzalezarellano is a charismatic, art‑driven educator who blends boundless curiosity and talkative charm with a delightfully disorganized schedule, often forgetting appointments yet never missing a chance to share their stories over coffee, music, and watercolor sketches.",
+      "interests": [
+        "Visiting art galleries and museums",
+        "Attending theater and live music performances",
+        "Watercolor painting",
+        "Cooking traditional Peruvian dishes",
+        "Salsa and bachata dancing",
+        "Bird-watching and nature walks"
+      ],
+      "skills": [
+        "Special Education Instruction",
+        "Individualized Education Program (IEP) Development",
+        "Bilingual (Spanish-English) Teaching",
+        "Differentiated Instruction",
+        "Arts-Integrated Curriculum Design",
+        "Behavior Management and Positive Reinforcement"
+      ]
+    },
+    {
+      "uuid": "02b6c6dbfcc740a380556897b7bef760",
+      "name": "Kenneth Hutchinson",
+      "nameDerived": true,
+      "age": 48,
+      "occupation": "elementary_or_middle_school_teacher",
+      "education": "bachelors",
+      "sourceCity": "Kearny",
+      "sourceState": "NJ",
+      "biography": "Kenneth Hutchinson is a structured, community‑focused STEM educator who balances meticulous lesson planning with spontaneous guitar jams, diligent budgeting, and a never‑ending list of woodworking projects that often keep them up late.",
+      "interests": [
+        "Hiking in the Watchung Mountains",
+        "Community theater participation",
+        "Playing acoustic guitar",
+        "Coaching youth soccer",
+        "DIY woodworking projects",
+        "Building personal robotics kits"
+      ],
+      "skills": [
+        "Lesson planning",
+        "STEM curriculum design",
+        "Technology integration",
+        "Differentiated instruction",
+        "Classroom management",
+        "Data‑driven assessment"
+      ]
+    },
+    {
+      "uuid": "6e220cd511e74f2f824c63c030cef051",
+      "name": "Jefrey Stanonis",
+      "nameDerived": true,
+      "age": 25,
+      "occupation": "medical_or_health_services_manager",
+      "education": "9th_12th_no_diploma",
+      "sourceCity": "Brooklyn",
+      "sourceState": "NY",
+      "biography": "Jefrey Stanonis is a routine‑loving clinic coordinator who paradoxically darts into spontaneous basketball games, vinyl‑spinning nights, and anxiety‑fueling over‑thinking, juggling meticulous work tasks with occasional procrastination and a love for hearty home‑cooked meals, and they often find themselves oscillating between control and chaos.",
+      "interests": [
+        "Home Cooking (Weekly Meals)",
+        "Vinyl Record Collecting",
+        "Strategy Video Gaming",
+        "Pickup Basketball",
+        "Street Art Walking Tours",
+        "Prospect Park Walks"
+      ],
+      "skills": [
+        "Clinic Operations Management",
+        "Staff Scheduling and Shift Planning",
+        "Healthcare Compliance (HIPAA & OSHA)",
+        "Medical Billing & Insurance Verification",
+        "Electronic Medical Records (EMR) Administration",
+        "Patient Relations and Customer Service"
+      ]
+    },
+    {
+      "uuid": "201f8b475c7647848d8a550930a23643",
+      "name": "Jeannette Brooks",
+      "nameDerived": true,
+      "age": 21,
+      "occupation": "not_in_workforce",
+      "education": "high_school",
+      "sourceCity": "Manchester",
+      "sourceState": "GA",
+      "biography": "Jeannette Brooks is a vibrant, improvisational social‑butterfly who balances restless creativity with bouts of anxiety, thriving on spontaneous art projects while habitually juggling too many gigs for an organized mind.",
+      "interests": [
+        "Visiting local art galleries and museums",
+        "Attending live music and theater performances",
+        "Participating in improv comedy workshops",
+        "Photography and photo editing",
+        "Social media blogging about art and culture",
+        "Debate club gatherings"
+      ],
+      "skills": [
+        "Public speaking",
+        "Improvisational performance",
+        "Social media content creation",
+        "Basic graphic design",
+        "Photography and photo editing",
+        "Event coordination"
+      ]
+    }
+  ]
+}
