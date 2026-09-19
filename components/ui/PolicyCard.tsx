@@ -3,103 +3,50 @@
 import { useCityPulseStore } from '@/lib/store';
 import { Policy } from '@/lib/types';
 
-// ============================================================
-// PolicyCard — one policy in the bottom strip.
-// Shows icon, title, description, effect bullets, Enact button.
-// ============================================================
-
-// Category icon backgrounds and colors
-const CAT_STYLE: Record<string, { bg: string; color: string; icon: string }> = {
-  housing:     { bg: '#FFFFFF', color: '#EF4444', icon: '🏠' },
-  transit:     { bg: '#FFFFFF', color: '#3B82F6', icon: '🚆' },
-  taxes:       { bg: '#FFFFFF', color: '#F59E0B', icon: '🪙' },
-  safety:      { bg: '#FFFFFF', color: '#60A5FA', icon: '🛡️' },
-  business:    { bg: '#FFFFFF', color: '#8B5CF6', icon: '💼' },
-  environment: { bg: '#FFFFFF', color: '#22C55E', icon: '🌿' },
+const CATEGORY: Record<string, { color: string; icon: string }> = {
+  housing: { color: '#f4b08a', icon: '🏠' },
+  transit: { color: '#93c5fd', icon: '🚆' },
+  taxes: { color: '#f4ce7f', icon: '🪙' },
+  safety: { color: '#a5c7ff', icon: '🛡️' },
+  business: { color: '#c4b5fd', icon: '💼' },
+  environment: { color: '#86d9b2', icon: '🌿' },
 };
+const money = (value: number) => `$${Math.abs(value).toLocaleString('en-US')}`;
 
-interface PolicyCardProps {
-  policy: Policy;
-}
-
-export default function PolicyCard({ policy }: PolicyCardProps) {
+export default function PolicyCard({ policy }: { policy: Policy }) {
   const enactPolicyById = useCityPulseStore(s => s.enactPolicyById);
-  const { icon } = CAT_STYLE[policy.category] ?? CAT_STYLE.housing;
-
-  const cost = policy.upfrontCost;
-  const fmt = (n: number) => `$${n.toLocaleString()}`;
+  const { color, icon } = CATEGORY[policy.category] ?? CATEGORY.housing;
+  // Keep a tradeoff visible when a proposal has both benefits and drawbacks.
+  const outcomes = policy.effects.filter(effect => !['treasury', 'expenses'].includes(effect.field));
+  const positive = outcomes.find(effect => effect.isPositive);
+  const negative = outcomes.find(effect => !effect.isPositive);
+  const effects = positive && negative ? [positive, negative] : outcomes.slice(0, 2);
 
   return (
-    <div
-      className="card-hover flex flex-col justify-between rounded-xl p-3 flex-shrink-0"
-      style={{
-        width: 290,
-        background: '#132338',
-        border: '1px solid #1E385A',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-      }}
-    >
-      <div>
-        {/* Header row: icon in white box + title */}
-        <div className="flex items-start gap-2.5 mb-2">
-          <div
-            className="flex items-center justify-center text-xl rounded-xl flex-shrink-0 bg-white shadow-sm"
-            style={{ width: 38, height: 38 }}
-          >
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold leading-tight" style={{ color: '#F0F4FA' }}>
-              {policy.name}
-            </div>
-            <div className="text-xs leading-tight mt-0.5 line-clamp-2" style={{ color: '#8295AD' }}>
-              {policy.description}
-            </div>
-          </div>
-        </div>
-
-        {/* Effect bullets */}
-        <div className="space-y-1 mb-2">
-          {policy.effects.slice(0, 2).map((eff, i) => (
-            <div key={i} className="flex items-center gap-1.5 text-xs">
-              <span
-                className="font-bold flex-shrink-0"
-                style={{ color: eff.isPositive ? '#22C55E' : '#EF4444' }}
-              >
-                {eff.isPositive ? '+' : '−'}
-              </span>
-              <span className="leading-tight font-medium" style={{ color: eff.isPositive ? '#4ADE80' : '#F87171' }}>
-                {eff.label}
-              </span>
-            </div>
-          ))}
+    <article className="policy-proposal" aria-label={policy.name}>
+      <div className="flex items-start gap-3">
+        <span className="policy-proposal-icon" style={{ color, background: `${color}14`, borderColor: `${color}30` }} aria-hidden="true">{icon}</span>
+        <div className="min-w-0 flex-1">
+          <h3 className="policy-proposal-title" title={policy.name}>{policy.name}</h3>
+          <p className="policy-proposal-description" title={policy.description}>{policy.description}</p>
         </div>
       </div>
-
-      {/* Footer: cost + Enact button */}
-      <div className="flex items-center justify-between pt-1 border-t border-[#1C324E] mt-auto">
-        <div>
-          {cost > 0 ? (
-            <span className="text-xs font-bold" style={{ color: '#EF4444' }}>
-              −{fmt(cost)}
-            </span>
-          ) : (
-            <span className="text-xs font-semibold" style={{ color: '#22C55E' }}>
-              Balanced
-            </span>
-          )}
+      <ul className="policy-effects" aria-label="Key effects">
+        {effects.map((effect, index) => (
+          <li key={index} title={`${effect.label}${effect.turnsDelay ? ` · In ${effect.turnsDelay} turn${effect.turnsDelay === 1 ? '' : 's'}` : ''}`}>
+            <span className="policy-effect-dot" style={{ background: effect.isPositive ? '#6ee7b7' : '#fda4af' }} aria-hidden="true" />
+            <span className="truncate" style={{ color: effect.isPositive ? '#a4d9c1' : '#f0afb9' }}>{effect.label}</span>
+            {effect.turnsDelay > 0 && <span className="policy-effect-delay">In {effect.turnsDelay} turn{effect.turnsDelay === 1 ? '' : 's'}</span>}
+          </li>
+        ))}
+      </ul>
+      <footer className="policy-proposal-footer">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-1.5"><span className="text-sm font-semibold text-slate-100 tabular-nums">{policy.upfrontCost === 0 ? '$0' : `${policy.upfrontCost < 0 ? '+' : ''}${money(policy.upfrontCost)}`}</span><span className="text-[10px] text-slate-400">{policy.upfrontCost < 0 ? 'upfront revenue' : 'upfront'}</span></div>
+          <div className="text-[10px] text-slate-400 mt-0.5 tabular-nums">{policy.recurringCost === 0 ? 'No recurring cost' : `${policy.recurringCost < 0 ? '+' : '−'}${money(policy.recurringCost)} / turn${policy.recurringCost < 0 ? ' revenue' : ''}`}</div>
         </div>
-        <button
-          onClick={() => enactPolicyById(policy.id)}
-          className="text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all active:scale-95 shadow-sm hover:brightness-110 cursor-pointer"
-          style={{
-            background: '#3B82F6',
-            color: 'white',
-          }}
-        >
-          Enact Policy
-        </button>
-      </div>
-    </div>
+        <button onClick={() => enactPolicyById(policy.id)} className="policy-enact-button" aria-label={`Enact ${policy.name}`}>Enact policy <span aria-hidden="true">→</span></button>
+      </footer>
+    </article>
   );
 }
