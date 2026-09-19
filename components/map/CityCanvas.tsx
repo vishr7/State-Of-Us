@@ -1,0 +1,734 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { useCityPulseStore } from '@/lib/store';
+
+// ============================================================
+// CityCanvas — Procedural Isometric Pittsburgh City Renderer
+// HTML5 Canvas 2D with an illustrated 4 × 4 sprite atlas.
+// Art style: detailed illustrated indie city with individually placed sprites.
+// Geography: Three Rivers confluence — Allegheny + Mon → Ohio.
+// ============================================================
+
+const TW = 96;     // tile width (px)
+const TH = 48;     // tile height (px) = TW/2
+const GW = 28;     // grid columns
+const GH = 28;     // grid rows
+
+
+// World origin is centered on the grid midpoint tile (14,14)
+const OX = 0;
+const OY = -((GW / 2 + GH / 2) * (TH / 2)); // ≈ -448
+
+function tileToScreen(tx: number, ty: number) {
+  return { x: (tx - ty) * (TW / 2) + OX, y: (tx + ty) * (TH / 2) + OY };
+}
+
+// Stable per-tile pseudo-random in [0,1)
+function rng(tx: number, ty: number): number {
+  let seed = Math.imul(tx + 71, 374761393) ^ Math.imul(ty + 137, 668265263);
+  seed = Math.imul(seed ^ (seed >>> 13), 1274126177);
+  return ((seed ^ (seed >>> 16)) >>> 0) / 4294967296;
+}
+
+// ── Pittsburgh River Math ────────────────────────────────────
+// The Point (river confluence) is at tile (10, 16).
+// Allegheny flows from upper-right (NE) toward The Point.
+// Mon flows from lower-right (SE) toward The Point.
+// Ohio flows from The Point to the left (W).
+
+function alleghenyY(tx: number) { return 16 - (tx - 10) * 10 / 16; }
+function monY(tx: number)       { return 16 + (tx - 10) * 6  / 16; }
+
+function isAllegheny(tx: number, ty: number) {
+  if (tx < 10 || tx > 27) return false;
+  return Math.abs(ty - alleghenyY(tx)) < 1.7;
+}
+function isMon(tx: number, ty: number) {
+  if (tx < 10 || tx > 27) return false;
+  return Math.abs(ty - monY(tx)) < 1.7;
+}
+function isOhio(tx: number, ty: number) {
+  if (tx >= 10 || tx < 1) return false;
+  return Math.abs(ty - 16) < 2;
+}
+function isWater(tx: number, ty: number) {
+  return isAllegheny(tx, ty) || isMon(tx, ty) || isOhio(tx, ty);
+}
+
+// Tiles between Allegheny and Mon (the Golden Triangle wedge)
+function isInWedge(tx: number, ty: number) {
+  if (tx < 10 || tx > 27) return false;
+  return ty > alleghenyY(tx) + 0.5 && ty < monY(tx) - 0.5;
+}
+
+// Stylized Three Sisters crossings aligned with the street grid.
+const BRIDGE_TX = new Set([11, 15, 19]);
+// Truss crossings over the Mon.
+const MON_BRIDGE_TX = new Set([15, 23]);
+
+function isBridge(tx: number, ty: number) {
+  if (BRIDGE_TX.has(tx) && isAllegheny(tx, ty)) return 'suspension';
+  if (MON_BRIDGE_TX.has(tx) && isMon(tx, ty)) return 'truss';
+  return null;
+}
+
+// Cathedral of Learning: special single tile in Oakland
+const CATHEDRAL_TX = 20, CATHEDRAL_TY = 14;
+
+// ── Tile Classification ──────────────────────────────────────
+type Zone = 'wealthy' | 'middle' | 'lower' | 'tower' | 'civic';
+type BridgeKind = 'suspension' | 'truss';
+
+interface TileInfo {
+  ground: 'grass' | 'road' | 'water' | 'park' | 'hillside';
+  bridge?: BridgeKind;
+  building?: Zone;
+  cathedral?: true;
+  hillElevation?: number; // 0-4 relative to flat
+  tree?: boolean;
+}
+
+function classifyTile(tx: number, ty: number): TileInfo {
+  // Water (checked first — rivers override everything)
+  if (isWater(tx, ty)) {
+    const b = isBridge(tx, ty);
+    return b ? { ground: 'road', bridge: b } : { ground: 'water' };
+  }
+
+  const r = rng(tx, ty);
+  // A wooded perimeter softens the edge of the model.
+  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) {
+    return { ground: 'park', tree: true };
+  }
+
+  // Shadyside: a garden neighborhood with a perimeter drive, a central
+  // village green, and detached villas instead of repeated apartment blocks.
+  if (tx <= 10 && ty <= 13) {
+    if (tx === 2 || tx === 9 || ty === 3 || ty === 12 || (ty === 8 && tx >= 9)) return { ground: 'road' };
+    if (tx >= 5 && tx <= 7 && ty >= 6 && ty <= 9) return { ground: 'park' };
+    if ((tx + ty) % 3 === 0 || tx === 1 || ty === 1) return { ground: 'grass', tree: true };
+    return { ground: 'grass', building: 'wealthy' };
+  }
+
+  // Main avenues tie the districts to the river crossings. Local streets
+  // use different block sizes, rather than a uniform grid across the city.
+  if ([11, 15, 19, 23].includes(tx)) return { ground: 'road' };
+  if ([3, 8, 13, 18, 24].includes(ty)) return { ground: 'road' };
+  if (tx < 11 && (tx === 4 || tx === 8 || ty === 21)) return { ground: 'road' };
+
+  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true };
+
+  // Downtown: compact masonry apartment blocks around a single civic square.
+  if (isInWedge(tx, ty) && tx < 22) {
+    if (tx >= 16 && tx <= 18 && ty >= 15 && ty <= 16) return { ground: 'park' };
+    if (tx === 17 && ty === 14) return { ground: 'grass', cathedral: true };
+    return { ground: 'grass', building: r < 0.18 ? 'middle' : 'tower' };
+  }
+
+  // Homewood: smaller rowhouse blocks, corner shops and community gardens.
+  if (isInWedge(tx, ty) && tx >= 22) {
+    if (tx === 25 && ty >= 16 && ty <= 17) return { ground: 'park' };
+    return { ground: 'grass', building: 'lower' };
+  }
+
+  // Lawrenceville: an active mixed-use riverfront with a linear park.
+  if (ty < alleghenyY(tx) && tx >= 11) {
+    if (tx >= 16 && tx <= 18 && ty >= 5 && ty <= 7) return { ground: 'park' };
+    return r < 0.12 ? { ground: 'grass', tree: true } : { ground: 'grass', building: 'middle' };
+  }
+
+  // Hillside cottages gradually give way to woodland on the southern bank.
+  if (tx >= 10 && ty > monY(tx)) {
+    if (r < 0.5 || ty > 25) return { ground: 'hillside', tree: true };
+    return { ground: 'hillside', building: 'wealthy' };
+  }
+  return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'middle' };
+}
+
+// ── Colors ───────────────────────────────────────────────────
+// Bright pixel-art palette — no gradients anywhere.
+const SKY_COLOR    = '#ded7c9';
+const GRASS_A      = '#718e51';
+const GRASS_B      = '#718e51';
+const PARK_COLOR   = '#71964e';
+const HILL_A       = '#6A9A50';
+const WATER_COLOR  = '#567f99';
+const WATER_SHINE  = '#b5d0dc';
+const ROAD_COLOR   = '#59616a';
+
+// ── Drawing Primitives ───────────────────────────────────────
+function fillPoly(
+  ctx: CanvasRenderingContext2D,
+  pts: [number, number][],
+  fill: string,
+  stroke?: string,
+) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+function diamond(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string) {
+  const hw = TW / 2, hh = TH / 2;
+  fillPoly(ctx, [[cx, cy-hh],[cx+hw, cy],[cx, cy+hh],[cx-hw, cy]], color);
+}
+
+// Atlas cells are isolated transparent illustrations, rendered independently.
+function drawSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, index: number, x: number, y: number) {
+  const sw = atlas.naturalWidth / 4, sh = atlas.naturalHeight / 4;
+  const size = TW * 1.04;
+  ctx.drawImage(atlas, (index % 4) * sw, Math.floor(index / 4) * sh, sw, sh,
+    x - size / 2, y - size + TH * 0.5, size, size);
+}
+
+// Draw streets in tile-local coordinates so lanes meet at every intersection.
+function drawRoad(ctx: CanvasRenderingContext2D, cx: number, cy: number, tx?: number, ty?: number) {
+  ctx.save();
+  ctx.transform(TW / 2, TH / 2, -TW / 2, TH / 2, cx, cy);
+  ctx.fillStyle = '#b9b7a0';
+  ctx.fillRect(-0.5, -0.5, 1, 1);
+  const roadAt = (dx: number, dy: number) => tx === undefined || ty === undefined || classifyTile(tx + dx, ty + dy).ground === 'road';
+  const alongX = tx !== undefined && (roadAt(-1, 0) || roadAt(1, 0));
+  const alongY = roadAt(0, -1) || roadAt(0, 1);
+  ctx.fillStyle = ROAD_COLOR;
+  if (alongX) ctx.fillRect(-0.5, -0.34, 1, 0.68);
+  if (alongY) ctx.fillRect(-0.34, -0.5, 0.68, 1);
+  ctx.strokeStyle = '#ddd5a5';
+  ctx.lineWidth = 0.018;
+  ctx.setLineDash([0.12, 0.1]);
+  if (!(alongX && alongY)) {
+    ctx.beginPath();
+    if (alongX) { ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); }
+    else { ctx.moveTo(0, -0.5); ctx.lineTo(0, 0.5); }
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#e6dfca';
+    for (let stripe = -0.26; stripe < 0.3; stripe += 0.1) {
+      ctx.fillRect(stripe, -0.46, 0.055, 0.12);
+      ctx.fillRect(stripe, 0.34, 0.055, 0.12);
+      ctx.fillRect(-0.46, stripe, 0.12, 0.055);
+      ctx.fillRect(0.34, stripe, 0.12, 0.055);
+    }
+  }
+  ctx.restore();
+}
+
+// Stone embankments follow the actual river edges.
+function drawQuay(ctx: CanvasRenderingContext2D, tx: number, ty: number, cx: number, cy: number) {
+  const edges = [
+    { dx: -1, dy: 0, a: [-48, 0], b: [0, -24] },
+    { dx: 0, dy: -1, a: [0, -24], b: [48, 0] },
+    { dx: 1, dy: 0, a: [48, 0], b: [0, 24] },
+    { dx: 0, dy: 1, a: [0, 24], b: [-48, 0] },
+  ];
+  for (const edge of edges) {
+    if (!isWater(tx + edge.dx, ty + edge.dy)) continue;
+    const [ax, ay] = edge.a, [bx, by] = edge.b;
+    fillPoly(ctx, [[cx+ax,cy+ay],[cx+bx,cy+by],[cx+bx,cy+by+8],[cx+ax,cy+ay+8]], '#777c72');
+    ctx.strokeStyle = '#d9cfaa'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx+ax,cy+ay); ctx.lineTo(cx+bx,cy+by); ctx.stroke();
+    for (let t = 0; t <= 1; t += 0.2) {
+      const px = cx+ax+(bx-ax)*t, py = cy+ay+(by-ay)*t;
+      ctx.fillStyle = '#414e49'; ctx.fillRect(px-0.8,py-5,1.6,6);
+    }
+  }
+}
+
+// Suspension bridge tile (Three Sisters — yellow towers)
+function drawSuspensionBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  drawRoad(ctx, cx, cy);
+  // Tower posts (yellow/gold)
+  const towerH = 36;
+  const towerW = 5;
+  const towerColor = '#FFB81C';
+  [-TW * 0.28, TW * 0.28].forEach(ox => {
+    ctx.fillStyle = '#C88010';
+    ctx.fillRect(Math.round(cx + ox - towerW / 2 + 2), cy - towerH + 2, towerW, towerH);
+    ctx.fillStyle = towerColor;
+    ctx.fillRect(Math.round(cx + ox - towerW / 2), cy - towerH, towerW, towerH);
+    // Cross-beam at top
+    ctx.fillStyle = '#FFD060';
+    ctx.fillRect(Math.round(cx + ox - towerW * 1.1), cy - towerH, Math.round(towerW * 2.2), 3);
+  });
+  // Cable lines from tower tops to road surface
+  ctx.save();
+  ctx.strokeStyle = '#FFB81C';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.8;
+  const lt = cx - TW * 0.28, rt = cx + TW * 0.28;
+  ctx.beginPath();
+  ctx.moveTo(lt, cy - towerH); ctx.lineTo(cx - TW * 0.1, cy - 4);
+  ctx.moveTo(lt, cy - towerH); ctx.lineTo(cx - TW * 0.25, cy - 1);
+  ctx.moveTo(rt, cy - towerH); ctx.lineTo(cx + TW * 0.1, cy - 4);
+  ctx.moveTo(rt, cy - towerH); ctx.lineTo(cx + TW * 0.25, cy - 1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Truss bridge (Smithfield Street — dark grey truss over Mon)
+function drawTrussBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  drawRoad(ctx, cx, cy);
+  const trussColor = '#4A5A6A';
+  const trussH = 22;
+  // Two vertical supports
+  [-TW * 0.3, TW * 0.3].forEach(ox => {
+    ctx.fillStyle = trussColor;
+    ctx.fillRect(Math.round(cx + ox - 3), cy - trussH, 6, trussH);
+  });
+  // Horizontal top chord
+  ctx.fillStyle = trussColor;
+  ctx.fillRect(Math.round(cx - TW * 0.3 - 2), cy - trussH, Math.round(TW * 0.6 + 4), 4);
+  // Diagonal struts
+  ctx.save(); ctx.strokeStyle = trussColor; ctx.lineWidth = 2; ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  ctx.moveTo(cx - TW * 0.3, cy - trussH); ctx.lineTo(cx, cy);
+  ctx.moveTo(cx, cy - trussH);            ctx.lineTo(cx + TW * 0.3, cy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Animated water tile
+function drawWater(ctx: CanvasRenderingContext2D, cx: number, cy: number, time: number) {
+  diamond(ctx, cx, cy, WATER_COLOR);
+  const alpha = 0.35 + Math.sin(time * 1.6 + (cx + cy) * 0.04) * 0.12;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.strokeStyle = WATER_SHINE; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < 4; i++) {
+    const offset = Math.sin(time * 0.5 + i + cx) * 4;
+    const ry = cy - 12 + i * 7;
+    ctx.moveTo(cx - 12 + offset, ry); ctx.lineTo(cx + 8 + offset, ry);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Main Component ───────────────────────────────────────────
+export default function CityCanvas() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef    = useRef<HTMLCanvasElement>(null);
+
+  const selectedNeighborhoodId = useCityPulseStore(s => s.ui.selectedNeighborhoodId);
+  const selectNeighborhood     = useCityPulseStore(s => s.selectNeighborhood);
+  const setMapViewport         = useCityPulseStore(s => s.setMapViewport);
+  const storeViewport          = useCityPulseStore(s => s.ui.mapViewport);
+
+  const zoom = storeViewport.zoom;
+  const pan = storeViewport;
+  const setZoom = (value: number | ((z: number) => number)) => setMapViewport({ ...cameraRef.current, zoom: typeof value === 'function' ? value(cameraRef.current.zoom) : value });
+  const cameraRef = useRef({ ...storeViewport });
+  const badgeRefs = useRef(new Map<string, HTMLDivElement>());
+  const dragRef = useRef<{ id: number; x: number; y: number; time: number } | null>(null);
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    cameraRef.current = { ...storeViewport };
+    velocityRef.current = { x: 0, y: 0 };
+  }, [storeViewport]);
+  useEffect(() => () => {
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+  }, []);
+  const [atlas, setAtlas] = useState<HTMLImageElement | null>(null);
+  const [assetError, setAssetError] = useState(false);
+  const policies = useCityPulseStore(s => s.policies);
+  const turn = useCityPulseStore(s => s.city.turn);
+  const isPlaying = useCityPulseStore(s => s.ui.isPlaying);
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setAtlas(img);
+    img.onerror = () => setAssetError(true);
+    img.src = '/sprites/city-atlas.png';
+    return () => { img.onload = null; img.onerror = null; };
+  }, []);
+  const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
+  // Issue 4 fix: track mount state to avoid hydration mismatch
+  const [mounted, setMounted]         = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+
+  // Center on neighborhood selection
+  useEffect(() => {
+    if (!selectedNeighborhoodId) return;
+    const centers: Record<string, ReturnType<typeof tileToScreen>> = {
+      golden_triangle: tileToScreen(17, 14),
+      shadyside:      tileToScreen(6, 7),
+      lawrenceville:  tileToScreen(19, 7),
+      homewood:       tileToScreen(24, 17),
+    };
+    const c = centers[selectedNeighborhoodId];
+    if (c) setMapViewport({ x: -c.x * 1.3, y: -c.y * 1.3, zoom: 1.3 });
+  }, [selectedNeighborhoodId, setMapViewport]);
+
+  // ── Render loop ──────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container || !atlas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    const startT = performance.now();
+
+    const updateSize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width  = container.clientWidth  * dpr;
+      canvas.height = container.clientHeight * dpr;
+      canvas.style.width  = `${container.clientWidth}px`;
+      canvas.style.height = `${container.clientHeight}px`;
+    };
+    updateSize();
+    const ro = new ResizeObserver(updateSize);
+    ro.observe(container);
+
+    // Static geography is shared by every animation frame.
+      const tiles: Array<{
+        tx: number; ty: number;
+        cx: number; cy: number;
+        info: TileInfo;
+      }> = [];
+      for (let ty = 0; ty < GH; ty++) {
+        for (let tx = 0; tx < GW; tx++) {
+          const { x: cx, y: cy } = tileToScreen(tx, ty);
+          tiles.push({ tx, ty, cx, cy, info: classifyTile(tx, ty) });
+        }
+      }
+
+    tiles.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
+
+    // Bake the detailed city once. Camera motion only composites this layer;
+    // no sprite scaling, street classification or policy lookup per drag frame.
+    const scene = document.createElement('canvas');
+    scene.width = GW * TW + 192;
+    scene.height = GH * TH + 320;
+    const sceneCtx = scene.getContext('2d');
+    if (!sceneCtx) { ro.disconnect(); return; }
+    {
+      const ctx = sceneCtx;
+      ctx.translate(scene.width / 2, scene.height / 2);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      // ── Pass 1: Ground tiles ────────────────────────────────
+      for (const { tx, ty, cx, cy, info } of tiles) {
+        switch (info.ground) {
+          case 'water':
+            drawWater(ctx, cx, cy, 0);
+            break;
+          case 'road':
+            drawRoad(ctx, cx, cy, info.bridge ? undefined : tx, info.bridge ? undefined : ty);
+            break;
+          case 'park':
+            diamond(ctx, cx, cy, PARK_COLOR);
+            break;
+          case 'hillside':
+            diamond(ctx, cx, cy, HILL_A);
+            break;
+          default: {
+            const shade = rng(tx, ty) > 0.5 ? GRASS_A : GRASS_B;
+            diamond(ctx, cx, cy, shade);
+            break;
+          }
+        }
+      }
+
+      for (const { tx, ty, cx, cy, info } of tiles) {
+        if (info.ground !== 'water' && !info.bridge) drawQuay(ctx, tx, ty, cx, cy);
+      }
+
+      // Painter's order prevents distant buildings covering nearer ones.
+      for (const { tx, ty, cx, cy, info } of tiles) {
+        if (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
+        else if (info.bridge === 'truss') drawTrussBridge(ctx, cx, cy);
+        let sprite: number | null = null;
+        if (info.cathedral) sprite = 14;
+        else if (info.tree) sprite = 12;
+        else if (info.ground === 'park') sprite = (tx === 6 && ty === 7) || (tx === 17 && ty === 15) ? 10 : ((tx + ty) % 4 === 0 ? 13 : 12);
+        else if (info.building) {
+          const options = { wealthy: [1, 1, 1, 5], middle: [0, 2, 3, 6], lower: [0, 0, 4, 6], tower: [4, 5, 5, 2], civic: [7, 8, 9, 14] };
+          const choices = options[info.building];
+          sprite = choices[Math.floor(rng(tx, ty) * choices.length)];
+          const centers = [{ id: 'golden_triangle', x: 17, y: 14 }, { id: 'shadyside', x: 6, y: 7 }, { id: 'lawrenceville', x: 19, y: 7 }, { id: 'homewood', x: 24, y: 17 }];
+          const neighborhood = centers.sort((a, b) => Math.hypot(tx-a.x, ty-a.y) - Math.hypot(tx-b.x, ty-b.y))[0].id;
+          const policy = policies.find(p => p.status === 'active' &&
+            ['housing', 'environment', 'transit'].includes(p.category) &&
+            (!p.affectedNeighborhoods.length || p.affectedNeighborhoods.includes(neighborhood)));
+          // Representative project lots; no invented numerical simulation effects.
+          if (policy && (tx + ty) % 7 === 0) {
+            sprite = turn <= (policy.turnEnacted ?? turn) ? 11 :
+              policy.category === 'environment' ? 13 : policy.category === 'transit' ? 15 : 4;
+          }
+        }
+        if (sprite !== null) drawSprite(ctx, atlas, sprite, cx, cy);
+        if (info.ground === 'road' && !info.bridge && (tx + ty) % 3 === 0) {
+          const lx = cx - 34, ly = cy;
+          ctx.fillStyle = '#344b47'; ctx.fillRect(lx, ly - 18, 2, 20);
+          ctx.fillStyle = '#f3dca0'; ctx.fillRect(lx - 2, ly - 20, 6, 4);
+          ctx.fillStyle = '#293d45'; ctx.fillRect(cx + 31, cy - 2, 2, 5);
+          ctx.fillStyle = '#ce7454'; ctx.fillRect(cx + 30, cy - 5, 4, 4);
+          ctx.fillStyle = '#e8bc8d'; ctx.fillRect(cx + 31, cy - 7, 2, 2);
+        }
+      }
+    }
+    const trafficTiles = tiles.filter(t => t.info.ground === 'road' && !t.info.bridge && (t.tx + t.ty) % 5 === 0).map(t => ({ ...t, alongX: classifyTile(t.tx + 1, t.ty).ground === 'road' || classifyTile(t.tx - 1, t.ty).ground === 'road' }));
+    const openWater = tiles.filter(t => t.info.ground === 'water' && [[-1, 0], [1, 0], [0, -1], [0, 1]].every(([dx, dy]) => classifyTile(t.tx + dx, t.ty + dy).ground === 'water'));
+    const badgeWorld = {
+      golden_triangle: tileToScreen(17, 14),
+      shadyside: tileToScreen(6, 7),
+      lawrenceville: tileToScreen(19, 7),
+      homewood: tileToScreen(24, 17),
+    };
+    let previousTime = performance.now();
+    function render() {
+      if (!ctx || !canvas) return;
+      const now = performance.now();
+      const dt = Math.min(32, now - previousTime);
+      previousTime = now;
+      const time = (now - startT) * 0.001;
+      const camera = cameraRef.current;
+      const velocity = velocityRef.current;
+      if (!dragRef.current && (velocity.x || velocity.y)) {
+        camera.x += velocity.x * dt;
+        camera.y += velocity.y * dt;
+        const friction = Math.exp(-dt / 85);
+        velocity.x *= friction; velocity.y *= friction;
+        if (Math.hypot(velocity.x, velocity.y) < 0.015) {
+          velocity.x = 0; velocity.y = 0;
+          setMapViewport({ ...camera });
+        }
+      }
+      const cw = canvas.width, ch = canvas.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      ctx.fillStyle = SKY_COLOR;
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.save();
+      ctx.translate(cw / 2 + camera.x * dpr, ch / 2 + camera.y * dpr);
+      ctx.scale(camera.zoom * dpr, camera.zoom * dpr);
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(scene, -scene.width / 2, -scene.height / 2);
+      ctx.strokeStyle = WATER_SHINE;
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.18 + Math.sin(time) * 0.08;
+      ctx.beginPath();
+      for (const { cx, cy } of openWater) {
+        const drift = Math.sin(time * 0.5 + cx) * 4;
+        ctx.moveTo(cx - 8 + drift, cy + 5); ctx.lineTo(cx + 8 + drift, cy + 5);
+      }
+      ctx.stroke(); ctx.globalAlpha = 1;
+      for (const { tx, ty, cx, cy, info, alongX } of trafficTiles) {
+        if (info.ground === 'road' && !info.bridge && (tx + ty) % 5 === 0) {
+          const progress = isPlaying ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
+          const vx = cx + (progress - 0.5) * TW * (alongX ? 1 : -1);
+          const vy = cy + (progress - 0.5) * TH;
+          ctx.fillStyle = ['#f2ca69', '#cf6654', '#d9e9e9'][tx % 3];
+          fillPoly(ctx, [[vx-7,vy-3],[vx,vy-6],[vx+9,vy],[vx+2,vy+4]], ctx.fillStyle);
+          ctx.fillStyle = '#263e50'; ctx.fillRect(vx-2, vy-3, 5, 3);
+        }
+      }
+      for (const [id, position] of Object.entries(badgeWorld)) {
+        const badge = badgeRefs.current.get(id);
+        if (!badge) continue;
+        badge.style.left = `${cw / dpr / 2 + camera.x + position.x * camera.zoom}px`;
+        badge.style.top = `${ch / dpr / 2 + camera.y + position.y * camera.zoom}px`;
+      }
+      ctx.restore();
+      animId = requestAnimationFrame(render);
+    }
+
+    animId = requestAnimationFrame(render);
+    return () => { cancelAnimationFrame(animId); ro.disconnect(); };
+  }, [atlas, policies, turn, isPlaying, setMapViewport]);
+
+  // ── Input handlers ───────────────────────────────────────────
+  const commitCamera = () => setMapViewport({ ...cameraRef.current });
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !e.isPrimary || (e.target as HTMLElement).closest('.hud-ctrl, button, [data-map-badge]')) return;
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    velocityRef.current = { x: 0, y: 0 };
+    dragRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY, time: performance.now() };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.style.cursor = 'grabbing';
+  };
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.id !== e.pointerId) return;
+    const now = performance.now();
+    const dt = Math.max(8, now - drag.time);
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    cameraRef.current.x += dx;
+    cameraRef.current.y += dy;
+    velocityRef.current = { x: Math.max(-0.6, Math.min(0.6, dx / dt)), y: Math.max(-0.6, Math.min(0.6, dy / dt)) };
+    dragRef.current = { id: drag.id, x: e.clientX, y: e.clientY, time: now };
+  };
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.id !== e.pointerId) return;
+    if (e.type !== 'pointerup' || performance.now() - drag.time > 80) velocityRef.current = { x: 0, y: 0 };
+    dragRef.current = null;
+    e.currentTarget.style.cursor = 'grab';
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    if (!velocityRef.current.x && !velocityRef.current.y) commitCamera();
+  };
+
+  // Non-passive wheel listener permits trackpad zoom without scrolling the page.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault();
+      velocityRef.current = { x: 0, y: 0 };
+      const rect = container.getBoundingClientRect();
+      const px = e.clientX - rect.left - rect.width / 2;
+      const py = e.clientY - rect.top - rect.height / 2;
+      const camera = cameraRef.current;
+      const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rect.height : 1);
+      const nextZoom = Math.max(0.4, Math.min(3, camera.zoom * Math.exp(-delta * 0.0015)));
+      const ratio = nextZoom / camera.zoom;
+      camera.x = px - (px - camera.x) * ratio;
+      camera.y = py - (py - camera.y) * ratio;
+      camera.zoom = nextZoom;
+      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = setTimeout(() => setMapViewport({ ...cameraRef.current }), 120);
+    };
+    container.addEventListener('wheel', wheel, { passive: false });
+    return () => container.removeEventListener('wheel', wheel);
+  }, [setMapViewport]);
+  const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
+  const handleZoomOut = () => setZoom(z => Math.max(0.4, z * 0.8));
+  const handleReset   = () => { setMapViewport({ x: -80, y: 40, zoom: 0.65 }); };
+
+  // ── Neighborhood badge definitions ───────────────────────────
+  // Tile centers match classifyTile zone assignments above
+  const badges = [
+    {
+      id: 'golden_triangle', name: 'DOWNTOWN', subtitle: 'City Center',
+      wx: tileToScreen(17, 14).x, wy: tileToScreen(17, 14).y,
+      borderColor: '#d4c3a3', bgColor: 'rgba(43,38,34,0.94)', textColor: '#f2e6ce',
+      tooltip: 'Golden Triangle — Downtown Pittsburgh',
+      action: () => selectNeighborhood('golden_triangle'),
+    },
+    {
+      id: 'shadyside', name: 'SHADYSIDE', subtitle: 'Wealthy',
+      wx: tileToScreen(6, 7).x, wy: tileToScreen(6, 7).y,
+      borderColor: '#FFB81C', bgColor: 'rgba(14,28,10,0.93)', textColor: '#FFD166',
+      tooltip: 'Shadyside — Wealthy | 81% Happiness | $94K Median Income',
+      action: () => selectNeighborhood('shadyside'),
+    },
+    {
+      id: 'lawrenceville', name: 'LAWRENCEVILLE', subtitle: 'Middle-Income',
+      wx: tileToScreen(19, 7).x, wy: tileToScreen(19, 7).y,
+      borderColor: '#60A5FA', bgColor: 'rgba(8,18,40,0.93)', textColor: '#93C5FD',
+      tooltip: 'Lawrenceville — Middle-Income | 68% Happiness | $52K Median Income',
+      action: () => selectNeighborhood('lawrenceville'),
+    },
+    {
+      id: 'homewood', name: 'HOMEWOOD', subtitle: 'Lower-Income',
+      wx: tileToScreen(24, 17).x, wy: tileToScreen(24, 17).y,
+      borderColor: '#F87171', bgColor: 'rgba(28,8,8,0.93)', textColor: '#FCA5A5',
+      tooltip: 'Homewood — Lower-Income | 42% Happiness | $28K Median Income',
+      action: () => selectNeighborhood('homewood'),
+    },
+  ];
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full relative overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      style={{ touchAction: 'none', background: SKY_COLOR }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onLostPointerCapture={handlePointerUp}
+    >
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full block pointer-events-none"
+      />
+
+      {!atlas && <div className="absolute inset-0 grid place-items-center text-slate-200 bg-slate-900" role="status">
+        {assetError ? 'City artwork could not load. Refresh to try again.' : 'Loading your illustrated city…'}
+      </div>}
+      {/* Neighborhood badges — only rendered client-side (avoids hydration mismatch) */}
+      {mounted && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {badges.map(b => {
+            const cw = containerRef.current?.clientWidth  ?? 800;
+            const ch = containerRef.current?.clientHeight ?? 600;
+            const sx = cw / 2 + pan.x + b.wx * zoom;
+            const sy = ch / 2 + pan.y + b.wy * zoom;
+            const isSelected = selectedNeighborhoodId === b.id;
+            const isHovered  = hoveredBadge === b.id;
+            return (
+              <div
+                data-map-badge
+                ref={node => { if (node) badgeRefs.current.set(b.id, node); else badgeRefs.current.delete(b.id); }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.action(); } }}
+                key={b.id}
+                className="absolute pointer-events-auto transition-transform hover:scale-105 active:scale-95 cursor-pointer z-10"
+                style={{ left: sx, top: sy, transform: 'translate(-50%, -100%)' }}
+                onClick={e => { e.stopPropagation(); b.action(); }}
+                onMouseEnter={() => setHoveredBadge(b.id)}
+                onMouseLeave={() => setHoveredBadge(null)}
+                title={b.tooltip}
+              >
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg shadow-2xl backdrop-blur-md"
+                  style={{
+                    background: b.bgColor,
+                    border: `2px solid ${b.borderColor}`,
+                    boxShadow: isSelected || isHovered
+                      ? `0 0 18px ${b.borderColor}`
+                      : '0 4px 14px rgba(0,0,0,0.7)',
+                  }}
+                >
+                  <div className="flex flex-col leading-none">
+                    <span className="text-xs font-black tracking-wider uppercase" style={{ color: b.textColor }}>
+                      {b.name}
+                    </span>
+                    <span className="text-[10px] text-slate-300 font-medium mt-0.5">{b.subtitle}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* HUD controls */}
+      <div className="hud-ctrl absolute bottom-4 right-4 flex items-center gap-1.5 z-20">
+        {([
+          { label: '+',     title: 'Zoom In',    onClick: handleZoomIn,  cls: 'w-9 h-9 text-lg font-black' },
+          { label: '−',     title: 'Zoom Out',   onClick: handleZoomOut, cls: 'w-9 h-9 text-lg font-black' },
+          { label: 'Reset', title: 'Reset View', onClick: handleReset,   cls: 'h-9 px-3 text-xs font-bold' },
+        ] as const).map(btn => (
+          <button
+            key={btn.label}
+            onClick={btn.onClick}
+            title={btn.title}
+            className={`${btn.cls} rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer`}
+            style={{ background: 'rgba(10,22,40,0.95)', border: '1.5px solid #1E3050', color: '#F0F4FA' }}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Interaction hint */}
+      <div
+        className="hud-ctrl absolute top-3 left-4 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 pointer-events-none z-20 backdrop-blur-md"
+        style={{ background: 'rgba(10,22,40,0.85)', border: '1px solid rgba(30,48,80,0.7)', color: '#94A3B8' }}
+      >
+        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        <span>Click neighborhoods · Drag to pan · Scroll to zoom</span>
+      </div>
+    </div>
+  );
+}

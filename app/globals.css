@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+/* ============================================================
+   CityPulse — Pittsburgh Design Tokens (Tailwind v4 @theme)
+   ============================================================ */
+
+@theme inline {
+  /* Pittsburgh Brand Colors */
+  --color-pgh-gold:        #FFB81C;
+  --color-pgh-gold-light:  #FFD166;
+  --color-pgh-gold-dark:   #CC9200;
+  --color-pgh-black:       #1A1A1A;
+
+  /* Navy Base Palette */
+  --color-navy-950:  #050D1A;
+  --color-navy-900:  #0A1628;
+  --color-navy-800:  #0F1B2D;
+  --color-navy-700:  #162236;
+  --color-navy-600:  #1E2E45;
+  --color-navy-500:  #243A58;
+  --color-navy-400:  #2E4A6E;
+  --color-navy-300:  #3B5F8A;
+
+  /* Semantic Accents */
+  --color-accent-blue:    #3B82F6;
+  --color-accent-green:   #22C55E;
+  --color-accent-red:     #EF4444;
+  --color-accent-yellow:  #EAB308;
+  --color-accent-purple:  #8B5CF6;
+  --color-accent-orange:  #F97316;
+
+  /* Text Scale */
+  --color-text-primary:   #F0F4FA;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted:     #64748B;
+
+  /* Panel / Border */
+  --color-panel:          #162236;
+  --color-panel-hover:    #1E2E45;
+  --color-border:         #1E3050;
+  --color-border-light:   #243A58;
+
+  /* Income Tier Colors */
+  --color-tier-higher: #FFB81C;
+  --color-tier-middle: #3B82F6;
+  --color-tier-lower:  #EF4444;
+
+  /* Font Families */
+  --font-sans:  var(--font-inter);
+  --font-pixel: var(--font-press-start);
+
+  /* Spacing overrides */
+  --spacing-topbar:   64px;
+  --spacing-left-sb:  200px;
+  --spacing-right-sb: 320px;
+  --spacing-bottom:   150px;
+}
+
+/* ============================================================
+   Global Base Styles
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0A1628;
+  color: #F0F4FA;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#__next, main {
+  height: 100%;
+}
+
+/* ============================================================
+   Scrollbar Styling (navy dark theme)
+   ============================================================ */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0F1B2D; }
+::-webkit-scrollbar-thumb { background: #243A58; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3B5F8A; }
+
+/* ============================================================
+   Utility Classes (supplement Tailwind)
+   ============================================================ */
+
+.panel {
+  background: #162236;
+  border: 1px solid #1E3050;
+  border-radius: 12px;
+}
+
+.panel-sm {
+  background: #162236;
+  border: 1px solid #1E3050;
+  border-radius: 8px;
+}
+
+.gold-text { color: #FFB81C; }
+.green-text { color: #22C55E; }
+.red-text { color: #EF4444; }
+.muted-text { color: #64748B; }
+.secondary-text { color: #94A3B8; }
+
+/* Sentiment bar colors */
+.bar-low    { background: linear-gradient(90deg, #EF4444, #DC2626); }
+.bar-mid    { background: linear-gradient(90deg, #EAB308, #CA8A04); }
+.bar-high   { background: linear-gradient(90deg, #22C55E, #16A34A); }
+
+/* Animated count-up highlight */
+@keyframes countUp {
+  0%   { color: #22C55E; transform: scale(1.15); }
+  100% { color: #F0F4FA; transform: scale(1); }
+}
+.count-up { animation: countUp 1.2s ease-out forwards; }
+
+@keyframes countDown {
+  0%   { color: #EF4444; transform: scale(1.15); }
+  100% { color: #F0F4FA; transform: scale(1); }
+}
+.count-down { animation: countDown 1.2s ease-out forwards; }
+
+/* Toast enter */
+@keyframes slideInRight {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.toast-enter { animation: slideInRight 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* Drawer slide-in */
+@keyframes slideInLeft {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.drawer-enter { animation: slideInLeft 0.3s ease-out forwards; }
+
+/* Event banner drop */
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.banner-enter { animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* Pulsing dot for active turn */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.pulse-dot { animation: pulse-dot 1s ease-in-out infinite; }
+
+/* Map skeleton shimmer */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0;  }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #162236 25%, #1E2E45 50%, #162236 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Hover lift for cards */
+.card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* Left-border active indicator */
+.active-nav {
+  border-left: 3px solid #3B82F6;
+  background: #1E2E45;
+}
+
+/* Category icon squares */
+.cat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Pill badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* No-select for game UI */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}

@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit --amend -m ' *)",
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(gh pr *)",
+      "Bash(git ls-tree *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git rm *)",
+      "Bash(grep -n *)",
+      "Bash(cd \"c:/Users/tanma/OneDrive/Desktop/State-Of-Us\" && git show :3:README.md > /tmp/old_engine_readme.md && wc -l /tmp/old_engine_readme.md)",
+      "Read(//c/tmp/**)",
+      "Bash(cygpath -w /tmp/old_engine_readme.md)",
+      "Bash(rm -f next.config.mjs)",
+      "Bash(rm -f package-lock.json)",
+      "Bash(mkdir -p lib/__tests__)",
+      "Bash(rmdir src/lib/__tests__ src/lib src)",
+      "Bash(grep -rn *)",
+      "Bash(git restore *)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const v=JSON.parse\\(require\\('fs'\\).readFileSync\\(0,'utf8'\\)\\); console.log\\(v.filter\\(x=>x.startsWith\\('3.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(git branch *)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}
