@@ -1,0 +1,27 @@
+{
+  "city": "Pittsburgh",
+  "fiscalYear": 2026,
+  "totalRevenue": 721521858,
+  "totalExpenditures": 721521858,
+  "operatingResult": 0,
+  "debtService": 78311662,
+  "reserveBalance": null,
+  "reservePercentOfExpenditures": null,
+  "source": {
+    "name": "City of Pittsburgh",
+    "document": "Final amended 2026 operating budget",
+    "resolution": "2026-0285",
+    "version": 4,
+    "enactmentDate": "2026-04-21",
+    "basis": "Budgeted amounts, not actual financial results",
+    "currency": "USD",
+    "percentageUnit": "percent (0–100 scale)",
+    "url": "https://pittsburgh.legistar.com/LegislationDetail.aspx?From=RSS&FullText=1&GUID=179A26E3-6DA7-43B0-95D1-D25C43CFDE66&ID=7957428",
+    "revisedFiveYearPlanUrl": "https://pittsburgh.legistar.com/View.ashx?M=F&ID=15362705&GUID=A28FB479-A48F-4D86-9E78-13CB35DB36AA",
+    "verification": "Revenue, expenditures, operating result, and debt service were supplied as verified final amended 2026 values by the project owner.",
+    "reserveStatus": "Unverified: reserve values could not be verified from the matching 2026-0285 Version 4 Revised Five Year Plan. Both reserve fields remain null; no earlier budget reserve values are used.",
+    "calculations": {
+      "debtServicePercentOfExpenditures": "debtService / totalExpenditures * 100"
+    }
+  }
+}

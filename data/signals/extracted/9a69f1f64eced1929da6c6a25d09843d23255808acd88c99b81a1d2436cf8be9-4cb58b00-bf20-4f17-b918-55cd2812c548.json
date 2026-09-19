@@ -1,0 +1,57 @@
+{
+  "documentId": "9a69f1f64eced1929da6c6a25d09843d23255808acd88c99b81a1d2436cf8be9",
+  "source": {
+    "title": "Mayor Corey O’Connor Provides Transparent and Honest Update on City’s Financial Position",
+    "url": "https://content.govdelivery.com/accounts/PAPITT/bulletins/40df652",
+    "publisher": "City of Pittsburgh",
+    "publishedAt": "2026-03-12"
+  },
+  "provenance": {
+    "retrievedAt": "2026-09-19T18:35:39.488Z",
+    "adapterVersion": "pittsburgh-govdelivery-html-v2",
+    "contentHash": "30b83300896ce6fec218458480c6ce7a78c0b3a6d1e85dcca11ade9020747f19",
+    "extractedAt": "2026-09-19T18:35:43.290Z",
+    "model": "claude-haiku-4-5-20251001",
+    "promptVersion": "external-signals-v2"
+  },
+  "signals": [
+    {
+      "category": "public_finance",
+      "headline": "Pittsburgh Mayor Announces Budget Deficit and Re-opening of 2026 Budget",
+      "summary": "Mayor Corey O'Connor announced that the city will re-open its 2026 budget to address accuracy concerns. The city ended 2025 with an $8.6 million deficit instead of the projected surplus, including $20 million in unbudgeted employee overtime spending. The 5-year emergency fund projections showed it would be depleted to $84 million instead of $127 million. Multiple areas have been identified as underfunded or improperly funded, including healthcare contributions, fuel costs, emergency repairs, and other essential services.",
+      "geography": {
+        "name": "Pittsburgh",
+        "scope": "city"
+      },
+      "eventDate": "2026-03-12",
+      "status": "announced",
+      "evidence": [
+        {
+          "quote": "Mayor Corey O'Connor announced today that his administration will be re-opening the City's 2026 budget to address serious concerns with the accuracy of the budget and the 5-year financial projections."
+        },
+        {
+          "quote": "Despite projections last year that the City would end 2025 with a small surplus, the preliminary end-of-year financials indicate an $8.6 million deficit for the year, which includes spending $20 million more in employee overtime than what was budgeted."
+        },
+        {
+          "quote": "The 2026 budget's 5-year projections showed spending down of the City's emergency rainy day fund from $160 million to $127 million over those five years. However, review of the projection showed that it would actually be spent down to $84 million."
+        }
+      ],
+      "id": "fff3fdd961deacc291c6c33550e48a0569aa1817a5ed2490357a93b127f61abd",
+      "documentId": "9a69f1f64eced1929da6c6a25d09843d23255808acd88c99b81a1d2436cf8be9",
+      "source": {
+        "title": "Mayor Corey O’Connor Provides Transparent and Honest Update on City’s Financial Position",
+        "url": "https://content.govdelivery.com/accounts/PAPITT/bulletins/40df652",
+        "publisher": "City of Pittsburgh",
+        "publishedAt": "2026-03-12"
+      },
+      "provenance": {
+        "retrievedAt": "2026-09-19T18:35:39.488Z",
+        "adapterVersion": "pittsburgh-govdelivery-html-v2",
+        "contentHash": "30b83300896ce6fec218458480c6ce7a78c0b3a6d1e85dcca11ade9020747f19",
+        "extractedAt": "2026-09-19T18:35:43.290Z",
+        "model": "claude-haiku-4-5-20251001",
+        "promptVersion": "external-signals-v2"
+      }
+    }
+  ]
+}
