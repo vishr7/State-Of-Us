@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiClientError, createDecision, getCity, getPolicies, resolveTurn } from '../apiClient';
+import { ApiClientError, createDecision, getCity, getDecisions, getPolicies, listCities, resolveTurn } from '../apiClient';
 
 function mockFetchOnce(status: number, body: unknown) {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -65,5 +65,18 @@ describe('apiClient', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
     await expect(getCity('city-1')).rejects.toBeInstanceOf(ApiClientError);
+  });
+
+  it('listCities requests /api/city and returns the array body', async () => {
+    const fetchMock = mockFetchOnce(200, [{ id: 'city-1', name: 'Pittsburgh', current_turn: 0 }]);
+    const result = await listCities();
+    expect(fetchMock).toHaveBeenCalledWith('/api/city', expect.objectContaining({}));
+    expect(result).toEqual([{ id: 'city-1', name: 'Pittsburgh', current_turn: 0 }]);
+  });
+
+  it('getDecisions requests the city decisions path', async () => {
+    const fetchMock = mockFetchOnce(200, []);
+    await getDecisions('city-1');
+    expect(fetchMock).toHaveBeenCalledWith('/api/city/city-1/decisions', expect.objectContaining({}));
   });
 });

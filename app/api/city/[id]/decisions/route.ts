@@ -10,6 +10,25 @@ interface CreateDecisionBody {
 const UNIQUE_VIOLATION = '23505';
 
 /**
+ * GET /api/city/:id/decisions — every decision the city has recorded, oldest
+ * first. Read-only; lets the client rebuild which policies are already in
+ * force after a reload instead of trusting in-memory state.
+ */
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  try {
+    const result = await getPool().query<Decision>(
+      'select * from decisions where city_id = $1 order by turn, created_at, id',
+      [id]
+    );
+    return NextResponse.json(result.rows);
+  } catch (err) {
+    console.error('GET /api/city/[id]/decisions failed', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+/**
  * POST /api/city/:id/decisions — queues a policy decision for the city's
  * CURRENT (not-yet-resolved) turn. Only records the row; it has no effect on
  * canonical state until POST /api/city/:id/resolve-turn applies it — this

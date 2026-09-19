@@ -51,6 +51,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
+/** What GET /api/city returns per city — enough to find one by name. */
+export type CityListItem = Pick<City, 'id' | 'name' | 'current_turn'>;
+
+export function listCities(): Promise<CityListItem[]> {
+  return request<CityListItem[]>('/api/city');
+}
+
 export function getCity(id: string): Promise<CitySummary> {
   return request<CitySummary>(`/api/city/${id}`);
 }
@@ -65,6 +72,11 @@ export function getResidents(id: string): Promise<Resident[]> {
 
 export function getPolicies(): Promise<Policy[]> {
   return request<Policy[]>('/api/policies');
+}
+
+/** Every decision the city has recorded, oldest first. */
+export function getDecisions(cityId: string): Promise<Decision[]> {
+  return request<Decision[]>(`/api/city/${cityId}/decisions`);
 }
 
 /** Queues a policy decision for the city's current turn. Does not apply it — call resolveTurn() for that. */

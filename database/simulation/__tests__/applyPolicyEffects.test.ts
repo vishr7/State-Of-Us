@@ -158,6 +158,37 @@ describe('applyPolicyEffects', () => {
     expect(Number.isInteger(result.residents[0].commute_minutes)).toBe(true);
   });
 
+  it('clamps results to the range the column constraints allow, so a turn can never be un-persistable', () => {
+    const effects: PolicyEffects = {
+      version: 1,
+      city: { revenue: { op: 'add', value: -900_000 }, treasury: { op: 'add', value: -5_000_000 } },
+      neighborhoods: [{ set: { transit_access: { op: 'add', value: 70 } } }],
+      residents: [
+        {
+          set: {
+            happiness: { op: 'add', value: 60 },
+            government_trust: { op: 'add', value: -2 },
+            housing_cost: { op: 'multiply', value: -1 },
+          },
+        },
+      ],
+    };
+    const result = applyPolicyEffects({
+      city: makeCity(),
+      neighborhoods: [makeNeighborhood()],
+      residents: [makeResident()],
+      effects,
+    });
+
+    expect(result.city.revenue).toBe(0);
+    // Treasury has no CHECK constraint: cash on hand may go negative.
+    expect(result.city.treasury).toBe(1_000_000 - 5_000_000);
+    expect(result.neighborhoods[0].transit_access).toBe(100);
+    expect(result.residents[0].happiness).toBe(100);
+    expect(result.residents[0].government_trust).toBe(0);
+    expect(result.residents[0].housing_cost).toBe(0);
+  });
+
   it('rejects effects that target a derived/non-permitted field', () => {
     const effects = {
       version: 1,

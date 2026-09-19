@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:local": "node scripts/local-db.mjs",
     "ingest:signal": "node --env-file=.env.local --import tsx scripts/ingest-signal.ts",
     "test": "vitest run --exclude \"**/resolveTurn.integration.test.ts\"",
     "test:integration": "vitest run database/simulation/__tests__/resolveTurn.integration.test.ts"
@@ -25,6 +26,8 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",

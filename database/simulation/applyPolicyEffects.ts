@@ -67,6 +67,31 @@ const RESIDENT_EFFECT_TARGETS = new Set<ResidentEffectTarget>([
   'happiness',
 ]);
 
+// Inclusive [min, max] for every effect target whose column has a CHECK
+// constraint (see the initial schema migration). An op that lands outside the
+// range is clamped rather than passed through: the whole turn runs in one
+// transaction, so an out-of-range value would fail the UPDATE, roll the turn
+// back, and leave the offending decision queued — every later resolve-turn
+// would then fail the same way. Field names are unique to one range across
+// the city/neighborhood/resident entities (`happiness` is 0-100 on all three).
+// `treasury` is deliberately absent: cash on hand may go negative.
+const FIELD_BOUNDS: Readonly<Record<string, readonly [number, number]>> = {
+  happiness: [0, 100],
+  approval: [0, 100],
+  unemployment: [0, 100],
+  transit_access: [0, 100],
+  government_trust: [0, 1],
+  commute_minutes: [0, 240],
+  revenue: [0, Infinity],
+  expenses: [0, Infinity],
+  debt: [0, Infinity],
+  income: [0, Infinity],
+  housing_cost: [0, Infinity],
+  property_value: [0, Infinity],
+  housing_supply: [0, Infinity],
+  jobs: [0, Infinity],
+};
+
 // Fields whose underlying Postgres column is integer/smallint, not numeric.
 // node-pg binds a numeric parameter using the target column's type input
 // function, and int2/int4's input parser rejects fractional text outright
@@ -206,6 +231,11 @@ function applyFieldOps<T extends object>(
           throw new MalformedPolicyEffectsError(
             `${context}.${field} has an unsupported op "${String((op as EffectOp).op)}"`
           );
+      }
+
+      const bounds = FIELD_BOUNDS[field];
+      if (bounds) {
+        updated = Math.min(bounds[1], Math.max(bounds[0], updated));
       }
 
       if (integerFields?.has(field)) {

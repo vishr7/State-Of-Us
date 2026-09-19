@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import TopBar from './TopBar';
 import LeftSidebar from '../sidebar/LeftSidebar';
@@ -29,6 +30,12 @@ import CityCanvas from '../map/CityCanvas';
  */
 export default function GameDashboard() {
   const ui = useCityPulseStore(s => s.ui);
+  const connectBackend = useCityPulseStore(s => s.connectBackend);
+
+  // Load the canonical city from the API; falls back to the local mock engine if it is unreachable.
+  useEffect(() => {
+    void connectBackend();
+  }, [connectBackend]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden no-select" style={{ background: '#0A1628' }}>

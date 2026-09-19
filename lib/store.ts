@@ -19,8 +19,13 @@ import {
   initialAgentGroups, initialPolicies, initialBridges,
   initialEvents, initialSnapshots,
 } from './mockData';
-import { simulateTurn, enactPolicy, rollEvent } from './mockEngine';
+import { simulateTurn, enactPolicy, rollEvent, advanceDate, rollWeather } from './mockEngine';
 import { getGroupReactions } from './mockAgents';
+import {
+  connectToBackend, overlayCity, overlayNeighborhoods, updateAgentGroups, toDisplayTurn,
+} from './backend';
+import type { BackendLink } from './backend';
+import { createDecision, resolveTurn, getNeighborhoods, ApiClientError } from '@/src/lib/apiClient';
 
 // ------ Default UI State ------------------------------------
 
@@ -43,6 +48,12 @@ const defaultUI: UIState = {
 interface CityPulseStore extends GameState {
   // Derived / convenience
   weather: { condition: WeatherCondition; tempC: number };
+
+  // Backend link. 'offline' = API/DB unreachable, running on the local mock engine.
+  backend: { status: 'idle' | 'connecting' | 'connected' | 'offline'; error: string | null };
+  backendLink: BackendLink | null;
+  resolvingTurn: boolean;
+  connectBackend: () => Promise<void>;
 
   // Turn control
   turnIntervalId: ReturnType<typeof setInterval> | null;
@@ -91,6 +102,41 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   turnIntervalId: null,
   lastSnapshot: null,
 
+  backend: { status: 'idle', error: null },
+  backendLink: null,
+  resolvingTurn: false,
+
+  // ------ Backend connection --------------------------------
+
+  connectBackend: async () => {
+    const status = get().backend.status;
+    if (status === 'connecting' || status === 'connected') return;
+    set({ backend: { status: 'connecting', error: null } });
+    try {
+      const { city, neighborhoods, policies } = get();
+      const world = await connectToBackend({ city, neighborhoods, policies });
+      set(state => ({
+        backend: { status: 'connected', error: null },
+        backendLink: world.link,
+        city: world.city,
+        neighborhoods: world.neighborhoods,
+        // Anything the DB already has a decision for is in force; don't let it be enacted twice.
+        policies: state.policies.map(p =>
+          world.decidedLocalPolicyIds.has(p.id)
+            ? { ...p, status: 'active' as const, turnEnacted: world.decidedLocalPolicyIds.get(p.id) }
+            : p
+        ),
+        // Charts restart from the database's current state rather than mixing in mock history.
+        snapshots: [buildSnapshot(world.city, world.neighborhoods, [])],
+        lastSnapshot: null,
+      }));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.info(`[CityPulse] Backend unavailable — running on the local mock engine. (${message})`);
+      set({ backend: { status: 'offline', error: message } });
+    }
+  },
+
   // ------ Turn Control --------------------------------------
 
   startPlaying: () => {
@@ -118,6 +164,10 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   },
 
   advanceTurn: () => {
+    if (get().backendLink) {
+      void advanceViaBackend(get, set);
+      return;
+    }
     const { city, neighborhoods, agentGroups, activeEvents, consequenceQueue, snapshots, policies } = get();
 
     // Run active policy recurring costs
@@ -186,6 +236,13 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
     const { city, neighborhoods, policies, consequenceQueue, residents, decisionHistory } = get();
     const policy = policies.find(p => p.id === policyId);
     if (!policy || policy.status !== 'proposed') return;
+
+    const { backendLink } = get();
+    const backendPolicyId = backendLink?.policyIdByLocalId[policyId];
+    if (backendLink && backendPolicyId) {
+      void enactViaBackend(get, set, backendLink, policy, backendPolicyId);
+      return;
+    }
 
     // Apply enact
     const result = enactPolicy(city, neighborhoods, policy, city.turn);
@@ -275,6 +332,144 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       },
     })),
 }));
+
+// ------ Backend-connected actions ---------------------------
+// Module-level (not store members) so the store interface stays the public
+// surface; they only touch state through get/set.
+
+type Get = () => CityPulseStore;
+type Set = (fn: (state: CityPulseStore) => Partial<CityPulseStore>) => void;
+
+function buildSnapshot(city: City, neighborhoods: Neighborhood[], activeEvents: GameEvent[]): SimulationSnapshot {
+  return {
+    turn: city.turn,
+    treasury: city.treasury,
+    revenue: city.revenue,
+    expenses: city.expenses,
+    happiness: city.happiness,
+    approval: city.approval,
+    population: city.population,
+    averageRent: city.averageRent,
+    neighborhoodHappiness: Object.fromEntries(neighborhoods.map(n => [n.id, n.happiness])),
+    neighborhoodRent: Object.fromEntries(neighborhoods.map(n => [n.id, n.averageRent])),
+    activeEventIds: activeEvents.filter(e => !e.resolved).map(e => e.id),
+  };
+}
+
+/**
+ * Queues the policy as a decision for the current turn. The engine applies
+ * its effects when the turn resolves, so nothing about the city changes here
+ * — the policy is marked active and the player is told when it will land.
+ */
+async function enactViaBackend(
+  get: Get, set: Set, link: BackendLink, policy: Policy, backendPolicyId: string,
+) {
+  let alreadyQueued = false;
+  try {
+    await createDecision(link.cityId, backendPolicyId);
+  } catch (err) {
+    if (err instanceof ApiClientError && err.status === 409) {
+      alreadyQueued = true; // double click, or decided earlier this turn
+    } else {
+      get().showToast(`✗ Could not enact "${policy.name}": ${err instanceof Error ? err.message : 'request failed'}`, 'error');
+      return;
+    }
+  }
+
+  const { city, residents } = get();
+  const before = {
+    treasury: city.treasury, happiness: city.happiness,
+    approval: city.approval, revenue: city.revenue,
+  };
+  const decision: DecisionHistory = {
+    id: `dec-${policy.id}-${city.turn}`,
+    policyId: policy.id,
+    policyName: policy.name,
+    turn: city.turn,
+    cityStateBefore: before,
+    cityStateAfter: before, // patched with the real result when the turn resolves
+    residentReactions: getGroupReactions(residents, policy),
+    economicSummary: `Upfront cost: $${policy.upfrontCost.toLocaleString()}. Recurring: $${Math.abs(policy.recurringCost).toLocaleString()}/turn.`,
+  };
+
+  set(state => ({
+    policies: state.policies.map(p =>
+      p.id === policy.id ? { ...p, status: 'active' as const, turnEnacted: city.turn } : p
+    ),
+    decisionHistory: alreadyQueued ? state.decisionHistory : [...state.decisionHistory, decision],
+  }));
+
+  get().showToast(
+    alreadyQueued
+      ? `"${policy.name}" is already queued for this turn`
+      : `✓ "${policy.name}" queued — takes effect when the turn resolves`,
+    alreadyQueued ? 'info' : 'success',
+  );
+}
+
+/**
+ * Resolves one turn on the server, then rebuilds the canonical parts of the
+ * client state from the database. The calendar, weather, events and agent
+ * sentiment are client-only and advance locally.
+ */
+async function advanceViaBackend(get: Get, set: Set) {
+  const link = get().backendLink;
+  if (!link || get().resolvingTurn) return; // one in-flight resolve at a time (autoplay ticks can overlap)
+
+  set(() => ({ resolvingTurn: true }));
+  try {
+    const result = await resolveTurn(link.cityId);
+    const dbNeighborhoods = await getNeighborhoods(link.cityId);
+
+    const { city: prevCity, neighborhoods: prevNeighborhoods, agentGroups, activeEvents, snapshots, decisionHistory } = get();
+
+    const cityAfter = overlayCity(prevCity, result.city, link);
+    const neighborhoods = overlayNeighborhoods(prevNeighborhoods, dbNeighborhoods, link);
+    const { day, season, year } = advanceDate(prevCity.day, prevCity.season, prevCity.year);
+    const nextCity: City = { ...cityAfter, day, season, year };
+
+    const stillActive = activeEvents.filter(e => !e.resolved && e.startTurn >= nextCity.turn - 3);
+    const newEvent = rollEvent(nextCity.turn, nextCity.season);
+    const nextEvents = newEvent ? [...stillActive, newEvent] : stillActive;
+
+    // Fill in the real outcome of decisions that just resolved.
+    const appliedLocalIds = new Set(
+      result.applied_decisions.map(d => link.localIdByPolicyId[d.policy_id]).filter(Boolean)
+    );
+    const after = {
+      treasury: nextCity.treasury, happiness: nextCity.happiness,
+      approval: nextCity.approval, revenue: nextCity.revenue,
+    };
+    const history = decisionHistory.map(d =>
+      appliedLocalIds.has(d.policyId) && d.turn === toDisplayTurn(result.previous_turn)
+        ? { ...d, cityStateAfter: after }
+        : d
+    );
+
+    set(state => ({
+      city: nextCity,
+      neighborhoods,
+      agentGroups: updateAgentGroups(agentGroups, neighborhoods),
+      activeEvents: nextEvents,
+      eventLog: newEvent ? [...state.eventLog, newEvent] : state.eventLog,
+      decisionHistory: history,
+      snapshots: [...snapshots, buildSnapshot(nextCity, neighborhoods, nextEvents)].slice(-30),
+      weather: rollWeather(nextCity.season),
+      lastSnapshot: snapshots[snapshots.length - 1] ?? null,
+    }));
+
+    if (newEvent) {
+      get().showToast(`⚡ ${newEvent.pittsburghFlavor}`, 'warning');
+    } else if (result.applied_decisions.length > 0) {
+      get().showToast(`✓ ${result.applied_decisions.map(d => d.policy_name).join(', ')} took effect`, 'success');
+    }
+  } catch (err) {
+    get().stopPlaying();
+    get().showToast(`✗ Turn failed: ${err instanceof Error ? err.message : 'request failed'}`, 'error');
+  } finally {
+    set(() => ({ resolvingTurn: false }));
+  }
+}
 
 // ------ Convenience Selectors (memoized externally) ---------
 

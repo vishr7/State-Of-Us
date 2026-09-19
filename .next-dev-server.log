@@ -1,0 +1,66 @@
+
+> state-of-us@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.5 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.6.17.129:3000
+✓ Ready in 4.1s
+✓ Running next.config.mjs took 36ms
+Creating turbopack project {
+  dir: 'C:\\Users\\siddh\\OneDrive\\Desktop\\StateOfUs\\citypulse',
+  testMode: true
+}
+
+○ Compiling / ...
+ GET / 200 in 6.6s (next.js: 5.8s, application-code: 749ms)
+ GET / 200 in 8.9s (next.js: 259ms, application-code: 8.6s)
+ GET / 200 in 185ms (next.js: 125ms, application-code: 60ms)
+✓ Compiled in 132ms
+ GET / 200 in 34ms (next.js: 15ms, application-code: 18ms)
+✓ Compiled in 48ms
+ GET / 200 in 37ms (next.js: 17ms, application-code: 19ms)
+✓ Compiled in 60ms
+✓ Compiled in 123ms
+ GET / 200 in 59ms (next.js: 25ms, application-code: 34ms)
+ GET / 200 in 40ms (next.js: 13ms, application-code: 27ms)
+ GET / 200 in 9.8s (next.js: 815ms, application-code: 9.0s)
+✓ Compiled in 596ms
+ GET / 500 in 1705ms (next.js: 1456ms, application-code: 249ms)
+ GET / 500 in 40ms (next.js: 24ms, application-code: 17ms)
+ GET / 500 in 49ms (next.js: 24ms, application-code: 25ms)
+ GET / 500 in 56ms (next.js: 41ms, application-code: 15ms)
+ GET / 200 in 157ms (next.js: 16ms, application-code: 141ms)
+ GET / 200 in 201ms (next.js: 26ms, application-code: 175ms)
+✓ Compiled in 987ms
+ GET / 200 in 137ms (next.js: 47ms, application-code: 90ms)
+ GET / 200 in 1050ms (next.js: 865ms, application-code: 185ms)
+ GET / 200 in 155ms (next.js: 21ms, application-code: 134ms)
+ GET / 200 in 133ms (next.js: 20ms, application-code: 113ms)
+ GET / 200 in 132ms (next.js: 19ms, application-code: 113ms)
+ GET / 200 in 131ms (next.js: 19ms, application-code: 112ms)
+ GET / 200 in 123ms (next.js: 21ms, application-code: 103ms)
+ GET / 200 in 141ms (next.js: 19ms, application-code: 123ms)
+ GET / 200 in 153ms (next.js: 24ms, application-code: 129ms)
+ GET / 200 in 135ms (next.js: 21ms, application-code: 113ms)
+ GET / 200 in 134ms (next.js: 19ms, application-code: 115ms)
+ GET / 200 in 136ms (next.js: 20ms, application-code: 116ms)
+ GET / 200 in 128ms (next.js: 19ms, application-code: 110ms)
+ GET / 200 in 132ms (next.js: 20ms, application-code: 112ms)
+ GET / 200 in 138ms (next.js: 19ms, application-code: 119ms)
+ GET / 200 in 137ms (next.js: 20ms, application-code: 118ms)
+ GET / 200 in 138ms (next.js: 18ms, application-code: 120ms)
+ GET / 200 in 137ms (next.js: 19ms, application-code: 119ms)
+ GET / 200 in 146ms (next.js: 19ms, application-code: 127ms)
+ GET / 200 in 165ms (next.js: 20ms, application-code: 145ms)
+ GET / 200 in 159ms (next.js: 23ms, application-code: 135ms)
+ GET / 200 in 143ms (next.js: 20ms, application-code: 123ms)
+ GET / 200 in 74ms (next.js: 23ms, application-code: 51ms)
+✓ Compiled in 264ms
+✓ Compiled in 162ms
+ GET /api/city 500 in 3.1s (next.js: 1093ms, application-code: 1997ms)
+ GET / 200 in 541ms (next.js: 59ms, application-code: 482ms)
+ GET /api/city 500 in 52ms (next.js: 24ms, application-code: 28ms)
+  Reload env: .env.local
+ GET / 200 in 286ms (next.js: 191ms, application-code: 95ms)
+[?25h

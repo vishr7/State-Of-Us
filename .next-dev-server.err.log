@@ -1,0 +1,3438 @@
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" className="inter_7b06...">
+                          <body
+                            className="overflow-hidden h-screen bg-navy-800"
+-                           data-new-gr-c-s-check-loaded="14.1151.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" className="inter_7b06...">
+                          <body
+                            className="overflow-hidden h-screen bg-navy-800"
+-                           data-new-gr-c-s-check-loaded="14.1151.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+⨯ ./package.json:15:1
+Error: Error parsing package.json file
+  [90m13 |[0m     [32m"@types/pg"[0m: [32m"^8.23.1"[0m,
+  [90m14 |[0m     [32m"cheerio"[0m: [32m"^1.2.0"[0m,
+[31m[1m>[0m [90m15 |[0m <<<<<<< [33mUpdated[0m upstream
+  [90m   |[0m [31m[1m^[0m
+  [90m16 |[0m     [32m"next"[0m: [32m"16.3.5"[0m,
+  [90m17 |[0m =======
+  [90m18 |[0m     [32m"framer-motion"[0m: [32m"^13.4.0"[0m,
+
+package.json is not parseable: invalid JSON: key must be a string at line 15 column 1
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⨯ ./package.json:15:1
+Error: Error parsing package.json file
+  [90m13 |[0m     [32m"@types/pg"[0m: [32m"^8.23.1"[0m,
+  [90m14 |[0m     [32m"cheerio"[0m: [32m"^1.2.0"[0m,
+[31m[1m>[0m [90m15 |[0m <<<<<<< [33mUpdated[0m upstream
+  [90m   |[0m [31m[1m^[0m
+  [90m16 |[0m     [32m"next"[0m: [32m"16.3.5"[0m,
+  [90m17 |[0m =======
+  [90m18 |[0m     [32m"framer-motion"[0m: [32m"^13.4.0"[0m,
+
+package.json is not parseable: invalid JSON: key must be a string at line 15 column 1
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⨯ ./package.json:15:1
+Error: Error parsing package.json file
+  [90m13 |[0m     [32m"@types/pg"[0m: [32m"^8.23.1"[0m,
+  [90m14 |[0m     [32m"cheerio"[0m: [32m"^1.2.0"[0m,
+[31m[1m>[0m [90m15 |[0m <<<<<<< [33mUpdated[0m upstream
+  [90m   |[0m [31m[1m^[0m
+  [90m16 |[0m     [32m"next"[0m: [32m"16.3.5"[0m,
+  [90m17 |[0m =======
+  [90m18 |[0m     [32m"framer-motion"[0m: [32m"^13.4.0"[0m,
+
+package.json is not parseable: invalid JSON: key must be a string at line 15 column 1
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⨯ ./package.json:15:1
+Error: Error parsing package.json file
+  [90m13 |[0m     [32m"@types/pg"[0m: [32m"^8.23.1"[0m,
+  [90m14 |[0m     [32m"cheerio"[0m: [32m"^1.2.0"[0m,
+[31m[1m>[0m [90m15 |[0m <<<<<<< [33mUpdated[0m upstream
+  [90m   |[0m [31m[1m^[0m
+  [90m16 |[0m     [32m"next"[0m: [32m"16.3.5"[0m,
+  [90m17 |[0m =======
+  [90m18 |[0m     [32m"framer-motion"[0m: [32m"^13.4.0"[0m,
+
+package.json is not parseable: invalid JSON: key must be a string at line 15 column 1
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⨯ ./package.json:15:1
+Error: Error parsing package.json file
+  [90m13 |[0m     [32m"@types/pg"[0m: [32m"^8.23.1"[0m,
+  [90m14 |[0m     [32m"cheerio"[0m: [32m"^1.2.0"[0m,
+[31m[1m>[0m [90m15 |[0m <<<<<<< [33mUpdated[0m upstream
+  [90m   |[0m [31m[1m^[0m
+  [90m16 |[0m     [32m"next"[0m: [32m"16.3.5"[0m,
+  [90m17 |[0m =======
+  [90m18 |[0m     [32m"framer-motion"[0m: [32m"^13.4.0"[0m,
+
+package.json is not parseable: invalid JSON: key must be a string at line 15 column 1
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+[browser] Uncaught Error: ./package.json:15:1
+Error: Error parsing package.json file
+  13 |     "@types/pg": "^8.23.1",
+  14 |     "cheerio": "^1.2.0",
+> 15 | <<<<<<< Updated upstream
+     | ^
+  16 |     "next": "16.3.5",
+  17 | =======
+  18 |     "framer-motion": "^13.4.0",
+
+package.json is not parseable: invalid JSON: key must be a string at line 15 column 1
+
+
+    at <unknown> (Error: ./package.json:15:1)
+    at <unknown> (Error: (./package.json:15:1)
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+GET /api/city failed Error: DATABASE_URL is not set. The simulation engine needs a direct Postgres connection string (see .env.example), not the Supabase PostgREST URL.
+    at getPool (database\lib\db.ts:28:13)
+    at GET (app\api\city\route.ts:7:33)
+  26 |     const connectionString = process.env.DATABASE_URL;
+  27 |     if (!connectionString) {
+> 28 |       throw new Error(
+     |             ^
+  29 |         'DATABASE_URL is not set. The simulation engine needs a direct Postgres ' +
+  30 |           'connection string (see .env.example), not the Supabase PostgREST URL.'
+  31 |       );
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+GET /api/city failed Error: DATABASE_URL is not set. The simulation engine needs a direct Postgres connection string (see .env.example), not the Supabase PostgREST URL.
+    at getPool (database\lib\db.ts:28:13)
+    at GET (app\api\city\route.ts:7:33)
+  26 |     const connectionString = process.env.DATABASE_URL;
+  27 |     if (!connectionString) {
+> 28 |       throw new Error(
+     |             ^
+  29 |         'DATABASE_URL is not set. The simulation engine needs a direct Postgres ' +
+  30 |           'connection string (see .env.example), not the Supabase PostgREST URL.'
+  31 |       );
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/inter_7b064e0d.module.css
+Warning: next/font: warning:
+Failed to download Inter from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/inter_7b064e0d.module.css
+    [next]/internal/font/google/inter_7b064e0d.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/press_start_2p_3a53e202.module.css
+Warning: next/font: warning:
+Failed to download Press Start 2P from Google Fonts. Using a fallback font instead.
+If you are offline or behind a proxy, self-host the font with next/font/local, or set HTTP_PROXY/HTTPS_PROXY so Next.js can reach fonts.googleapis.com.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/press_start_2p_3a53e202.module.css
+    [next]/internal/font/google/press_start_2p_3a53e202.js
+    ./app/layout.tsx
+
+

@@ -96,6 +96,44 @@ of it.
 
 No UI was added — `app/` exists only to host the API route handlers.
 
+## Connecting the frontend (CityPulse UI)
+
+The game UI (`components/`, state in `lib/store.ts`) runs on this backend when it
+can reach it, and on its built-in mock engine when it can't. The TopBar badge
+shows which one is active (**Live · database** / **Offline · mock engine**).
+
+```bash
+# No Postgres installed? Start the embedded one in its own terminal — it applies the
+# migrations + both seeds on first run and serves postgresql://postgres:postgres@localhost:5432/postgres
+npm run db:local            # data persists in .local-db; add -- --reset to start over
+
+# Otherwise apply database/supabase/migrations/*.sql, then seed_pittsburgh.sql, to your own
+# Postgres/Supabase. Either way, DATABASE_URL goes in .env.local, then:
+npm run dev
+```
+
+| Concern | Where it lives when connected |
+| --- | --- |
+| City finances, happiness, approval, unemployment, rent, turn number | Database — recomputed by `resolveTurn` |
+| Neighborhood population / income / rent / happiness / property value / jobs / transit | Database |
+| Policy effects | Database (`policies.effects`); costs are debited by those effects |
+| Map layout, descriptions, bridges, events, weather, calendar, Town Hall personas | Client only (`lib/mockData.ts`) |
+
+- **Enacting a policy** calls `POST /api/city/:id/decisions`; the effects land when the turn
+  resolves (the Play button, or each autoplay tick, calls `POST /api/city/:id/resolve-turn`).
+- **Joined by name, not id.** Frontend ids are slugs, database ids are UUIDs, so neighborhoods and
+  policies are matched by `name`. `database/supabase/seed_pittsburgh.sql` is **generated** from
+  `lib/mockData.ts` by `npx tsx scripts/generate-pittsburgh-seed.ts` — re-run it after editing
+  policies or neighborhoods there. Adapter: `lib/backend.ts`.
+- **Population is rescaled.** The seed is a ~160-household sample; `lib/backend.ts` multiplies
+  population counts so they match the frontend's opening figures. Rates and scores are unscaled.
+- **Reloads** restore in-force policies from `GET /api/city/:id/decisions`. Decision *history*
+  (the reaction cards) is not persisted and starts empty after a reload.
+- **Engine clamping.** Policy effects are clamped to the schema's CHECK ranges
+  (`FIELD_BOUNDS` in `applyPolicyEffects.ts`); previously stacking policies could push a value out
+  of range and make every later turn fail to persist.
+- Set `NEXT_PUBLIC_CITY_NAME` to play a different seeded city (default `Pittsburgh`).
+
 ## The turn resolution flow
 
 ```

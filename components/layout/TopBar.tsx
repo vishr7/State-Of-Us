@@ -112,6 +112,7 @@ export default function TopBar() {
   const stopPlaying = useCityPulseStore(s => s.stopPlaying);
   const setAnalytics = useCityPulseStore(s => s.setAnalytics);
   const lastSnapshot = useCityPulseStore(s => s.lastSnapshot);
+  const backend = useCityPulseStore(s => s.backend);
 
   // Compute deltas vs. last snapshot
   const prevCity = lastSnapshot ?? null;
@@ -147,6 +148,9 @@ export default function TopBar() {
           <div className="state-brand-tagline"><span className="state-brand-line" aria-hidden="true" />Your city. Our tomorrow.</div>
         </div>
       </div>
+
+      {/* Data source: live database vs. local mock engine */}
+      <BackendBadge status={backend.status} error={backend.error} />
 
       {/* Spacer */}
       <div className="flex-1" />
@@ -228,6 +232,29 @@ export default function TopBar() {
           <GearIcon />
         </button>
       </div>
+    </div>
+  );
+}
+
+// ------ Backend connection badge -----------------------------
+
+const BADGE: Record<string, { label: string; color: string }> = {
+  connecting: { label: 'Connecting…', color: '#94A3B8' },
+  connected: { label: 'Live · database', color: '#22C55E' },
+  offline: { label: 'Offline · mock engine', color: '#EAB308' },
+};
+
+function BackendBadge({ status, error }: { status: string; error: string | null }) {
+  const badge = BADGE[status];
+  if (!badge) return null;
+  return (
+    <div
+      className="flex items-center gap-2 px-2 py-1 rounded-lg flex-shrink-0"
+      style={{ border: '1px solid #1E3050', background: '#162236', fontSize: 11, color: '#94A3B8' }}
+      title={error ?? 'Game state is served by the simulation engine and database'}
+    >
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: badge.color }} aria-hidden="true" />
+      {badge.label}
     </div>
   );
 }
