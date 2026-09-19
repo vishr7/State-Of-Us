@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CityPulse — Pittsburgh AI City Management Game
 
-## Getting Started
+A SimCity-style AI city management game set in Pittsburgh, Pennsylvania. Shape your city through housing, transit, tax, safety, business, and environment policies — and watch how Pittsburgh's real neighborhoods respond.
 
-First, run the development server:
+![CityPulse Screenshot](./public/screenshot.png)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| State | Zustand |
+| Animations | Framer Motion |
+| City Map | **PixiJS v8** (dynamically imported, SSR-disabled) |
+| Analytics | Recharts |
+| Fonts | Inter + Press Start 2P (Google Fonts) |
+
+## City Map Library
+
+**PixiJS v8** is used for the isometric city map. Both PixiJS and Phaser reference `window` at module scope, which breaks Vercel's SSR prerendering with `ReferenceError: window is not defined`. This is fixed with:
+
+```tsx
+const CityCanvas = dynamic(
+  () => import('@/components/map/CityCanvas'),
+  { ssr: false, loading: () => <MapSkeleton /> }
+)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The map is drawn procedurally with PixiJS Graphics API — no external sprite sheets required, ensuring a clean zero-dependency Vercel deploy.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone <repo>
+cd citypulse
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## Build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build   # must pass with zero type errors
+npm run start   # production server
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy to Vercel
 
-## Deploy on Vercel
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/citypulse)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Connect your repository on vercel.com
+2. No environment variables required for the mock layer
+3. Add real API keys from `.env.example` to Vercel's environment settings when ready
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture
+
+```
+Frontend (Next.js)
+│
+├── app/           ← Next.js App Router pages + layout
+├── lib/           ← ALL game logic (no UI here)
+│   ├── types.ts       ← Full data model (City, Neighborhood, Resident, Policy, etc.)
+│   ├── mockData.ts    ← Pittsburgh seed data
+│   ├── mockEngine.ts  ← simulateTurn(), enactPolicy(), rollEvent()
+│   ├── mockAgents.ts  ← Stubbed Nemotron: getAgentReasoning()
+│   └── store.ts       ← Zustand: all game state + turn interval
+│
+└── components/
+    ├── layout/    ← GameDashboard, TopBar, BottomPanel
+    ├── sidebar/   ← LeftSidebar, RightSidebar, CategoryNav, MiniMap
+    ├── map/       ← CityCanvas (PixiJS), MapSkeleton
+    ├── ui/        ← Avatar, PolicyCard, Toast
+    └── modals/    ← All 6 modal/drawer components
+```
+
+## Swapping in the Real Backend
+
+The mock layer is the integration seam. To wire in real Nemotron, Supabase, and the simulation backend:
+
+| File | What to replace |
+|---|---|
+| `lib/mockAgents.ts` | `getAgentReasoning()` → call Nemotron API |
+| `lib/mockEngine.ts` | `simulateTurn()` → call backend `/api/simulate` |
+| `lib/mockData.ts` | Seed data → load from Supabase on mount |
+| `lib/store.ts` | `setInterval` → keep as-is OR switch to Supabase Realtime |
+
+All other components are presentational and stay unchanged.
+
+## Pittsburgh Neighborhoods
+
+| Neighborhood | Income Tier | Key Tension |
+|---|---|---|
+| Shadyside | Higher (gold) | Tree-lined streets, Walnut St retail |
+| Lawrenceville | Middle (blue) | Rapid gentrification, displacement pressure |
+| Homewood | Lower (red) | High vacancy, transit dependence, disinvestment |
+| Oakland | Middle | Ed+med hub, 68% tax-exempt land |
+| Golden Triangle | Higher | Downtown CBD, the Point |
+| Mount Washington | Middle | Hillside risk, inclines |
+| Hill District | Lower | Adjacent to downtown, August Wilson |
+| Strip District | Middle | Warehouse tech corridor |
+| South Side Flats | Middle | Carson St bar scene |
+| Hazelwood | Lower | Mon Valley, coke works legacy |
+
+## Known Simplifications
+
+- **Map art is procedural** — PixiJS Graphics API draws all buildings, bridges, and terrain as vector shapes. No external tileset sprites. This ensures a clean Vercel deploy with no CDN dependencies.
+- **ElevenLabs speaker button** is visually wired but silent. Set `ELEVENLABS_API_KEY` to enable.
+- **Nemotron responses** are hardcoded per archetype in `mockAgents.ts`. Same output shape as real Nemotron.
+- **No auth, no settings panel, no dark/light toggle** — out of scope per spec.
+- **Mobile layout** is not optimized — game is designed for 1280px+ screens.
+
+## Pittsburgh Context
+
+CityPulse is grounded in real Pittsburgh tensions:
+- **42% of assessed property value** is tax-exempt (Pitt, CMU, UPMC)
+- **446 bridges** — more per capita than any U.S. city; many rated structurally deficient
+- **The Three Sisters** — three parallel yellow suspension bridges over the Allegheny
+- **The PILOT fight** — the single most Pittsburgh-specific policy in the game
+- **Hillside landslides** — 23 neighborhoods on unstable slopes
+- **The displacement loop** — transit investment → property value → rent → longtime-renter unhappiness
