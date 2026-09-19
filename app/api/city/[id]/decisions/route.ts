@@ -17,7 +17,8 @@ const UNIQUE_VIOLATION = '23505';
  *
  * Body: { policy_id: string, player_reasoning?: string }
  */
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   let body: CreateDecisionBody;
   try {
     body = await request.json();
@@ -39,10 +40,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
   let currentTurn: number | undefined;
 
   try {
-    const cityResult = await pool.query<City>('select * from cities where id = $1', [params.id]);
+    const cityResult = await pool.query<City>('select * from cities where id = $1', [id]);
     const city = cityResult.rows[0];
     if (!city) {
-      return NextResponse.json({ error: `City ${params.id} not found` }, { status: 404 });
+      return NextResponse.json({ error: `City ${id} not found` }, { status: 404 });
     }
     currentTurn = city.current_turn;
 
@@ -66,7 +67,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       // decided for this city at this turn.
       return NextResponse.json(
         {
-          error: `A decision for policy ${policyId} already exists for city ${params.id} at turn ${currentTurn}`,
+          error: `A decision for policy ${policyId} already exists for city ${id} at turn ${currentTurn}`,
         },
         { status: 409 }
       );

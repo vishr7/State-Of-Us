@@ -6,7 +6,7 @@ import {
   TW, TH, GW, GH,
   tileToScreen, screenToTile, rng,
   classifyTile, isWater,
-  NEIGHBORHOOD_MARKERS,
+  NEIGHBORHOOD_MARKERS, PITTSBURGH_LANDMARKS,
   WORLD_BOUNDS,
   TileInfo,
 } from '../map/cityMapData';
@@ -145,6 +145,19 @@ export default function MiniMap() {
           }
         }
       }
+    }
+
+    for (const landmark of PITTSBURGH_LANDMARKS) {
+      const { x, y } = tileToMinimap(landmark.tx, landmark.ty);
+      const cx = x + cellW / 2;
+      const cy = y + cellH / 2;
+      ctx.fillStyle = landmark.kind === 'stadium' ? '#FFB81C' : '#F5EBD0';
+      ctx.strokeStyle = '#071320';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, landmark.kind === 'stadium' ? 2.5 : 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
     }
 
     offscreenRef.current = offscreen;

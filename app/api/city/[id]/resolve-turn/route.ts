@@ -16,9 +16,10 @@ import {
  * policy effects, recomputing aggregates, persisting, snapshotting) lives in
  * database/simulation/resolveTurn.ts, inside one database transaction.
  */
-export async function POST(_request: Request, { params }: { params: { id: string } }) {
+export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const result = await resolveTurn(params.id);
+    const result = await resolveTurn(id);
 
     return NextResponse.json({
       city: result.city,

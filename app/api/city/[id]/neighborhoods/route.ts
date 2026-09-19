@@ -3,11 +3,12 @@ import { getPool } from '@database/lib/db';
 import type { Neighborhood } from '@database/types/database';
 
 /** GET /api/city/:id/neighborhoods — read-only. */
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const result = await getPool().query<Neighborhood>(
       'select * from neighborhoods where city_id = $1 order by name',
-      [params.id]
+      [id]
     );
     return NextResponse.json(result.rows);
   } catch (err) {

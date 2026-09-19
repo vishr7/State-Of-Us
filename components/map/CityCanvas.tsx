@@ -12,12 +12,12 @@ import { useCityPulseStore } from '@/lib/store';
 // ============================================================
 
 import {
-  TW, TH, GW, GH, OX, OY,
+  TW, TH, GW, GH, OX, OY, MAP_AREAS, LandmarkSprite,
   tileToScreen, rng,
   alleghenyY, monY, isAllegheny, isMon, isOhio, isWater, isInWedge,
   isBridge, CATHEDRAL_TX, CATHEDRAL_TY,
   classifyTile, TileInfo, BridgeKind, Zone,
-  NEIGHBORHOOD_MARKERS,
+  NEIGHBORHOOD_MARKERS, PITTSBURGH_LANDMARKS, PittsburghLandmark,
 } from './cityMapData';
 
 // ── Colors ───────────────────────────────────────────────────
@@ -58,6 +58,15 @@ function drawSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, inde
   const size = TW * 1.04;
   ctx.drawImage(atlas, (index % 4) * sw, Math.floor(index / 4) * sh, sw, sh,
     x - size / 2, y - size + TH * 0.5, size, size);
+}
+
+const landmarkCells: Record<LandmarkSprite, number> = { cathedral: 0, hospital: 1, police: 2, skyscraper: 3, office: 4, university: 5 };
+function drawLandmarkSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, kind: LandmarkSprite, x: number, y: number) {
+  const index = landmarkCells[kind];
+  const sw = atlas.naturalWidth / 3, sh = atlas.naturalHeight / 2;
+  const size = kind === 'cathedral' ? 190 : kind === 'skyscraper' ? 154 : kind === 'hospital' ? 145 : kind === 'office' ? 128 : 112;
+  ctx.drawImage(atlas, (index % 3) * sw, Math.floor(index / 3) * sh, sw, sh,
+    x - size / 2, y - size * 0.9 + TH * 0.45, size, size);
 }
 
 // Draw streets in tile-local coordinates so lanes meet at every intersection.
@@ -183,6 +192,122 @@ function drawWater(ctx: CanvasRenderingContext2D, cx: number, cy: number, time: 
 }
 
 // ── Main Component ───────────────────────────────────────────
+function drawRiverLabel(ctx: CanvasRenderingContext2D, label: string, x: number, y: number, angle: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.font = '800 13px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(230,244,255,0.55)';
+  ctx.strokeStyle = 'rgba(24,48,68,0.45)';
+  ctx.lineWidth = 3;
+  ctx.strokeText(label, 0, 0);
+  ctx.fillText(label, 0, 0);
+  ctx.restore();
+}
+
+function drawLandmarkLabel(ctx: CanvasRenderingContext2D, label: string, x: number, y: number, color = '#F4E7C5') {
+  ctx.save();
+  ctx.font = '900 10px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const width = Math.ceil(ctx.measureText(label).width) + 14;
+  const bx = x - width / 2;
+  const by = y - (label === 'CATHEDRAL OF LEARNING' ? 175 : label === 'UPMC HOSPITAL' ? 118 : 58);
+  ctx.fillStyle = 'rgba(12,24,38,0.88)';
+  ctx.strokeStyle = 'rgba(255,184,28,0.65)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, width, 18, 5);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.fillText(label, x, by + 9);
+  ctx.restore();
+}
+
+function drawPointFountain(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  fillPoly(ctx, [[x, y - 18], [x + 30, y - 4], [x, y + 12], [x - 30, y - 4]], '#3f7d4d', '#d7c28c');
+  ctx.fillStyle = '#d9e6d7';
+  ctx.beginPath();
+  ctx.ellipse(x, y - 5, 13, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#8fc6dd';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 7);
+  ctx.quadraticCurveTo(x - 14, y - 32, x - 3, y - 39);
+  ctx.moveTo(x, y - 7);
+  ctx.quadraticCurveTo(x + 14, y - 32, x + 3, y - 39);
+  ctx.moveTo(x, y - 7);
+  ctx.lineTo(x, y - 43);
+  ctx.stroke();
+}
+
+function drawStadium(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
+  ctx.save();
+  ctx.translate(x, y - 8);
+  ctx.scale(1, 0.55);
+  ctx.fillStyle = '#d9d4bd';
+  ctx.strokeStyle = '#233246';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 34, 24, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = label === 'PNC' ? '#3d8f4a' : '#2f5f9c';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 23, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  if (label !== 'PNC') {
+    ctx.fillStyle = '#FFB81C';
+    ctx.fillRect(x - 20, y - 27, 40, 5);
+    ctx.fillRect(x - 20, y - 11, 40, 5);
+  }
+}
+
+function drawIncline(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.strokeStyle = '#322b24';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x - 42, y + 22);
+  ctx.lineTo(x + 24, y - 48);
+  ctx.moveTo(x - 34, y + 26);
+  ctx.lineTo(x + 32, y - 44);
+  ctx.stroke();
+  fillPoly(ctx, [[x - 12, y - 7], [x + 8, y - 17], [x + 20, y - 9], [x, y + 2]], '#FFB81C', '#6b3f15');
+  ctx.fillStyle = '#17304f';
+  ctx.fillRect(x + 1, y - 13, 8, 5);
+  ctx.restore();
+}
+
+function drawLandmark(ctx: CanvasRenderingContext2D, landmark: PittsburghLandmark) {
+  const { x, y } = tileToScreen(landmark.tx, landmark.ty);
+  if (landmark.kind === 'point') {
+    drawPointFountain(ctx, x, y);
+    drawLandmarkLabel(ctx, landmark.label, x, y, '#BFE7F3');
+    return;
+  }
+  if (landmark.kind === 'stadium') {
+    drawStadium(ctx, x, y, landmark.label);
+    drawLandmarkLabel(ctx, landmark.label, x, y, '#F7D35B');
+    return;
+  }
+  if (landmark.kind === 'incline') {
+    drawIncline(ctx, x, y);
+    drawLandmarkLabel(ctx, landmark.label, x, y, '#F7D35B');
+    return;
+  }
+  if (landmark.kind === 'bridgeCluster') {
+    drawLandmarkLabel(ctx, landmark.label, x, y, '#FFB81C');
+    return;
+  }
+  drawLandmarkLabel(ctx, landmark.label, x, y, '#F4E7C5');
+}
+
 export default function CityCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef    = useRef<HTMLCanvasElement>(null);
@@ -215,6 +340,7 @@ export default function CityCanvas() {
     if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
   }, []);
   const [atlas, setAtlas] = useState<HTMLImageElement | null>(null);
+  const [landmarkAtlas, setLandmarkAtlas] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
@@ -224,7 +350,11 @@ export default function CityCanvas() {
     img.onload = () => setAtlas(img);
     img.onerror = () => setAssetError(true);
     img.src = '/sprites/city-atlas.png';
-    return () => { img.onload = null; img.onerror = null; };
+    const landmarks = new Image();
+    landmarks.onload = () => setLandmarkAtlas(landmarks);
+    landmarks.onerror = () => setAssetError(true);
+    landmarks.src = '/sprites/pittsburgh-landmarks.png';
+    return () => { img.onload = null; img.onerror = null; landmarks.onload = null; landmarks.onerror = null; };
   }, []);
   const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
   // Issue 4 fix: track mount state to avoid hydration mismatch
@@ -237,10 +367,10 @@ export default function CityCanvas() {
   useEffect(() => {
     if (!selectedNeighborhoodId) return;
     const centers: Record<string, ReturnType<typeof tileToScreen>> = {
-      golden_triangle: tileToScreen(17, 14),
-      shadyside:      tileToScreen(6, 7),
-      lawrenceville:  tileToScreen(19, 7),
-      homewood:       tileToScreen(24, 17),
+      golden_triangle: tileToScreen(12, 16),
+      shadyside:      tileToScreen(22, 13),
+      lawrenceville:  tileToScreen(20, 7),
+      homewood:       tileToScreen(25, 18),
     };
     const c = centers[selectedNeighborhoodId];
     if (c) setMapViewport({ x: -c.x * 1.3, y: -c.y * 1.3, zoom: 1.3 });
@@ -250,7 +380,7 @@ export default function CityCanvas() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container || !atlas) return;
+    if (!canvas || !container || !atlas || !landmarkAtlas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -327,19 +457,27 @@ export default function CityCanvas() {
         if (info.ground !== 'water' && !info.bridge) drawQuay(ctx, tx, ty, cx, cy);
       }
 
+      drawRiverLabel(ctx, 'OHIO', tileToScreen(3, 16).x, tileToScreen(3, 16).y + 3, -0.02);
+      drawRiverLabel(ctx, 'ALLEGHENY', tileToScreen(21, alleghenyY(21)).x, tileToScreen(21, alleghenyY(21)).y, -0.22);
+      drawRiverLabel(ctx, 'MONONGAHELA', tileToScreen(21, monY(21)).x, tileToScreen(21, monY(21)).y, 0.24);
+
       // Painter's order prevents distant buildings covering nearer ones.
       for (const { tx, ty, cx, cy, info } of tiles) {
         if (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
         else if (info.bridge === 'truss') drawTrussBridge(ctx, cx, cy);
         let sprite: number | null = null;
-        if (info.cathedral) sprite = 14;
+        if (info.landmarkSprite) {
+          drawLandmarkSprite(ctx, landmarkAtlas, info.landmarkSprite, cx, cy);
+          drawLandmarkSprite(foregroundCtx, landmarkAtlas, info.landmarkSprite, cx, cy);
+        }
+        else if (info.cathedral) sprite = 14;
         else if (info.tree) sprite = 12;
-        else if (info.ground === 'park') sprite = (tx === 6 && ty === 7) || (tx === 17 && ty === 15) ? 10 : ((tx + ty) % 4 === 0 ? 13 : 12);
+        else if (info.ground === 'park' && !info.tree && (tx + ty) % 11 === 0 && tx > 10) sprite = 13;
         else if (info.building) {
           const options = { wealthy: [1, 1, 1, 5], middle: [0, 2, 3, 6], lower: [0, 0, 4, 6], tower: [4, 5, 5, 2], civic: [7, 8, 9, 14] };
           const choices = options[info.building];
           sprite = choices[Math.floor(rng(tx, ty) * choices.length)];
-          const centers = [{ id: 'golden_triangle', x: 17, y: 14 }, { id: 'shadyside', x: 6, y: 7 }, { id: 'lawrenceville', x: 19, y: 7 }, { id: 'homewood', x: 24, y: 17 }];
+          const centers = [{ id: 'golden_triangle', x: 12, y: 16 }, { id: 'shadyside', x: 22, y: 13 }, { id: 'lawrenceville', x: 20, y: 7 }, { id: 'homewood', x: 25, y: 18 }];
           const neighborhood = centers.sort((a, b) => Math.hypot(tx-a.x, ty-a.y) - Math.hypot(tx-b.x, ty-b.y))[0].id;
           const policy = policies.find(p => p.status === 'active' &&
             ['housing', 'environment', 'transit'].includes(p.category) &&
@@ -361,16 +499,13 @@ export default function CityCanvas() {
 
         }
       }
+
+      for (const landmark of PITTSBURGH_LANDMARKS) drawLandmark(ctx, landmark);
     }
     const foregroundPixels = foregroundCtx.getImageData(0, 0, foreground.width, foreground.height).data;
     const trafficTiles = tiles.filter(t => t.info.ground === 'road' && !t.info.bridge && (t.tx + t.ty) % 5 === 0).map(t => ({ ...t, alongX: classifyTile(t.tx + 1, t.ty).ground === 'road' || classifyTile(t.tx - 1, t.ty).ground === 'road' }));
     const openWater = tiles.filter(t => t.info.ground === 'water' && [[-1, 0], [1, 0], [0, -1], [0, 1]].every(([dx, dy]) => classifyTile(t.tx + dx, t.ty + dy).ground === 'water'));
-    const badgeWorld = {
-      golden_triangle: tileToScreen(17, 14),
-      shadyside: tileToScreen(6, 7),
-      lawrenceville: tileToScreen(19, 7),
-      homewood: tileToScreen(24, 17),
-    };
+    const badgeWorld = Object.fromEntries(MAP_AREAS.map(area => [area.id, { x: area.x, y: area.y }]));
     let previousTime = performance.now();
     function render() {
       if (!ctx || !canvas) return;
@@ -456,7 +591,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, policies, turn, isPlaying, setMapViewport, walkers]);
+  }, [atlas, landmarkAtlas, policies, turn, isPlaying, setMapViewport, walkers]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -518,7 +653,7 @@ export default function CityCanvas() {
       const py = e.clientY - rect.top - rect.height / 2;
       const camera = cameraRef.current;
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rect.height : 1);
-      const nextZoom = Math.max(0.4, Math.min(3, camera.zoom * Math.exp(-delta * 0.0015)));
+      const nextZoom = Math.max(0.25, Math.min(3, camera.zoom * Math.exp(-delta * 0.0015)));
       const ratio = nextZoom / camera.zoom;
       camera.x = px - (px - camera.x) * ratio;
       camera.y = py - (py - camera.y) * ratio;
@@ -530,41 +665,21 @@ export default function CityCanvas() {
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
-  const handleZoomOut = () => setZoom(z => Math.max(0.4, z * 0.8));
-  const handleReset   = () => { setMapViewport({ x: -80, y: 40, zoom: 0.65 }); };
+  const handleZoomOut = () => setZoom(z => Math.max(0.25, z * 0.8));
+  const handleReset = () => {
+    const container = containerRef.current;
+    const fit = container ? Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * 0.96 : 0.4;
+    setMapViewport({ x: 0, y: 30, zoom: fit });
+  };
 
   // ── Neighborhood badge definitions ───────────────────────────
   // Tile centers match classifyTile zone assignments above
-  const badges = [
-    {
-      id: 'golden_triangle', name: 'DOWNTOWN', subtitle: 'City Center',
-      wx: tileToScreen(17, 14).x, wy: tileToScreen(17, 14).y,
-      borderColor: '#d4c3a3', bgColor: 'rgba(43,38,34,0.94)', textColor: '#f2e6ce',
-      tooltip: 'Golden Triangle — Downtown Pittsburgh',
-      action: () => selectNeighborhood('golden_triangle'),
-    },
-    {
-      id: 'shadyside', name: 'SHADYSIDE', subtitle: 'Wealthy',
-      wx: tileToScreen(6, 7).x, wy: tileToScreen(6, 7).y,
-      borderColor: '#FFB81C', bgColor: 'rgba(14,28,10,0.93)', textColor: '#FFD166',
-      tooltip: 'Shadyside — Wealthy | 81% Happiness | $94K Median Income',
-      action: () => selectNeighborhood('shadyside'),
-    },
-    {
-      id: 'lawrenceville', name: 'LAWRENCEVILLE', subtitle: 'Middle-Income',
-      wx: tileToScreen(19, 7).x, wy: tileToScreen(19, 7).y,
-      borderColor: '#60A5FA', bgColor: 'rgba(8,18,40,0.93)', textColor: '#93C5FD',
-      tooltip: 'Lawrenceville — Middle-Income | 68% Happiness | $52K Median Income',
-      action: () => selectNeighborhood('lawrenceville'),
-    },
-    {
-      id: 'homewood', name: 'HOMEWOOD', subtitle: 'Lower-Income',
-      wx: tileToScreen(24, 17).x, wy: tileToScreen(24, 17).y,
-      borderColor: '#F87171', bgColor: 'rgba(28,8,8,0.93)', textColor: '#FCA5A5',
-      tooltip: 'Homewood — Lower-Income | 42% Happiness | $28K Median Income',
-      action: () => selectNeighborhood('homewood'),
-    },
-  ];
+  const badges = MAP_AREAS.map(area => ({
+    ...area, wx: area.x, wy: area.y,
+    borderColor: area.color, textColor: area.color, bgColor: 'rgba(22,32,39,0.92)',
+    tooltip: `Explore ${area.name} — ${area.subtitle}`,
+    action: () => setMapViewport({ x: -area.x * 1.05, y: -area.y * 1.05 + 100, zoom: 1.05 }),
+  }));
 
   return (
     <div
@@ -583,7 +698,7 @@ export default function CityCanvas() {
         className="absolute inset-0 w-full h-full block pointer-events-none"
       />
 
-      {!atlas && <div className="absolute inset-0 grid place-items-center text-slate-200 bg-slate-900" role="status">
+      {(!atlas || !landmarkAtlas) && <div className="absolute inset-0 grid place-items-center text-slate-200 bg-slate-900" role="status">
         {assetError ? 'City artwork could not load. Refresh to try again.' : 'Loading your illustrated city…'}
       </div>}
       {/* Neighborhood badges — only rendered client-side (avoids hydration mismatch) */}
@@ -666,7 +781,7 @@ export default function CityCanvas() {
         style={{ background: 'rgba(10,22,40,0.85)', border: '1px solid rgba(30,48,80,0.7)', color: '#94A3B8' }}
       >
         <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        <span>Click neighborhoods · Drag to pan · Scroll to zoom</span>
+        <span>Explore Pittsburgh · Drag to pan · Scroll to zoom</span>
       </div>
     </div>
   );

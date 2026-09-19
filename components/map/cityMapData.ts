@@ -35,43 +35,58 @@ export function rng(tx: number, ty: number): number {
 }
 
 // ── Pittsburgh River Math ────────────────────────────────────
-// The Point (river confluence) is at tile (10, 16).
+// The Point (river confluence) is at tile (9, 16).
 // Allegheny flows from upper-right (NE) toward The Point.
 // Monongahela flows from lower-right (SE) toward The Point.
 // Ohio flows from The Point to the left (W).
 
-export function alleghenyY(tx: number) { return 16 - (tx - 10) * 10 / 16; }
-export function monY(tx: number)       { return 16 + (tx - 10) * 6  / 16; }
+export const POINT_TX = 7;
+export const POINT_TY = 16;
+
+export function alleghenyY(tx: number) {
+  const dx = tx - POINT_TX;
+  return POINT_TY - dx * 0.48 + Math.sin(dx * 0.55) * 0.25;
+}
+
+export function monY(tx: number) {
+  const dx = tx - POINT_TX;
+  return POINT_TY + dx * 0.52 + Math.sin(dx * 0.45) * 0.2;
+}
+
+export function isPointPark(tx: number, ty: number) {
+  return tx >= 8 && tx <= 10 && Math.abs(ty - 16) <= (tx - 8) * 0.5;
+}
 
 export function isAllegheny(tx: number, ty: number) {
-  if (tx < 10 || tx > 27) return false;
-  return Math.abs(ty - alleghenyY(tx)) < 1.7;
+  if (tx < POINT_TX || tx > 27) return false;
+  return Math.abs(ty - alleghenyY(tx)) < 1.35;
 }
 
 export function isMon(tx: number, ty: number) {
-  if (tx < 10 || tx > 27) return false;
-  return Math.abs(ty - monY(tx)) < 1.7;
+  if (tx < POINT_TX || tx > 27) return false;
+  return Math.abs(ty - monY(tx)) < 1.35;
 }
 
 export function isOhio(tx: number, ty: number) {
-  if (tx >= 10 || tx < 1) return false;
-  return Math.abs(ty - 16) < 2;
+  if (tx >= POINT_TX || tx < 0) return false;
+  return Math.abs(ty - POINT_TY) < 2.15;
 }
 
 export function isWater(tx: number, ty: number) {
+  if (isPointPark(tx, ty)) return false;
   return isAllegheny(tx, ty) || isMon(tx, ty) || isOhio(tx, ty);
 }
 
 // Tiles between Allegheny and Mon (the Golden Triangle wedge)
 export function isInWedge(tx: number, ty: number) {
-  if (tx < 10 || tx > 27) return false;
-  return ty > alleghenyY(tx) + 0.5 && ty < monY(tx) - 0.5;
+  if (tx < POINT_TX || tx > 27) return false;
+  return ty > alleghenyY(tx) + 0.65 && ty < monY(tx) - 0.65;
 }
 
-// Stylized Three Sisters crossings aligned with the street grid.
-export const BRIDGE_TX = new Set([11, 15, 19]);
-// Truss crossings over the Mon.
-export const MON_BRIDGE_TX = new Set([15, 23]);
+// Stylized river crossings. The first three Allegheny bridges read as the
+// Three Sisters, with later East End crossings toward Lawrenceville.
+export const BRIDGE_TX = new Set([10, 12, 14, 17, 22]);
+export const MON_BRIDGE_TX = new Set([10, 13, 18, 24]);
 
 export function isBridge(tx: number, ty: number) {
   if (BRIDGE_TX.has(tx) && isAllegheny(tx, ty)) return 'suspension' as const;
@@ -81,10 +96,11 @@ export function isBridge(tx: number, ty: number) {
 
 // Cathedral of Learning: special single tile in Oakland
 export const CATHEDRAL_TX = 20;
-export const CATHEDRAL_TY = 14;
+export const CATHEDRAL_TY = 17;
 
 // ── Tile Classification ──────────────────────────────────────
 export type Zone = 'wealthy' | 'middle' | 'lower' | 'tower' | 'civic';
+export type LandmarkSprite = 'cathedral' | 'hospital' | 'police' | 'skyscraper' | 'office' | 'university';
 export type BridgeKind = 'suspension' | 'truss';
 
 export interface TileInfo {
@@ -92,64 +108,95 @@ export interface TileInfo {
   bridge?: BridgeKind;
   building?: Zone;
   cathedral?: true;
+  landmarkSprite?: LandmarkSprite;
   hillElevation?: number; // 0-4 relative to flat
   tree?: boolean;
 }
 
+// A deliberately compressed geographic model: west is decreasing tx, north decreasing ty.
+// The Strip is on the south/east bank of the Allegheny, alongside Downtown.
 export function classifyTile(tx: number, ty: number): TileInfo {
-  // Water (checked first — rivers override everything)
+  if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return { ground: 'grass' };
+  if (isPointPark(tx, ty)) return { ground: 'park' };
   if (isWater(tx, ty)) {
-    const b = isBridge(tx, ty);
-    return b ? { ground: 'road', bridge: b } : { ground: 'water' };
+    const bridge = isBridge(tx, ty);
+    return bridge ? { ground: 'road', bridge } : { ground: 'water' };
   }
-
   const r = rng(tx, ty);
-  // Wooded perimeter softens the edge of the model
-  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) {
-    return { ground: 'park', tree: true };
+  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true, landmarkSprite: 'cathedral' };
+  if (tx === 18 && ty === 17) return { ground: 'grass', landmarkSprite: 'hospital' };
+  if (tx === 14 && ty === 17) return { ground: 'grass', landmarkSprite: 'police' };
+  if ((tx === 20 || tx === 22) && ty === 19) return { ground: 'grass', landmarkSprite: 'university' };
+
+  // Continuous bridge approaches and east-west avenues connect the districts.
+  const bridgeApproach = (BRIDGE_TX.has(tx) && Math.abs(ty - alleghenyY(tx)) < 3.1)
+    || (MON_BRIDGE_TX.has(tx) && Math.abs(ty - monY(tx)) < 3.1);
+  if (bridgeApproach && !isInWedge(tx, ty)) return { ground: 'road' };
+
+  if (isInWedge(tx, ty)) {
+    // Dense Golden Triangle skyline, separated by streets and civic squares.
+    if (tx <= 15) {
+      if (ty === 16 || tx === 15) return { ground: 'road' };
+      if (tx === 10 || (tx === 14 && ty === 18)) return { ground: 'park' };
+      return { ground: 'grass', building: 'tower', landmarkSprite: r < 0.55 ? 'skyscraper' : 'office' };
+    }
+    // Business corridor / Strip District hugs the inside of the Allegheny.
+    if (ty <= 13) {
+      if (ty === 11 || tx === 17 || tx === 21 || tx === 24) return { ground: 'road' };
+      if (r < 0.16) return { ground: 'park', tree: r < 0.06 };
+      return { ground: 'grass', building: 'tower', landmarkSprite: 'office' };
+    }
+    // Oakland: big institutional lots and open Cathedral / campus lawns.
+    if (tx >= 17 && tx <= 22 && ty >= 15 && ty <= 20) {
+      if (ty === 16 || ty === 20 || tx === 19) return { ground: 'road' };
+      if (ty === 18 || (tx === 21 && ty === 17)) return { ground: 'park' };
+      return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'civic', landmarkSprite: 'university' };
+    }
+    // Schenley Park south/east of the university.
+    if (tx >= 21 && tx <= 24 && ty >= 21) return { ground: 'park', tree: r < 0.42 };
+    if (tx === 16 || tx === 23 || ty === 14 || ty === 18 || ty === 22 || tx === 26) return { ground: 'road' };
+    return r < 0.22 ? { ground: 'park', tree: r < 0.1 } : { ground: 'grass', building: tx >= 24 ? 'wealthy' : 'middle' };
   }
 
-  // Shadyside: garden neighborhood
-  if (tx <= 10 && ty <= 13) {
-    if (tx === 2 || tx === 9 || ty === 3 || ty === 12 || (ty === 8 && tx >= 9)) return { ground: 'road' };
-    if (tx >= 5 && tx <= 7 && ty >= 6 && ty <= 9) return { ground: 'park' };
-    if ((tx + ty) % 3 === 0 || tx === 1 || ty === 1) return { ground: 'grass', tree: true };
-    return { ground: 'grass', building: 'wealthy' };
-  }
-
-  // Main avenues tie the districts to the river crossings
-  if ([11, 15, 19, 23].includes(tx)) return { ground: 'road' };
-  if ([3, 8, 13, 18, 24].includes(ty)) return { ground: 'road' };
-  if (tx < 11 && (tx === 4 || tx === 8 || ty === 21)) return { ground: 'road' };
-
-  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true };
-
-  // Downtown: compact masonry apartment blocks around civic square
-  if (isInWedge(tx, ty) && tx < 22) {
-    if (tx >= 16 && tx <= 18 && ty >= 15 && ty <= 16) return { ground: 'park' };
-    if (tx === 17 && ty === 14) return { ground: 'grass', cathedral: true };
-    return { ground: 'grass', building: r < 0.18 ? 'middle' : 'tower' };
-  }
-
-  // Homewood: rowhouse blocks, community gardens
-  if (isInWedge(tx, ty) && tx >= 22) {
-    if (tx === 25 && ty >= 16 && ty <= 17) return { ground: 'park' };
-    return { ground: 'grass', building: 'lower' };
-  }
-
-  // Lawrenceville: active mixed-use riverfront
-  if (ty < alleghenyY(tx) && tx >= 11) {
-    if (tx >= 16 && tx <= 18 && ty >= 5 && ty <= 7) return { ground: 'park' };
-    return r < 0.12 ? { ground: 'grass', tree: true } : { ground: 'grass', building: 'middle' };
-  }
-
-  // Hillside cottages gradually give way to woodland on the southern bank
-  if (tx >= 10 && ty > monY(tx)) {
-    if (r < 0.5 || ty > 25) return { ground: 'hillside', tree: true };
-    return { ground: 'hillside', building: 'wealthy' };
-  }
-  return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'middle' };
+  // North Shore and outer residential hills: fewer trees, legible housing blocks.
+  if (tx === 6 && ty === 12 || tx === 9 && ty === 12) return { ground: 'grass' };
+  if (tx === 3 || tx === 7 || tx === 11 || tx === 17 || tx === 22 || ty === 7 || ty === 12 || ty === 23) return { ground: 'road' };
+  const hillside = ty > monY(tx) + 2;
+  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) return { ground: 'park', tree: r < 0.3 };
+  if (r < 0.26) return { ground: hillside ? 'hillside' : 'park', tree: r < 0.12 };
+  return { ground: hillside ? 'hillside' : 'grass', building: r < 0.6 ? 'wealthy' : 'middle' };
 }
+
+// These are navigation areas, not renamed simulation neighborhoods.
+export const MAP_AREAS = [
+  { id: 'downtown', name: 'DOWNTOWN', subtitle: 'Golden Triangle · skyline', tx: 12, ty: 19, color: '#f4d28a' },
+  { id: 'corporate', name: 'CORPORATE DISTRICT', subtitle: 'Strip District · offices & commerce', tx: 19, ty: 10, color: '#9bd4e1' },
+  { id: 'pitt', name: 'PITT / OAKLAND', subtitle: 'University · Cathedral · UPMC', tx: 21, ty: 21, color: '#afbbe9' },
+  { id: 'suburbs', name: 'SUBURBS', subtitle: 'Residential hills & garden streets', tx: 6, ty: 6, color: '#c4d7a0' },
+].map(area => ({ ...area, ...tileToScreen(area.tx, area.ty) }));
+
+export type LandmarkKind = 'point' | 'stadium' | 'incline' | 'cathedral' | 'hospital' | 'police' | 'bridgeCluster';
+
+export interface PittsburghLandmark {
+  id: string;
+  label: string;
+  kind: LandmarkKind;
+  tx: number;
+  ty: number;
+  wx: number;
+  wy: number;
+}
+
+export const PITTSBURGH_LANDMARKS: PittsburghLandmark[] = [
+  { id: 'upmc', label: 'UPMC HOSPITAL', kind: 'hospital', tx: 18, ty: 17, wx: tileToScreen(18,17).x, wy: tileToScreen(18,17).y },
+  { id: 'police', label: 'POLICE', kind: 'police', tx: 14, ty: 17, wx: tileToScreen(14,17).x, wy: tileToScreen(14,17).y },
+  { id: 'point-state-park', label: 'POINT', kind: 'point', tx: 9, ty: POINT_TY, wx: tileToScreen(9, POINT_TY).x, wy: tileToScreen(9, POINT_TY).y },
+  { id: 'acrisure-stadium', label: 'ACRISURE', kind: 'stadium', tx: 6, ty: 12, wx: tileToScreen(6, 12).x, wy: tileToScreen(6, 12).y },
+  { id: 'pnc-park', label: 'PNC', kind: 'stadium', tx: 9, ty: 12, wx: tileToScreen(9, 12).x, wy: tileToScreen(9, 12).y },
+  { id: 'three-sisters', label: '3 SISTERS', kind: 'bridgeCluster', tx: 12, ty: 11, wx: tileToScreen(12, 11).x, wy: tileToScreen(12, 11).y },
+  { id: 'mt-washington', label: 'MT. WASHINGTON', kind: 'incline', tx: 12, ty: 23, wx: tileToScreen(12, 23).x, wy: tileToScreen(12, 23).y },
+  { id: 'cathedral-learning', label: 'CATHEDRAL OF LEARNING', kind: 'cathedral', tx: CATHEDRAL_TX, ty: CATHEDRAL_TY, wx: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).x, wy: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).y },
+];
 
 // ── Neighborhood Definitions ─────────────────────────────────
 export interface NeighborhoodMarker {
@@ -173,10 +220,10 @@ export const NEIGHBORHOOD_MARKERS: NeighborhoodMarker[] = [
     name: 'DOWNTOWN',
     short: 'DT',
     subtitle: 'City Center',
-    tx: 17,
-    ty: 14,
-    wx: tileToScreen(17, 14).x,
-    wy: tileToScreen(17, 14).y,
+    tx: 12,
+    ty: 16,
+    wx: tileToScreen(12, 16).x,
+    wy: tileToScreen(12, 16).y,
     color: '#f2e6ce',
     borderColor: '#d4c3a3',
     bgColor: 'rgba(43,38,34,0.94)',
@@ -187,10 +234,10 @@ export const NEIGHBORHOOD_MARKERS: NeighborhoodMarker[] = [
     name: 'SHADYSIDE',
     short: 'SH',
     subtitle: 'Wealthy',
-    tx: 6,
-    ty: 7,
-    wx: tileToScreen(6, 7).x,
-    wy: tileToScreen(6, 7).y,
+    tx: 22,
+    ty: 13,
+    wx: tileToScreen(22, 13).x,
+    wy: tileToScreen(22, 13).y,
     color: '#FFD166',
     borderColor: '#FFB81C',
     bgColor: 'rgba(14,28,10,0.93)',
@@ -201,10 +248,10 @@ export const NEIGHBORHOOD_MARKERS: NeighborhoodMarker[] = [
     name: 'LAWRENCEVILLE',
     short: 'LV',
     subtitle: 'Middle-Income',
-    tx: 19,
+    tx: 20,
     ty: 7,
-    wx: tileToScreen(19, 7).x,
-    wy: tileToScreen(19, 7).y,
+    wx: tileToScreen(20, 7).x,
+    wy: tileToScreen(20, 7).y,
     color: '#93C5FD',
     borderColor: '#60A5FA',
     bgColor: 'rgba(8,18,40,0.93)',
@@ -215,10 +262,10 @@ export const NEIGHBORHOOD_MARKERS: NeighborhoodMarker[] = [
     name: 'HOMEWOOD',
     short: 'HW',
     subtitle: 'Lower-Income',
-    tx: 24,
-    ty: 17,
-    wx: tileToScreen(24, 17).x,
-    wy: tileToScreen(24, 17).y,
+    tx: 25,
+    ty: 18,
+    wx: tileToScreen(25, 18).x,
+    wy: tileToScreen(25, 18).y,
     color: '#FCA5A5',
     borderColor: '#F87171',
     bgColor: 'rgba(28,8,8,0.93)',
