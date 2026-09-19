@@ -152,6 +152,7 @@ export default function TopBar() {
       {/* Data source: live database vs. local mock engine */}
       <BackendBadge status={backend.status} error={backend.error} />
 
+      <button className="ml-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => useCityPulseStore.getState().setTownHall(true)}>City voices</button>
       {/* Spacer */}
       <div className="flex-1" />
 

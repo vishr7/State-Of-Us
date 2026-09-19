@@ -66,6 +66,17 @@ function SentimentRow({ group, onClick }: SentimentRowProps) {
   );
 }
 
+function CommunityVoices() {
+  const insight = useCityPulseStore(s => s.insights[0]);
+  const pending = useCityPulseStore(s => s.insightsPending);
+  const open = useCityPulseStore(s => s.setTownHall);
+  return <section className="rounded-xl p-3 border border-slate-700 bg-slate-900">
+    <div className="flex justify-between items-center"><h3 className="text-xs font-bold text-amber-200">Community voices</h3><button className="text-xs text-blue-300" onClick={()=>open(true)}>Explore →</button></div>
+    {pending > 0 && <p className="text-[10px] text-slate-400 mt-2" role="status">Listening to residents…</p>}
+    {insight ? <><p className="text-[9px] text-slate-500 mt-2">{insight.source === 'nemotron' ? 'AI-generated opinions' : 'Scripted fallback'} · Turn {insight.facts.turn}</p>{insight.commentary.residents.slice(0,2).map(r=><div key={r.residentId} className="mt-3"><strong className="text-[10px] text-slate-300">{insight.facts.residents.find(p=>p.id===r.residentId)?.name} · {r.stance}</strong><p className="text-xs leading-relaxed text-slate-400 mt-1">{r.thought}</p></div>)}</> : <p className="text-xs text-slate-400 mt-2">Hear resident opinions and compare proposed policies in City voices.</p>}
+  </section>;
+}
+
 // ------ Featured Resident Card --------------------------------
 
 function FeaturedResidentCard() {
@@ -229,6 +240,7 @@ export default function RightSidebar() {
       </div>
 
       {/* === FEATURED RESIDENT CARD === */}
+      <CommunityVoices />
       <FeaturedResidentCard />
     </div>
   );

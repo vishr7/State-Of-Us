@@ -1,216 +1,49 @@
 'use client';
-
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useCityPulseStore } from '@/lib/store';
-import { getAgentReasoning } from '@/lib/mockAgents';
-import Avatar from '../ui/Avatar';
-
-// ============================================================
-// TownHallModal — resident dialogue + ElevenLabs placeholder
-// ============================================================
+import type { CityInsight, InsightRequest } from '@/lib/ai/contracts';
+import InsightView from '../ui/InsightView';
 
 export default function TownHallModal() {
-  const setTownHall = useCityPulseStore(s => s.setTownHall);
-  const residents = useCityPulseStore(s => s.residents);
+  const close = useCityPulseStore(s => s.setTownHall);
   const policies = useCityPulseStore(s => s.policies);
-  const city = useCityPulseStore(s => s.city);
-  const [activeResidentId, setActiveResidentId] = useState(residents[0]?.id ?? '');
-  const [speakerPlaying, setSpeakerPlaying] = useState<string | null>(null);
-
-  const activeResident = residents.find(r => r.id === activeResidentId) ?? residents[0];
-
-  // Get reasoning for a mix of policies for this resident
-  const topPolicy = policies.find(p => p.status === 'proposed') ?? policies[0];
-  const reasoning = activeResident && topPolicy
-    ? getAgentReasoning(activeResident, topPolicy)
-    : null;
-
-  const moodColors: Record<string, string> = {
-    hopeful: '#22C55E', content: '#3B82F6', neutral: '#EAB308',
-    frustrated: '#F97316', angry: '#EF4444',
+  const residents = useCityPulseStore(s => s.residents);
+  const link = useCityPulseStore(s => s.backendLink);
+  const history = useCityPulseStore(s => s.insights);
+  const request = useCityPulseStore(s => s.requestInsights);
+  const available = policies.filter(p => p.status === 'proposed' && link?.policyIdByLocalId[p.id]);
+  const [mode,setMode] = useState<InsightRequest['mode']>('briefing');
+  const [policyA,setPolicyA] = useState(available[0]?.id ?? '');
+  const [policyB,setPolicyB] = useState(available[1]?.id ?? '');
+  const [resident,setResident] = useState(residents[0]?.id ?? '');
+  const [question,setQuestion] = useState('');
+  const [result,setResult] = useState<CityInsight | null>(history[0] ?? null);
+  const [busy,setBusy] = useState(false);
+  const [error,setError] = useState('');
+  const generation = useRef(0);
+  const generate = async () => {
+    const run = ++generation.current; setBusy(true); setError('');
+    const ids = mode === 'briefing' ? [] : [policyA, ...(mode === 'compare' ? [policyB] : [])].map(id => link?.policyIdByLocalId[id]).filter((id): id is string => !!id);
+    const insight = await request({ mode, policyIds: ids, residentId: mode === 'resident' ? resident : undefined, question: question.trim() || undefined });
+    if (run !== generation.current) return;
+    setBusy(false); if (insight) setResult(insight); else setError(useCityPulseStore.getState().insightsError ?? 'Could not generate analysis.');
   };
-
-  const handleSpeaker = (residentId: string) => {
-    // ElevenLabs placeholder — visually wired, silent
-    setSpeakerPlaying(speakerPlaying === residentId ? null : residentId);
-    // In production: call ElevenLabs API with reasoning.reason as the text
-    // const audio = await elevenlabs.generate({ voice: resident.archetype, text: reasoning.reason });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.8)' }}>
-      <div
-        className="rounded-2xl flex w-full max-w-3xl"
-        style={{ background: '#0F1B2D', border: '1px solid #1E3050', height: '80vh' }}
-      >
-        {/* Left: resident list */}
-        <div
-          className="flex flex-col w-52 p-3 gap-1 overflow-y-auto flex-shrink-0"
-          style={{ borderRight: '1px solid #1E3050' }}
-        >
-          <div className="text-xs font-bold px-2 py-1.5" style={{ color: '#64748B' }}>
-            TOWN HALL SPEAKERS
-          </div>
-          {residents.map(r => {
-            const isActive = r.id === activeResidentId;
-            const moodColor = moodColors[r.mood] ?? '#64748B';
-            return (
-              <button
-                key={r.id}
-                onClick={() => setActiveResidentId(r.id)}
-                className="flex items-center gap-2 rounded-xl p-2 text-left transition-colors"
-                style={{
-                  background: isActive ? '#1E2E45' : 'transparent',
-                  borderLeft: isActive ? '3px solid #3B82F6' : '3px solid transparent',
-                }}
-              >
-                <Avatar initials={r.portraitInitials} color={r.portraitColor} size={32} />
-                <div className="min-w-0">
-                  <div className="text-xs font-bold truncate" style={{ color: '#F0F4FA' }}>{r.name}</div>
-                  <div className="text-xs truncate" style={{ color: moodColor }}>
-                    {r.mood.charAt(0).toUpperCase() + r.mood.slice(1)}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Right: dialogue panel */}
-        <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-xs font-bold" style={{ color: '#64748B' }}>
-                🏛️ PITTSBURGH TOWN HALL — Year {city.year}, Turn {city.turn}
-              </div>
-              <h2 className="text-lg font-black" style={{ color: '#F0F4FA' }}>Public Comment Session</h2>
-            </div>
-            <button
-              onClick={() => setTownHall(false)}
-              className="px-3 py-1.5 rounded-lg text-sm font-bold"
-              style={{ color: '#64748B', background: '#162236' }}
-            >✕</button>
-          </div>
-
-          {activeResident && (
-            <>
-              {/* Resident ID card */}
-              <div
-                className="flex items-center gap-3 rounded-xl p-4 mb-4"
-                style={{ background: '#162236', border: '1px solid #1E3050' }}
-              >
-                <Avatar initials={activeResident.portraitInitials} color={activeResident.portraitColor} size={52} />
-                <div className="flex-1">
-                  <div className="text-base font-black" style={{ color: '#F0F4FA' }}>{activeResident.name}</div>
-                  <div className="text-sm" style={{ color: '#64748B' }}>
-                    {activeResident.occupation}
-                  </div>
-                  <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>
-                    {activeResident.neighborhood.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} •{' '}
-                    {activeResident.isHomeowner ? 'Homeowner' : 'Renter'}
-                  </div>
-                </div>
-                {/* ElevenLabs speaker button — visually wired, silent */}
-                <button
-                  onClick={() => handleSpeaker(activeResident.id)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all"
-                  style={{
-                    background: speakerPlaying === activeResident.id ? '#3B82F6' : '#243A58',
-                    color: speakerPlaying === activeResident.id ? 'white' : '#94A3B8',
-                    border: '1px solid #1E3050',
-                  }}
-                  title="Text-to-speech (ElevenLabs — coming soon)"
-                >
-                  <SpeakerIcon playing={speakerPlaying === activeResident.id} />
-                  {speakerPlaying === activeResident.id ? 'Playing...' : 'Speak'}
-                </button>
-              </div>
-
-              {/* Dialogue bubble — opening statement */}
-              <div
-                className="rounded-xl p-4 mb-3"
-                style={{ background: '#0D1E30', border: '1px solid #1E3050' }}
-              >
-                <div className="text-xs font-bold mb-2" style={{ color: '#64748B' }}>OPENING STATEMENT</div>
-                <p className="text-sm leading-relaxed italic" style={{ color: '#F0F4FA' }}>
-                  &ldquo;{activeResident.currentQuote}&rdquo;
-                </p>
-              </div>
-
-              {/* Policy reaction */}
-              {reasoning && topPolicy && (
-                <div
-                  className="rounded-xl p-4 mb-3"
-                  style={{ background: '#0D1E30', border: '1px solid #1E3050' }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs font-bold" style={{ color: '#64748B' }}>
-                      REACTION TO: &ldquo;{topPolicy.name}&rdquo;
-                    </div>
-                    <span
-                      className="badge"
-                      style={{
-                        background: reasoning.support >= 0.6 ? '#22C55E22' : '#EF444422',
-                        color: reasoning.support >= 0.6 ? '#22C55E' : '#EF4444',
-                      }}
-                    >
-                      {Math.round(reasoning.support * 100)}% Support
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed italic" style={{ color: '#94A3B8' }}>
-                    &ldquo;{reasoning.reason}&rdquo;
-                  </p>
-                  <div className="mt-2 text-xs" style={{ color: '#64748B' }}>
-                    Government trust: {reasoning.trustChange >= 0 ? '↑' : '↓'}&nbsp;
-                    <span style={{ color: reasoning.trustChange >= 0 ? '#22C55E' : '#EF4444' }}>
-                      {Math.abs(Math.round(reasoning.trustChange * 100))}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* ElevenLabs note */}
-              <div
-                className="rounded-xl p-3 mt-auto"
-                style={{ background: '#162236', border: '1px dashed #243A58' }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🎙️</span>
-                  <div>
-                    <div className="text-xs font-bold" style={{ color: '#64748B' }}>
-                      Voice Integration Placeholder
-                    </div>
-                    <div className="text-xs" style={{ color: '#64748B' }}>
-                      The Speak button is wired for ElevenLabs text-to-speech. Set{' '}
-                      <code className="px-1 rounded" style={{ background: '#0A1628', color: '#FFB81C' }}>
-                        NEXT_PUBLIC_ELEVENLABS_KEY
-                      </code>{' '}
-                      in .env to enable audio.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+  const canRun = !!link && !busy && (mode === 'briefing' || !!policyA) && (mode !== 'compare' || (!!policyB && policyB !== policyA));
+  return <div className="insights-backdrop"><section className="insights-modal" role="dialog" aria-modal="true" aria-label="City voices and policy lab">
+    <header><div><span className="insights-eyebrow">PITTSBURGH · PUBLIC PERSPECTIVES</span><h2>City voices & policy lab</h2><p>Hear different priorities. Compare the consequences.</p></div><button onClick={() => { generation.current++; close(false); }} aria-label="Close City voices">×</button></header>
+    <nav aria-label="Analysis mode">{([['briefing','City briefing'],['resident','Resident thoughts'],['debate','Town hall debate'],['compare','Compare policies']] as const).map(([id,label]) => <button key={id} aria-pressed={mode===id} onClick={() => {setMode(id);setError('');}}>{label}</button>)}</nav>
+    <div className="insight-inputs">
+      {mode !== 'briefing' && <label>Policy<select value={policyA} onChange={e => setPolicyA(e.target.value)}><option value="">Choose a proposed policy</option>{available.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
+      {mode === 'compare' && <label>Compare with<select value={policyB} onChange={e=>setPolicyB(e.target.value)}><option value="">Choose another policy</option>{available.filter(p=>p.id!==policyA).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
+      {mode === 'resident' && <label>Resident<select value={resident} onChange={e=>setResident(e.target.value)}>{residents.map(r=><option key={r.id} value={r.id}>{r.name} · {r.occupation}</option>)}</select></label>}
+      <label className="insight-question">Ask about the tradeoffs (optional)<input maxLength={400} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Who benefits, and who might be concerned?" /></label>
+      <button className="insight-generate" disabled={!canRun} onClick={generate}>{busy ? 'Listening to the city…' : 'Generate analysis'}</button>
     </div>
-  );
-}
-
-function SpeakerIcon({ playing }: { playing: boolean }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M3 5.5H1v5h2l4 3V2.5L3 5.5Z" fill="currentColor"/>
-      {playing ? (
-        <>
-          <path d="M10 4.5a4 4 0 010 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-          <path d="M12 2.5a7 7 0 010 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.5"/>
-        </>
-      ) : (
-        <path d="M10 5.5a3 3 0 010 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-      )}
-    </svg>
-  );
+    {!link && <p className="insight-notice">Connect to the database to analyze real simulation outcomes.</p>}
+    {mode !== 'briefing' && available.length === 0 && <p className="insight-notice">No proposed policies remain. City briefing and past analyses are still available.</p>}
+    {error && <p className="insight-notice" role="alert">{error}</p>}
+    {busy && <p className="insight-caption px-5" role="status">Nemotron is considering the current snapshot and different resident priorities. The simulation is unchanged.</p>}
+    <div className="insight-results">{result ? <InsightView insight={result} /> : <div className="insight-empty"><h3>A city has more than one point of view.</h3><p>Generate a briefing, listen to residents discuss a proposal, or compare two policies before deciding.</p></div>}</div>
+    {history.length>0 && <footer className="insight-history"><label>Recent analyses <select value={result?.id ?? ''} onChange={e=>setResult(history.find(i=>i.id===e.target.value) ?? null)}>{history.map(i=><option key={i.id} value={i.id}>Turn {i.facts.turn} · {i.facts.mode} · {i.facts.policies.map(p=>p.name).join(' / ') || 'City briefing'}</option>)}</select></label></footer>}
+  </section></div>;
 }

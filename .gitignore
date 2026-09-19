@@ -1,4 +1,5 @@
 node_modules/
+.local-db/
 .next/
 out/
 *.tsbuildinfo
@@ -49,4 +50,3 @@ next-env.d.ts
 
 # Keep the documented environment template tracked.
 !.env.example
-
