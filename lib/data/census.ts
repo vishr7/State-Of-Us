@@ -7,6 +7,8 @@ export interface CityData {
   unemploymentRate: number;
   medianGrossRent: number;
   medianHomeValue: number;
+  povertyRate: number;
+  rentBurdenRate: number;
   source: {
     name: string;
     dataset: string;
@@ -29,6 +31,27 @@ export interface CityData {
     unemploymentRate: {
       table: string;
       variables: { unemployed: string; civilianLaborForce: string };
+      calculation: string;
+      unit: string;
+      population: string;
+    };
+    povertyRate: {
+      table: string;
+      variables: { belowPoverty: string; povertyUniverse: string };
+      calculation: string;
+      unit: string;
+      population: string;
+    };
+    rentBurdenRate: {
+      table: string;
+      variables: {
+        total: string;
+        notComputed: string;
+        rent30To34_9: string;
+        rent35To39_9: string;
+        rent40To49_9: string;
+        rent50OrMore: string;
+      };
       calculation: string;
       unit: string;
       population: string;
@@ -57,7 +80,7 @@ export async function getCityData(state: string, place: string): Promise<CityDat
 
   const requestUrl = new URL(CENSUS_URL);
   requestUrl.search = new URLSearchParams({
-    get: "NAME,B01003_001E,B19013_001E,B23025_003E,B23025_005E,B25064_001E,B25077_001E",
+    get: "NAME,B01003_001E,B19013_001E,B23025_003E,B23025_005E,B25064_001E,B25077_001E,B17001_001E,B17001_002E,B25070_001E,B25070_007E,B25070_008E,B25070_009E,B25070_010E,B25070_011E",
     for: `place:${place}`,
     in: `state:${state}`,
   }).toString();
@@ -117,6 +140,24 @@ export async function getCityData(state: string, place: string): Promise<CityDat
     throw new Error("Cannot calculate Census unemployment rate: invalid civilian labor force or unemployed count.");
   }
 
+  const povertyUniverse = parseEstimate(field("B17001_001E"));
+  const belowPoverty = parseEstimate(field("B17001_002E"));
+  if (povertyUniverse === 0 || belowPoverty > povertyUniverse) {
+    throw new Error("Cannot calculate Census poverty rate: invalid poverty universe or below-poverty count.");
+  }
+
+  const renterTotal = parseEstimate(field("B25070_001E"));
+  const rentNotComputed = parseEstimate(field("B25070_011E"));
+  const rentBurdened =
+    parseEstimate(field("B25070_007E")) + // 30.0–34.9%
+    parseEstimate(field("B25070_008E")) + // 35.0–39.9%
+    parseEstimate(field("B25070_009E")) + // 40.0–49.9%
+    parseEstimate(field("B25070_010E"));  // 50.0% or more
+  const rentComputed = renterTotal - rentNotComputed;
+  if (rentComputed <= 0 || !Number.isSafeInteger(rentBurdened) || rentBurdened > rentComputed) {
+    throw new Error("Cannot calculate Census rent burden rate: invalid computed-rent universe or burdened count.");
+  }
+
   return {
     city,
     population: parseEstimate(field("B01003_001E")),
@@ -124,6 +165,8 @@ export async function getCityData(state: string, place: string): Promise<CityDat
     unemploymentRate: (unemployed / civilianLaborForce) * 100,
     medianGrossRent: parseEstimate(field("B25064_001E")),
     medianHomeValue: parseEstimate(field("B25077_001E")),
+    povertyRate: (belowPoverty / povertyUniverse) * 100,
+    rentBurdenRate: (rentBurdened / rentComputed) * 100,
     source: {
       name: "U.S. Census Bureau",
       dataset: "American Community Survey 5-Year Estimates",
@@ -152,6 +195,30 @@ export async function getCityData(state: string, place: string): Promise<CityDat
         calculation: "unemployed / civilianLaborForce * 100",
         unit: "percent",
         population: "Civilian labor force aged 16 years and over",
+      },
+      povertyRate: {
+        table: "B17001",
+        variables: {
+          belowPoverty: "B17001_002E",
+          povertyUniverse: "B17001_001E",
+        },
+        calculation: "belowPoverty / povertyUniverse * 100",
+        unit: "percent",
+        population: "Population for whom poverty status is determined",
+      },
+      rentBurdenRate: {
+        table: "B25070",
+        variables: {
+          total: "B25070_001E",
+          notComputed: "B25070_011E",
+          rent30To34_9: "B25070_007E",
+          rent35To39_9: "B25070_008E",
+          rent40To49_9: "B25070_009E",
+          rent50OrMore: "B25070_010E",
+        },
+        calculation: "(rent30To34_9 + rent35To39_9 + rent40To49_9 + rent50OrMore) / (total - notComputed) * 100",
+        unit: "percent",
+        population: "Renter-occupied housing units paying cash rent with a computed gross-rent-to-household-income ratio; excludes not computed",
       },
     },
   };
