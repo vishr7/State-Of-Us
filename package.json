@@ -1,0 +1,27 @@
+{
+  "name": "state-of-us",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run src/simulation/__tests__/applyPolicyEffects.test.ts src/simulation/__tests__/recalculateAggregates.test.ts",
+    "test:integration": "vitest run src/simulation/__tests__/resolveTurn.integration.test.ts"
+  },
+  "dependencies": {
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/pg": "^8.11.6",
+    "@types/react": "^18.3.5",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.9"
+  }
+}
