@@ -5,7 +5,7 @@ import { useCityPulseStore } from '@/lib/store';
 // ============================================================
 // TopBar — full-width fixed 64px header bar
 // Layout:
-//   [CityPulse logo + tagline] [stat pills] [play/pause controls]
+//   [State of US logo + tagline] [stat pills] [play/pause controls]
 // ============================================================
 
 // ------ Sub-components --------------------------------------
@@ -139,20 +139,12 @@ export default function TopBar() {
         zIndex: 50,
       }}
     >
-      {/* === LOGO === */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {/* Pixel city icon */}
-        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ background: '#1E2E45' }}>
-          <CityPixelIcon />
-        </div>
-        <div>
-          <div className="text-base font-black tracking-tight leading-none">
-            <span className="text-white">City</span>
-            <span style={{ color: '#FFB81C' }}>Pulse</span>
-          </div>
-          <div className="text-xs leading-none mt-0.5" style={{ color: '#64748B' }}>
-            People. Policies. A Brighter Tomorrow.
-          </div>
+      {/* === BRAND === */}
+      <div className="state-brand" aria-label="State of US — Your city. Our tomorrow.">
+        <div className="state-brand-emblem" aria-hidden="true"><CityPixelIcon /></div>
+        <div className="state-brand-copy">
+          <div className="state-brand-wordmark"><span>State</span><span className="state-brand-of">of</span><span className="state-brand-us">US<span className="state-brand-period">.</span></span></div>
+          <div className="state-brand-tagline"><span className="state-brand-line" aria-hidden="true" />Your city. Our tomorrow.</div>
         </div>
       </div>
 
@@ -244,24 +236,17 @@ export default function TopBar() {
 
 function CityPixelIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      {/* Sky */}
-      <rect width="32" height="32" fill="#0F1B2D"/>
-      {/* Buildings */}
-      <rect x="2" y="14" width="5" height="14" fill="#FFB81C"/>
-      <rect x="3" y="10" width="3" height="4" fill="#FFD166"/>
-      <rect x="8" y="8" width="7" height="20" fill="#3B82F6"/>
-      <rect x="9" y="4" width="5" height="4" fill="#60A5FA"/>
-      <rect x="16" y="12" width="6" height="16" fill="#FFB81C"/>
-      <rect x="23" y="16" width="5" height="12" fill="#2563EB"/>
-      <rect x="24" y="12" width="3" height="4" fill="#3B82F6"/>
-      {/* Windows */}
-      <rect x="9" y="10" width="1" height="1" fill="#FFB81C"/>
-      <rect x="12" y="10" width="1" height="1" fill="#FFB81C"/>
-      <rect x="9" y="14" width="1" height="1" fill="#FFB81C"/>
-      <rect x="12" y="14" width="1" height="1" fill="#FFB81C"/>
-      {/* River */}
-      <rect x="0" y="28" width="32" height="4" fill="#1E3A5F"/>
+    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <path d="M24 3 43 14v20L24 45 5 34V14L24 3Z" fill="#12273a" stroke="#53707e" strokeWidth="0.8" />
+      <path d="m24 8 14 8v16l-14 8-14-8V16l14-8Z" stroke="#a5bcc9" strokeOpacity="0.12" />
+      <path d="m13 21 6-3v15l-6-3V21Z" fill="#e4aa50" />
+      <path d="m19 13 7-4v28l-7-4V13Z" fill="#f8d58d" />
+      <path d="m26 9 5 3v22l-5 3V9Z" fill="#cb9041" />
+      <path d="m31 21 5-3v13l-5 3V21Z" fill="#7ba9be" />
+      <path d="m36 18 3 2v9l-3 2V18Z" fill="#426a80" />
+      <path d="m21 16 3-1.5m-3 6 3-1.5m-3 6 3-1.5" stroke="#203648" strokeWidth="1.5" />
+      <path d="m11 35 13 7 15-9" stroke="#f1c77a" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="m35 9 .8 2.2L38 12l-2.2.8L35 15l-.8-2.2L32 12l2.2-.8L35 9Z" fill="#ffe4ae" />
     </svg>
   );
 }

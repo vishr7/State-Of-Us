@@ -235,3 +235,15 @@ html, body {
 .policy-panel button:focus-visible { outline: 2px solid #bfdbfe; outline-offset: 3px; }
 .policy-empty { min-height: 130px; display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px dashed #334155; border-radius: 12px; }
 @media (max-width: 700px) { .policy-category { display: none; } .policy-panel-header { padding: 10px 12px; } .policy-panel-cards { padding-left: 12px; padding-right: 12px; grid-auto-columns: minmax(285px, 85vw); } .policy-panel-symbol { display: none; } }
+
+/* State of US: warm civic wordmark and an architectural city seal. */
+.state-brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; padding-right: 12px; }
+.state-brand-emblem { width: 44px; height: 46px; flex-shrink: 0; display: grid; place-items: center; filter: drop-shadow(0 3px 9px #dfae4920); }
+.state-brand-copy { display: flex; flex-direction: column; gap: 5px; }
+.state-brand-wordmark { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; font-size: 24px; line-height: 25px; font-weight: 800; letter-spacing: -1.1px; color: #f4f0e7; }
+.state-brand-of { font-family: Georgia, 'Times New Roman', serif; font-size: 19px; font-weight: 400; font-style: italic; color: #aebbc8; letter-spacing: -0.6px; margin: 0 1px; }
+.state-brand-us { color: #f1c477; letter-spacing: -0.8px; }
+.state-brand-period { color: #f8e5c0; }
+.state-brand-tagline { display: flex; align-items: center; gap: 6px; color: #91a1b5; font-size: 9px; font-weight: 500; letter-spacing: 0.65px; line-height: 12px; }
+.state-brand-line { width: 13px; height: 1px; background: #d5a854; opacity: 0.8; }
+@media (max-width: 1200px) { .state-brand { gap: 7px; padding-right: 0; } .state-brand-wordmark { font-size: 21px; } .state-brand-tagline { font-size: 8px; letter-spacing: 0.2px; } }

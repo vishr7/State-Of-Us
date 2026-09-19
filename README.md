@@ -1,4 +1,4 @@
-# State of Us — Simulation Engine
+# State of US — Simulation Engine
 
 Backend for the financial city simulator: a deterministic policy interpreter,
 turn resolver, and the minimum API the frontend needs. Database schema lives
