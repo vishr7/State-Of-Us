@@ -1,5 +1,5 @@
-import GameDashboard from '@/components/layout/GameDashboard';
+import StartScreen from '@/components/layout/StartScreen';
 
 export default function Home() {
-  return <GameDashboard />;
+  return <StartScreen />;
 }
