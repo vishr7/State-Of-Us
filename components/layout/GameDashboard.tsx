@@ -17,6 +17,7 @@ import TownHallModal from '../modals/TownHallModal';
 import { useCityPulseStore } from '@/lib/store';
 
 import CityCanvas from '../map/CityCanvas';
+import ResidentNarrator, { PolicyProgress } from '../ui/ResidentNarrator';
 
 /**
  * GameDashboard — the single full-screen layout shell.
@@ -49,12 +50,14 @@ export default function GameDashboard() {
         {/* Center — city canvas fills remaining space */}
         <div className="flex-1 overflow-hidden relative">
           <CityCanvas />
+          <ResidentNarrator />
         </div>
 
         <RightSidebar />
       </div>
 
       {/* BOTTOM PANEL */}
+      <PolicyProgress />
       <BottomPanel />
 
       {/* TOAST NOTIFICATIONS */}

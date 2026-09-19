@@ -61,7 +61,9 @@ if (!rows[0].cities) {
 const cities = await db.query('select name, current_turn from cities order by name');
 console.log('Cities:', cities.rows.map((c) => `${c.name} (turn ${c.current_turn})`).join(', '));
 
-const server = new PGLiteSocketServer({ db, port, host: '127.0.0.1' });
+// Dashboard API routes use pooled connections and load in parallel. The
+// socket server defaults to one client; its multiplexer queues their queries.
+const server = new PGLiteSocketServer({ db, port, host: '127.0.0.1', maxConnections: 100 });
 await server.start();
 console.log(`\nLocal Postgres ready. DATABASE_URL=postgresql://postgres:postgres@localhost:${port}/postgres`);
 console.log('Ctrl+C to stop.');

@@ -23,7 +23,7 @@ export interface TurnState {
  * queued for that turn.
  */
 export async function loadTurnState(client: PoolClient, cityId: string): Promise<TurnState> {
-  const cityResult = await client.query<City>('select * from cities where id = $1', [cityId]);
+  const cityResult = await client.query<City>('select * from cities where id = $1 for update', [cityId]);
   const city = cityResult.rows[0];
   if (!city) {
     throw new CityNotFoundError(`City ${cityId} does not exist`);

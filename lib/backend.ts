@@ -45,6 +45,7 @@ export interface BackendLink {
 
 export interface ConnectedWorld {
   link: BackendLink;
+  pendingPolicy: { name: string; turn: number } | null;
   city: City;
   neighborhoods: Neighborhood[];
   /** Local policy ids the database already has a decision recorded for (in force, or queued for the next turn). */
@@ -110,6 +111,10 @@ export async function connectToBackend(
 
   return {
     link,
+    pendingPolicy: (() => {
+      const pending = decisions.find(d => d.turn >= dbCity.current_turn);
+      return pending ? { name: dbPolicies.find(p => p.id === pending.policy_id)?.name ?? 'Current policy', turn: toDisplayTurn(pending.turn) } : null;
+    })(),
     city: overlayCity(local.city, dbCity, link),
     neighborhoods: overlayNeighborhoods(local.neighborhoods, dbNeighborhoods, link),
     decidedLocalPolicyIds,

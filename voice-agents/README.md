@@ -1,8 +1,8 @@
 # SoU voice agents
 
-Setup scaffold for the ElevenLabs part of State of Us. This folder contains
-configuration guidance and a starter prompt; it does not run conversations yet.
-The project already declares `@elevenlabs/elevenlabs-js` as a dependency.
+ElevenLabs setup and integration notes for State of Us. Scripted resident
+announcements are implemented (see below); interactive microphone conversations
+remain a separate future feature.
 
 ## First milestone
 
@@ -101,3 +101,13 @@ credentials or endpoint are needed for the initial ElevenLabs-only voice test.
 - [React SDK](https://elevenlabs.io/docs/eleven-agents/libraries/react)
 - [Custom LLM integration](https://elevenlabs.io/docs/eleven-agents/customization/llm/custom-llm)
 - [Text-to-speech API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
+
+## Resident announcements (implemented)
+
+`ResidentNarrator` shows the professionally dressed Mayor's generated portrait with queued captions for policy decisions, completed effects, events, and errors. It calls the server-only `/api/resident-speech` endpoint with `ELEVENLABS_RESIDENT_VOICE_ID` and `ELEVENLABS_API_KEY`. The optional `ELEVENLABS_TTS_MODEL_ID` defaults to `eleven_multilingual_v2`. No agent ID or microphone is needed for these scripted reactions. Replay reuses audio; mute persists locally; failed or blocked audio retains readable captions. Requests are length-limited, cached, coalesced, and rate-limited in memory.
+
+Policy submissions lock immediately while a request is in flight. A pending database decision blocks subsequent decisions on both client and server until its turn resolves; a row lock serializes decision creation with turn resolution. Reloading rebuilds the pending lock from database decisions. The current live engine applies all its configured effects atomically on that resolution, so live cards show “Next turn.” Mock mode remains locked until its delayed consequence queue drains. Speech completion does not unlock policies. Use “Advance one turn” or Play to progress.
+
+Voice API reference: https://elevenlabs.io/docs/api-reference/text-to-speech/convert
+
+The Mayor briefing uses a transparent standing portrait over a dimmed map, with a cream dialogue panel and manual Continue/Next navigation. Escape dismisses the current briefing. The same configured ElevenLabs voice remains in use. Portrait source and generation prompt: `public/avatars/mayor-professional.md`.

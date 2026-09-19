@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@database/lib/db';
+import { getPool, withTransaction } from '@database/lib/db';
 import type { City, Decision, Policy } from '@database/types/database';
 
 interface CreateDecisionBody {
@@ -55,31 +55,40 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: '"player_reasoning" must be a string if provided' }, { status: 400 });
   }
 
-  const pool = getPool();
   let currentTurn: number | undefined;
 
   try {
-    const cityResult = await pool.query<City>('select * from cities where id = $1', [id]);
-    const city = cityResult.rows[0];
-    if (!city) {
-      return NextResponse.json({ error: `City ${id} not found` }, { status: 404 });
-    }
-    currentTurn = city.current_turn;
+    return await withTransaction(async (pool) => {
+      const cityResult = await pool.query<City>('select * from cities where id = $1 for update', [id]);
+      const city = cityResult.rows[0];
+      if (!city) {
+        return NextResponse.json({ error: `City ${id} not found` }, { status: 404 });
+      }
+      currentTurn = city.current_turn;
+      const pending = await pool.query<{ name: string }>(
+        `select p.name from decisions d join policies p on p.id = d.policy_id
+         where d.city_id = $1 and d.turn >= $2 order by d.turn, d.created_at limit 1`,
+        [city.id, city.current_turn]
+      );
+      if (pending.rows.length) {
+        return NextResponse.json({ error: `Wait for "${pending.rows[0].name}" to take full effect. Resolve the current turn before making another decision.` }, { status: 409 });
+      }
 
-    const policyResult = await pool.query<Policy>('select * from policies where id = $1', [policyId]);
-    const policy = policyResult.rows[0];
-    if (!policy) {
-      return NextResponse.json({ error: `Policy ${policyId} not found` }, { status: 404 });
-    }
+      const policyResult = await pool.query<Policy>('select * from policies where id = $1', [policyId]);
+      const policy = policyResult.rows[0];
+      if (!policy) {
+        return NextResponse.json({ error: `Policy ${policyId} not found` }, { status: 404 });
+      }
 
-    const insertResult = await pool.query<Decision>(
-      `insert into decisions (city_id, policy_id, turn, player_reasoning)
-       values ($1, $2, $3, $4)
-       returning *`,
-      [city.id, policy.id, city.current_turn, playerReasoning ?? null]
-    );
+      const insertResult = await pool.query<Decision>(
+        `insert into decisions (city_id, policy_id, turn, player_reasoning)
+         values ($1, $2, $3, $4)
+         returning *`,
+        [city.id, policy.id, city.current_turn, playerReasoning ?? null]
+      );
 
-    return NextResponse.json(insertResult.rows[0], { status: 201 });
+      return NextResponse.json(insertResult.rows[0], { status: 201 });
+    });
   } catch (err) {
     if (isUniqueViolation(err)) {
       // decisions_city_turn_policy_key: this exact policy was already

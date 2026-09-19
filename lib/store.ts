@@ -8,6 +8,8 @@
 'use client';
 
 import { create } from 'zustand';
+import { selectPolicyLock } from './policyProgress';
+export { selectPolicyLock } from './policyProgress';
 import { personaResidents } from './personas';
 import {
   GameState, City, Neighborhood, Resident, AgentGroup,
@@ -25,7 +27,7 @@ import {
   connectToBackend, overlayCity, overlayNeighborhoods, updateAgentGroups, toDisplayTurn,
 } from './backend';
 import type { BackendLink } from './backend';
-import { createDecision, resolveTurn, getNeighborhoods, ApiClientError } from '@/src/lib/apiClient';
+import { createDecision, resolveTurn, getNeighborhoods } from '@/src/lib/apiClient';
 
 // ------ Default UI State ------------------------------------
 
@@ -45,7 +47,14 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
+export interface ResidentAnnouncement { id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error' }
+let announcementId = 0;
 interface CityPulseStore extends GameState {
+  announcements: ResidentAnnouncement[];
+  announce: (text: string, kind?: ResidentAnnouncement['kind']) => void;
+  dismissAnnouncement: () => void;
+  submittingPolicy: boolean;
+  pendingPolicy: { name: string; turn: number } | null;
   // Derived / convenience
   weather: { condition: WeatherCondition; tempC: number };
 
@@ -83,6 +92,11 @@ interface CityPulseStore extends GameState {
 // ------ Store Implementation --------------------------------
 
 export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
+  announcements: [],
+  announce: (text, kind = 'info') => set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: text.replace(/^[✓✗⚡]\s*/, ''), kind }] })),
+  dismissAnnouncement: () => set(state => ({ announcements: state.announcements.slice(1) })),
+  submittingPolicy: false,
+  pendingPolicy: null,
   // Initial game state
   city: initialCity,
   neighborhoods: initialNeighborhoods,
@@ -118,6 +132,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       set(state => ({
         backend: { status: 'connected', error: null },
         backendLink: world.link,
+        pendingPolicy: world.pendingPolicy,
         city: world.city,
         neighborhoods: world.neighborhoods,
         // Anything the DB already has a decision for is in force; don't let it be enacted twice.
@@ -130,6 +145,9 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         snapshots: [buildSnapshot(world.city, world.neighborhoods, [])],
         lastSnapshot: null,
       }));
+      get().announce(world.pendingPolicy
+        ? `Welcome back. ${world.pendingPolicy.name} is still waiting to take effect. Other decisions will unlock once that turn resolves.`
+        : "Welcome to the Mayor's office. Let's build a better Pittsburgh, one decision at a time. I'll brief you on new policies and developments across the city.");
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.info(`[CityPulse] Backend unavailable — running on the local mock engine. (${message})`);
@@ -219,6 +237,9 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       lastSnapshot: snapshots[snapshots.length - 1] ?? null,
     }));
 
+    if (consequenceQueue.length && result.remainingQueue.length === 0) {
+      get().announce('The policy has taken full effect. You can now make your next decision.', 'success');
+    }
     // Show event banner
     if (newEvent) {
       get().showToast(`⚡ ${newEvent.pittsburghFlavor}`, 'warning');
@@ -233,6 +254,10 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   // ------ Policy Actions ------------------------------------
 
   enactPolicyById: (policyId: string) => {
+    if (selectPolicyLock(get())) {
+      get().showToast(selectPolicyLock(get())!, 'info');
+      return;
+    }
     const { city, neighborhoods, policies, consequenceQueue, residents, decisionHistory } = get();
     const policy = policies.find(p => p.id === policyId);
     if (!policy || policy.status !== 'proposed') return;
@@ -244,6 +269,10 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       return;
     }
 
+    if (backendLink) {
+      get().showToast('This policy is not available in the connected database.', 'error');
+      return;
+    }
     // Apply enact
     const result = enactPolicy(city, neighborhoods, policy, city.turn);
 
@@ -287,7 +316,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       decisionHistory: [...state.decisionHistory, decision],
     }));
 
-    get().showToast(`✓ "${policy.name}" enacted — $${policy.upfrontCost.toLocaleString()} deducted`, 'success');
+    get().showToast(`"${policy.name}" has been enacted. ${policy.description} ${residentPerspective(policy.category)}${result.queuedEffects.length ? ' Other decisions will unlock when these effects finish taking effect.' : ' Its immediate effects have been applied.'}`, 'success');
   },
 
   // ------ UI Actions ----------------------------------------
@@ -314,6 +343,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
     set(state => ({ ui: { ...state.ui, showTownHall: open } })),
 
   showToast: (message, type) => {
+    get().announce(message, type);
     set(state => ({ ui: { ...state.ui, toastMessage: message, toastType: type } }));
     // Auto-clear after 4 seconds
     setTimeout(() => {
@@ -364,16 +394,14 @@ function buildSnapshot(city: City, neighborhoods: Neighborhood[], activeEvents: 
 async function enactViaBackend(
   get: Get, set: Set, link: BackendLink, policy: Policy, backendPolicyId: string,
 ) {
-  let alreadyQueued = false;
+  set(() => ({ submittingPolicy: true }));
   try {
     await createDecision(link.cityId, backendPolicyId);
   } catch (err) {
-    if (err instanceof ApiClientError && err.status === 409) {
-      alreadyQueued = true; // double click, or decided earlier this turn
-    } else {
-      get().showToast(`✗ Could not enact "${policy.name}": ${err instanceof Error ? err.message : 'request failed'}`, 'error');
-      return;
-    }
+    get().showToast(`Could not enact "${policy.name}": ${err instanceof Error ? err.message : 'request failed'}`, 'error');
+    return;
+  } finally {
+    set(() => ({ submittingPolicy: false }));
   }
 
   const { city, residents } = get();
@@ -396,15 +424,11 @@ async function enactViaBackend(
     policies: state.policies.map(p =>
       p.id === policy.id ? { ...p, status: 'active' as const, turnEnacted: city.turn } : p
     ),
-    decisionHistory: alreadyQueued ? state.decisionHistory : [...state.decisionHistory, decision],
+    decisionHistory: [...state.decisionHistory, decision],
+    pendingPolicy: { name: policy.name, turn: city.turn },
   }));
 
-  get().showToast(
-    alreadyQueued
-      ? `"${policy.name}" is already queued for this turn`
-      : `✓ "${policy.name}" queued — takes effect when the turn resolves`,
-    alreadyQueued ? 'info' : 'success',
-  );
+  get().showToast(`"${policy.name}" is approved. ${policy.description} ${residentPerspective(policy.category)} Other decisions are locked until it takes effect. Press Play or advance one turn to continue.`, 'success');
 }
 
 /**
@@ -414,7 +438,7 @@ async function enactViaBackend(
  */
 async function advanceViaBackend(get: Get, set: Set) {
   const link = get().backendLink;
-  if (!link || get().resolvingTurn) return; // one in-flight resolve at a time (autoplay ticks can overlap)
+  if (!link || get().resolvingTurn || get().submittingPolicy) return; // one in-flight resolve at a time (autoplay ticks can overlap)
 
   set(() => ({ resolvingTurn: true }));
   try {
@@ -448,6 +472,7 @@ async function advanceViaBackend(get: Get, set: Set) {
 
     set(state => ({
       city: nextCity,
+      pendingPolicy: state.pendingPolicy && state.pendingPolicy.turn >= nextCity.turn ? state.pendingPolicy : null,
       neighborhoods,
       agentGroups: updateAgentGroups(agentGroups, neighborhoods),
       activeEvents: nextEvents,
@@ -460,8 +485,9 @@ async function advanceViaBackend(get: Get, set: Set) {
 
     if (newEvent) {
       get().showToast(`⚡ ${newEvent.pittsburghFlavor}`, 'warning');
-    } else if (result.applied_decisions.length > 0) {
-      get().showToast(`✓ ${result.applied_decisions.map(d => d.policy_name).join(', ')} took effect`, 'success');
+    }
+    if (result.applied_decisions.length > 0) {
+      get().showToast(`✓ ${result.applied_decisions.map(d => d.policy_name).join(', ')} took full effect. City happiness is now ${nextCity.happiness} out of 100, and approval is ${nextCity.approval} percent. You can now make your next decision.`, 'success');
     }
   } catch (err) {
     get().stopPlaying();
@@ -496,3 +522,16 @@ export const selectTurnDateLabel = (state: CityPulseStore) => {
   const seasonName = season.charAt(0).toUpperCase() + season.slice(1);
   return `${seasonName} ${day}, Year ${year}`;
 };
+
+
+function residentPerspective(category: CategoryId): string {
+  const reactions: Record<string, string> = {
+    housing: "Our priority is making stable homes easier for residents to afford.",
+    transit: "We need to make everyday journeys easier for the people who depend on them.",
+    taxes: "We must balance household costs with the public services our city relies on.",
+    safety: "Every resident should feel safe in their neighborhood.",
+    business: "We want these opportunities to reach the people who already live here.",
+    environment: "Cleaner air and healthier streets are priorities for our city.",
+  };
+  return reactions[category] ?? "I'll be watching what this means for our neighborhood.";
+}

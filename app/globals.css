@@ -277,3 +277,36 @@ html, body {
 @media (max-width: 640px) { .start-title { letter-spacing: -2px; font-size: clamp(25px, 6.8vw, 43px); } .start-title em { letter-spacing: -2px; } .start-motto { display: none; } .start-location { left: 20px; top: 20px; font-size: 8px; } .start-eyebrow { font-size: 8px; letter-spacing: 1.5px; gap: 8px; } .start-eyebrow > span { width: 18px; } .start-description { margin-top: 22px; margin-bottom: 34px; } .start-mobile-break { display: block; } .start-footer { left: 20px; right: 20px; font-size: 8px; } .start-footer > span:last-child { display: none; } .start-art { object-position: 48% center; } }
 @media (max-height: 600px) and (min-width: 641px) { .start-content { padding: 65px 20px 40px; } .start-title { font-size: 58px; } .start-eyebrow { margin-bottom: 14px; } .start-description { margin: 10px auto 23px; } .start-play { min-height: 55px; } .start-invitation { margin-top: 16px; } }
 @media (prefers-reduced-motion: reduce) { .start-play { transition: none; } }
+
+/* Visual-novel style Mayor briefings, layered over the live city map. */
+.mayor-scene { position: absolute; inset: 0; z-index: 35; isolation: isolate; overflow: hidden; animation: resident-arrive .25s ease-out; }
+.mayor-scene-shade { position: absolute; inset: 0; background: linear-gradient(180deg, #07111d60, #07111d99); }
+.mayor-character { position: absolute; left: 2%; bottom: 65px; width: 40%; height: min(calc(100% - 80px), 570px); pointer-events: none; filter: drop-shadow(10px 12px 12px #0005); }
+.mayor-character img { width: 100%; height: 100%; object-fit: contain; object-position: bottom left; }
+.mayor-dialogue { position: absolute; bottom: 18px; left: 24px; right: 24px; padding: 25px 28px 16px; border: 2px solid #bda679; border-radius: 12px; background: #faf5e9; color: #273541; box-shadow: 0 10px 32px #0005, inset 0 0 0 4px #fff8; }
+.mayor-nameplate { position: absolute; left: 20px; top: -49px; display: flex; align-items: center; gap: 10px; min-width: 185px; padding: 9px 23px 9px 13px; color: #fbebc8; background: #193447; border: 1px solid #c2a574; border-radius: 8px 8px 0 0; box-shadow: 3px -4px 16px #0002; }
+.mayor-nameplate h3 { font-size: 19px; line-height: 1.05; font-weight: 750; letter-spacing: .03em; }
+.mayor-nameplate div > span { display: block; margin-top: 4px; font-size: 7px; letter-spacing: .18em; color: #c4cbd1; }
+.mayor-seal { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #bda679; border-radius: 50%; color: #e7bd71; font-size: 20px; }
+.mayor-close { position: absolute; right: 12px; top: 7px; color: #7d827f; font-size: 23px; line-height: 1; padding: 3px 6px; cursor: pointer; }
+.mayor-dialogue-heading { margin-bottom: 8px; color: #8b7651; font-size: 8px; font-weight: 800; letter-spacing: .17em; }
+.mayor-caption { max-height: 130px; overflow-y: auto; padding-right: 8px; font-size: clamp(13px, 1.05vw, 16px); line-height: 1.7; font-weight: 500; }
+.mayor-controls { display: flex; gap: 16px; align-items: center; margin-top: 16px; padding-top: 10px; border-top: 1px solid #ded6c5; font-size: 11px; }
+.mayor-controls button { cursor: pointer; color: #52616a; }
+.mayor-speaking { display: flex; align-items: center; gap: 8px; margin-right: auto; color: #7a837f; font-size: 10px; }
+.mayor-controls .mayor-continue { padding: 7px 16px; border-radius: 6px; background: #193447; color: #f8e8c7; font-weight: 700; }
+.mayor-continue span { padding-left: 10px; color: #e5bc72; }
+.mayor-voice-error { font-size: 10px; color: #98622f; margin-top: 7px; }
+.resident-voice-bars { display: flex; align-items: center; gap: 2px; height: 17px; }
+.resident-voice-bars i { width: 2px; height: 4px; background: #7c967f; border-radius: 2px; }
+.is-speaking .resident-voice-bars i { animation: resident-wave .65s ease-in-out infinite alternate; }
+.is-speaking .resident-voice-bars i:nth-child(2n) { animation-delay: -.3s; }
+.is-speaking .resident-voice-bars i:nth-child(3n) { animation-delay: -.5s; }
+.policy-progress { display: flex; gap: 10px; align-items: center; flex-shrink: 0; padding: 10px 22px; background: #202838; color: #f2d395; border-top: 1px solid #685737; font-size: 12px; }
+.policy-progress button { background: #c9a15d; color: #102033; border-radius: 6px; padding: 5px 10px; font-weight: 700; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+@keyframes resident-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes resident-wave { to { height: 18px; } }
+@media (prefers-reduced-motion: reduce) { .mayor-scene, .resident-voice-bars i { animation: none !important; } }
+@media (max-width: 640px) { .mayor-character { width: 65%; left: 0; bottom: 135px; height: calc(100% - 150px); } .mayor-dialogue { left: 10px; right: 10px; bottom: 12px; padding: 19px 16px 12px; } .mayor-caption { max-height: 120px; font-size: 12px; } .mayor-controls { gap: 10px; } .mayor-speaking { font-size: 0; } }
+@media (max-height: 700px) { .mayor-caption { max-height: 85px; } .mayor-dialogue { padding-top: 17px; } }
