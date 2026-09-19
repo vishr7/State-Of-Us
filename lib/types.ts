@@ -288,7 +288,7 @@ export interface UIState {
   showTownHall: boolean;
   toastMessage: string | null;
   toastType: 'success' | 'warning' | 'error' | 'info';
-  mapViewport: { x: number; y: number; zoom: number };
+  mapViewport: { x: number; y: number; zoom: number; containerW?: number; containerH?: number };
 }
 
 // ------ Root Game State (for Zustand) -----------------------

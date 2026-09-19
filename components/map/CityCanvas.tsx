@@ -10,141 +10,14 @@ import { useCityPulseStore } from '@/lib/store';
 // Geography: Three Rivers confluence — Allegheny + Mon → Ohio.
 // ============================================================
 
-const TW = 96;     // tile width (px)
-const TH = 48;     // tile height (px) = TW/2
-const GW = 28;     // grid columns
-const GH = 28;     // grid rows
-
-
-// World origin is centered on the grid midpoint tile (14,14)
-const OX = 0;
-const OY = -((GW / 2 + GH / 2) * (TH / 2)); // ≈ -448
-
-function tileToScreen(tx: number, ty: number) {
-  return { x: (tx - ty) * (TW / 2) + OX, y: (tx + ty) * (TH / 2) + OY };
-}
-
-// Stable per-tile pseudo-random in [0,1)
-function rng(tx: number, ty: number): number {
-  let seed = Math.imul(tx + 71, 374761393) ^ Math.imul(ty + 137, 668265263);
-  seed = Math.imul(seed ^ (seed >>> 13), 1274126177);
-  return ((seed ^ (seed >>> 16)) >>> 0) / 4294967296;
-}
-
-// ── Pittsburgh River Math ────────────────────────────────────
-// The Point (river confluence) is at tile (10, 16).
-// Allegheny flows from upper-right (NE) toward The Point.
-// Mon flows from lower-right (SE) toward The Point.
-// Ohio flows from The Point to the left (W).
-
-function alleghenyY(tx: number) { return 16 - (tx - 10) * 10 / 16; }
-function monY(tx: number)       { return 16 + (tx - 10) * 6  / 16; }
-
-function isAllegheny(tx: number, ty: number) {
-  if (tx < 10 || tx > 27) return false;
-  return Math.abs(ty - alleghenyY(tx)) < 1.7;
-}
-function isMon(tx: number, ty: number) {
-  if (tx < 10 || tx > 27) return false;
-  return Math.abs(ty - monY(tx)) < 1.7;
-}
-function isOhio(tx: number, ty: number) {
-  if (tx >= 10 || tx < 1) return false;
-  return Math.abs(ty - 16) < 2;
-}
-function isWater(tx: number, ty: number) {
-  return isAllegheny(tx, ty) || isMon(tx, ty) || isOhio(tx, ty);
-}
-
-// Tiles between Allegheny and Mon (the Golden Triangle wedge)
-function isInWedge(tx: number, ty: number) {
-  if (tx < 10 || tx > 27) return false;
-  return ty > alleghenyY(tx) + 0.5 && ty < monY(tx) - 0.5;
-}
-
-// Stylized Three Sisters crossings aligned with the street grid.
-const BRIDGE_TX = new Set([11, 15, 19]);
-// Truss crossings over the Mon.
-const MON_BRIDGE_TX = new Set([15, 23]);
-
-function isBridge(tx: number, ty: number) {
-  if (BRIDGE_TX.has(tx) && isAllegheny(tx, ty)) return 'suspension';
-  if (MON_BRIDGE_TX.has(tx) && isMon(tx, ty)) return 'truss';
-  return null;
-}
-
-// Cathedral of Learning: special single tile in Oakland
-const CATHEDRAL_TX = 20, CATHEDRAL_TY = 14;
-
-// ── Tile Classification ──────────────────────────────────────
-type Zone = 'wealthy' | 'middle' | 'lower' | 'tower' | 'civic';
-type BridgeKind = 'suspension' | 'truss';
-
-interface TileInfo {
-  ground: 'grass' | 'road' | 'water' | 'park' | 'hillside';
-  bridge?: BridgeKind;
-  building?: Zone;
-  cathedral?: true;
-  hillElevation?: number; // 0-4 relative to flat
-  tree?: boolean;
-}
-
-function classifyTile(tx: number, ty: number): TileInfo {
-  // Water (checked first — rivers override everything)
-  if (isWater(tx, ty)) {
-    const b = isBridge(tx, ty);
-    return b ? { ground: 'road', bridge: b } : { ground: 'water' };
-  }
-
-  const r = rng(tx, ty);
-  // A wooded perimeter softens the edge of the model.
-  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) {
-    return { ground: 'park', tree: true };
-  }
-
-  // Shadyside: a garden neighborhood with a perimeter drive, a central
-  // village green, and detached villas instead of repeated apartment blocks.
-  if (tx <= 10 && ty <= 13) {
-    if (tx === 2 || tx === 9 || ty === 3 || ty === 12 || (ty === 8 && tx >= 9)) return { ground: 'road' };
-    if (tx >= 5 && tx <= 7 && ty >= 6 && ty <= 9) return { ground: 'park' };
-    if ((tx + ty) % 3 === 0 || tx === 1 || ty === 1) return { ground: 'grass', tree: true };
-    return { ground: 'grass', building: 'wealthy' };
-  }
-
-  // Main avenues tie the districts to the river crossings. Local streets
-  // use different block sizes, rather than a uniform grid across the city.
-  if ([11, 15, 19, 23].includes(tx)) return { ground: 'road' };
-  if ([3, 8, 13, 18, 24].includes(ty)) return { ground: 'road' };
-  if (tx < 11 && (tx === 4 || tx === 8 || ty === 21)) return { ground: 'road' };
-
-  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true };
-
-  // Downtown: compact masonry apartment blocks around a single civic square.
-  if (isInWedge(tx, ty) && tx < 22) {
-    if (tx >= 16 && tx <= 18 && ty >= 15 && ty <= 16) return { ground: 'park' };
-    if (tx === 17 && ty === 14) return { ground: 'grass', cathedral: true };
-    return { ground: 'grass', building: r < 0.18 ? 'middle' : 'tower' };
-  }
-
-  // Homewood: smaller rowhouse blocks, corner shops and community gardens.
-  if (isInWedge(tx, ty) && tx >= 22) {
-    if (tx === 25 && ty >= 16 && ty <= 17) return { ground: 'park' };
-    return { ground: 'grass', building: 'lower' };
-  }
-
-  // Lawrenceville: an active mixed-use riverfront with a linear park.
-  if (ty < alleghenyY(tx) && tx >= 11) {
-    if (tx >= 16 && tx <= 18 && ty >= 5 && ty <= 7) return { ground: 'park' };
-    return r < 0.12 ? { ground: 'grass', tree: true } : { ground: 'grass', building: 'middle' };
-  }
-
-  // Hillside cottages gradually give way to woodland on the southern bank.
-  if (tx >= 10 && ty > monY(tx)) {
-    if (r < 0.5 || ty > 25) return { ground: 'hillside', tree: true };
-    return { ground: 'hillside', building: 'wealthy' };
-  }
-  return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'middle' };
-}
+import {
+  TW, TH, GW, GH, OX, OY,
+  tileToScreen, rng,
+  alleghenyY, monY, isAllegheny, isMon, isOhio, isWater, isInWedge,
+  isBridge, CATHEDRAL_TX, CATHEDRAL_TY,
+  classifyTile, TileInfo, BridgeKind, Zone,
+  NEIGHBORHOOD_MARKERS,
+} from './cityMapData';
 
 // ── Colors ───────────────────────────────────────────────────
 // Bright pixel-art palette — no gradients anywhere.
@@ -382,6 +255,7 @@ export default function CityCanvas() {
       canvas.height = container.clientHeight * dpr;
       canvas.style.width  = `${container.clientWidth}px`;
       canvas.style.height = `${container.clientHeight}px`;
+      setMapViewport({ containerW: container.clientWidth, containerH: container.clientHeight });
     };
     updateSize();
     const ro = new ResizeObserver(updateSize);

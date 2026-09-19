@@ -180,24 +180,6 @@ const PersonIcon = () => (
   </svg>
 );
 
-// ------ Decorative Tagline -----------------------------------
-
-function TaglineDecor() {
-  return (
-    <div
-      className="rounded-xl overflow-hidden relative"
-      style={{ border: '1px solid #1E3050', background: '#0D1E30' }}
-    >
-      <img
-        src="/footer-badge.png"
-        alt="A kinder, smarter city. Together."
-        className="w-full object-cover block"
-        style={{ imageRendering: 'pixelated', maxHeight: 110 }}
-      />
-    </div>
-  );
-}
-
 // ------ RightSidebar -----------------------------------------
 
 export default function RightSidebar() {
@@ -248,11 +230,6 @@ export default function RightSidebar() {
 
       {/* === FEATURED RESIDENT CARD === */}
       <FeaturedResidentCard />
-
-      {/* === DECORATIVE TAGLINE === */}
-      <div className="mt-auto">
-        <TaglineDecor />
-      </div>
     </div>
   );
 }
