@@ -1,6 +1,6 @@
 const censusUrl = new URL("https://api.census.gov/data/2024/acs/acs5");
 censusUrl.search = new URLSearchParams({
-  get: "NAME,B01003_001E,B19013_001E",
+  get: "NAME,B01003_001E,B19013_001E,B23025_003E,B23025_005E,B25064_001E,B25077_001E",
   for: "place:61000",
   in: "state:42",
 }).toString();
@@ -10,6 +10,9 @@ export interface CityData {
   city: string;
   population: number;
   medianHouseholdIncome: number;
+  unemploymentRate: number;
+  medianGrossRent: number;
+  medianHomeValue: number;
   source: {
     name: string;
     dataset: string;
@@ -17,8 +20,25 @@ export interface CityData {
     period: string;
     url: string;
     geography: { state: string; place: string };
-    variables: { population: string; medianHouseholdIncome: string };
-    units: { population: string; medianHouseholdIncome: string };
+    variables: {
+      population: string;
+      medianHouseholdIncome: string;
+      medianGrossRent: string;
+      medianHomeValue: string;
+    };
+    units: {
+      population: string;
+      medianHouseholdIncome: string;
+      medianGrossRent: string;
+      medianHomeValue: string;
+    };
+    unemploymentRate: {
+      table: string;
+      variables: { unemployed: string; civilianLaborForce: string };
+      calculation: string;
+      unit: string;
+      population: string;
+    };
   };
 }
 
@@ -91,10 +111,19 @@ export async function getPittsburghCityData(): Promise<CityData> {
     throw new Error("Census returned an unexpected city.");
   }
 
+  const civilianLaborForce = parseEstimate(field("B23025_003E"));
+  const unemployed = parseEstimate(field("B23025_005E"));
+  if (civilianLaborForce === 0 || unemployed > civilianLaborForce) {
+    throw new Error("Cannot calculate Census unemployment rate: invalid civilian labor force or unemployed count.");
+  }
+
   return {
     city,
     population: parseEstimate(field("B01003_001E")),
     medianHouseholdIncome: parseEstimate(field("B19013_001E")),
+    unemploymentRate: (unemployed / civilianLaborForce) * 100,
+    medianGrossRent: parseEstimate(field("B25064_001E")),
+    medianHomeValue: parseEstimate(field("B25077_001E")),
     source: {
       name: "U.S. Census Bureau",
       dataset: "American Community Survey 5-Year Estimates",
@@ -105,10 +134,24 @@ export async function getPittsburghCityData(): Promise<CityData> {
       variables: {
         population: "B01003_001E",
         medianHouseholdIncome: "B19013_001E",
+        medianGrossRent: "B25064_001E",
+        medianHomeValue: "B25077_001E",
       },
       units: {
         population: "people",
         medianHouseholdIncome: "2024 inflation-adjusted USD",
+        medianGrossRent: "2024 inflation-adjusted USD per month",
+        medianHomeValue: "2024 inflation-adjusted USD",
+      },
+      unemploymentRate: {
+        table: "B23025",
+        variables: {
+          unemployed: "B23025_005E",
+          civilianLaborForce: "B23025_003E",
+        },
+        calculation: "unemployed / civilianLaborForce * 100",
+        unit: "percent",
+        population: "Civilian labor force aged 16 years and over",
       },
     },
   };
