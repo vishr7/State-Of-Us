@@ -13,40 +13,39 @@ import {
 // ------ CITY SEED -------------------------------------------
 
 export const initialCity: City = {
-  id: 'pittsburgh',
-  name: 'Pittsburgh',
+  id: 'citypulse',
+  name: 'CityPulse',
   turn: 1,
   year: 3,
   day: 12,
   season: 'spring' as Season,
-  // Population (city proper ~300k, metro ~2.3M)
-  population: 302_000,
-  metroPopulation: 2_370_000,
-  unemploymentRate: 0.048,
-  // Finance — Pittsburgh operates ~$600M annual budget
+  // Population matching Screenshot 1
+  population: 24_830,
+  metroPopulation: 140_000,
+  unemploymentRate: 0.042,
+  // Finance matching Screenshot 1
   treasury: 2_480_000,          // city treasury surplus
-  revenue: 2_910_000,           // per-turn (per quarter)
+  revenue: 2_910_000,           // per-turn
   expenses: 2_430_000,
-  // Composite scores
+  // Composite scores matching Screenshot 1
   happiness: 72,
   approval: 68,
-  transitScore: 58,
-  safetyScore: 64,
-  environmentScore: 55,
+  transitScore: 65,
+  safetyScore: 70,
+  environmentScore: 62,
   // Housing
-  housingSupply: 148_000,       // occupied units citywide
-  averageRent: 1_340,           // $/month (below national median)
-  // Pittsburgh-specific
-  bridgeConditionAvg: 61,       // 446 bridges, many rated deficient
-  riverFloodRisk: 0.12,
-  airQualityIndex: 74,          // moderate — Mon Valley steel legacy
-  taxExemptPropertyShare: 0.42, // ~42% of assessed value tax-exempt (universities, hospitals, nonprofits)
+  housingSupply: 12_500,        // occupied units
+  averageRent: 1_280,           // $/month
+  // City metrics
+  bridgeConditionAvg: 78,
+  riverFloodRisk: 0.08,
+  airQualityIndex: 82,
+  taxExemptPropertyShare: 0.28,
 };
 
 // ------ NEIGHBORHOODS ---------------------------------------
 
 export const initialNeighborhoods: Neighborhood[] = [
-  // === THREE CORE PLAYABLE (income tiers) ===
   {
     id: 'shadyside',
     name: 'Shadyside',
@@ -294,10 +293,38 @@ export const initialNeighborhoods: Neighborhood[] = [
 
 export const initialResidents: Resident[] = [
   {
+    id: 'res-priya-sharma',
+    name: 'Priya Sharma',
+    age: 29,
+    occupation: 'Teacher',
+    neighborhood: 'lawrenceville',
+    incomeGroup: 'middle',
+    annualIncome: 52_000,
+    isHomeowner: false,
+    housingCost: 1_200,
+    commuteMins: 22,
+    commuteMode: 'bus',
+    familySize: 1,
+    taxSensitivity: 0.35,
+    housingSensitivity: 0.65,
+    transitSensitivity: 0.85,
+    environmentSensitivity: 0.70,
+    governmentTrust: 0.72,
+    happiness: 76,
+    mood: 'hopeful',
+    policySupport: {},
+    archetype: 'teacher',
+    portraitColor: '#22C55E',
+    portraitInitials: 'PS',
+    avatarUrl: '/avatars/priya_sharma.png',
+    memories: [],
+    currentQuote: 'I love the new park! More transit would make my commute easier.',
+  },
+  {
     id: 'res-001',
     name: 'Diane Kowalski',
     age: 52,
-    occupation: 'Registered Nurse (UPMC Presbyterian)',
+    occupation: 'Registered Nurse',
     neighborhood: 'lawrenceville',
     incomeGroup: 'middle',
     annualIncome: 74_000,
@@ -317,6 +344,7 @@ export const initialResidents: Resident[] = [
     archetype: 'healthcare_worker',
     portraitColor: '#6366F1',
     portraitInitials: 'DK',
+    avatarUrl: '/avatars/middle_income.png',
     memories: [],
     currentQuote: 'My rent went up $200 this year. I love this neighborhood but I\'m not sure how long I can stay.',
   },
@@ -518,53 +546,104 @@ export const initialAgentGroups: AgentGroup[] = [
     id: 'group-lower',
     label: 'Lower Income',
     incomeGroup: 'lower',
-    populationRepresented: 89_000,
+    populationRepresented: 8_200,
     medianIncome: 26_000,
-    renterFraction: 0.58,
+    renterFraction: 0.82,
     currentSentiment: 42,
     policyPreferences: {
-      housing: 0.92, transit: 0.88, taxes: 0.25,
-      safety: 0.78, business: 0.55, environment: 0.60,
+      housing: 0.95, transit: 0.90, taxes: 0.20,
+      safety: 0.75, business: 0.50, environment: 0.65,
     },
-    currentQuote: '"Need more affordable housing. Rents are squeezing us out."',
+    currentQuote: '"Need more affordable housing."',
     avatarColor: '#EF4444',
+    avatarUrl: '/avatars/lower_income.png',
   },
   {
     id: 'group-middle',
     label: 'Middle Income',
     incomeGroup: 'middle',
-    populationRepresented: 148_000,
+    populationRepresented: 12_400,
     medianIncome: 52_000,
-    renterFraction: 0.55,
+    renterFraction: 0.52,
     currentSentiment: 68,
     policyPreferences: {
-      housing: 0.65, transit: 0.72, taxes: 0.45,
-      safety: 0.68, business: 0.70, environment: 0.62,
+      housing: 0.65, transit: 0.75, taxes: 0.45,
+      safety: 0.70, business: 0.72, environment: 0.65,
     },
-    currentQuote: '"Happy with the progress, but watch the property taxes."',
+    currentQuote: '"Happy with the progress"',
     avatarColor: '#F59E0B',
+    avatarUrl: '/avatars/middle_income.png',
   },
   {
     id: 'group-higher',
     label: 'Higher Income',
     incomeGroup: 'higher',
-    populationRepresented: 65_000,
-    medianIncome: 112_000,
-    renterFraction: 0.40,
+    populationRepresented: 4_230,
+    medianIncome: 142_000,
+    renterFraction: 0.22,
     currentSentiment: 81,
     policyPreferences: {
-      housing: 0.30, transit: 0.40, taxes: 0.20,
-      safety: 0.72, business: 0.80, environment: 0.68,
+      housing: 0.30, transit: 0.45, taxes: 0.15,
+      safety: 0.85, business: 0.85, environment: 0.70,
     },
-    currentQuote: '"City is becoming world class. Keep up the business investment."',
+    currentQuote: '"City is becoming world class."',
     avatarColor: '#10B981',
+    avatarUrl: '/avatars/higher_income.png',
   },
 ];
 
-// ------ POLICIES (15 Pittsburgh-specific) -------------------
+// ------ POLICIES (Matching Screenshot 1) -------------------
 
 export const initialPolicies: Policy[] = [
-  // === HOUSING ===
+  {
+    id: 'pol-build-affordable-housing',
+    name: 'Build Affordable Housing',
+    description: 'Add new low-cost housing units in Homewood.',
+    category: 'housing',
+    upfrontCost: 800_000,
+    recurringCost: 0,
+    status: 'proposed',
+    affectedNeighborhoods: ['homewood'],
+    pittsburghNote: 'Expands available low-income housing stock directly in Homewood.',
+    effects: [
+      { label: 'Housing supply', delta: 180, field: 'housingSupply', isPositive: true, turnsDelay: 1, affectedNeighborhoods: ['homewood'] },
+      { label: 'Lower-income happiness', delta: 8, field: 'happiness', isPositive: true, turnsDelay: 1, affectedNeighborhoods: ['homewood'] },
+      { label: 'Budget −$800,000', delta: -800_000, field: 'treasury', isPositive: false, turnsDelay: 0, affectedNeighborhoods: [] },
+    ],
+  },
+  {
+    id: 'pol-expand-transit',
+    name: 'Expand Transit',
+    description: 'Add a new bus line and increase train frequency.',
+    category: 'transit',
+    upfrontCost: 1_200_000,
+    recurringCost: 60_000,
+    status: 'proposed',
+    affectedNeighborhoods: ['homewood', 'lawrenceville'],
+    pittsburghNote: 'Enhances regional mobility with high-frequency rail and feeder bus links.',
+    effects: [
+      { label: 'Mobility for all', delta: 14, field: 'transitScore', isPositive: true, turnsDelay: 1, affectedNeighborhoods: [] },
+      { label: 'Happiness (all groups)', delta: 6, field: 'happiness', isPositive: true, turnsDelay: 1, affectedNeighborhoods: [] },
+      { label: 'Budget −$1,200,000', delta: -1_200_000, field: 'treasury', isPositive: false, turnsDelay: 0, affectedNeighborhoods: [] },
+    ],
+  },
+  {
+    id: 'pol-raise-property-tax',
+    name: 'Raise Property Tax',
+    description: 'Increase property tax by 1% for residential areas.',
+    category: 'taxes',
+    upfrontCost: 0,
+    recurringCost: -600_000,
+    status: 'proposed',
+    affectedNeighborhoods: ['shadyside', 'lawrenceville'],
+    pittsburghNote: 'Yields steady municipal revenue to reinvest in infrastructure and healthcare.',
+    effects: [
+      { label: '$600,000 / year', delta: 600_000, field: 'revenue', isPositive: true, turnsDelay: 0, affectedNeighborhoods: [] },
+      { label: 'More funds for services', delta: 6, field: 'approval', isPositive: true, turnsDelay: 1, affectedNeighborhoods: [] },
+      { label: 'Higher-income happiness', delta: -6, field: 'happiness', isPositive: false, turnsDelay: 1, affectedNeighborhoods: ['shadyside'] },
+    ],
+  },
+  // === ADDITIONAL POLICIES ===
   {
     id: 'pol-landbank',
     name: 'Fund City Land Bank',

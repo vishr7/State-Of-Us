@@ -25,7 +25,8 @@ function SentimentRow({ group, onClick }: SentimentRowProps) {
       <Avatar
         initials={group.label.substring(0, 2).toUpperCase()}
         color={group.avatarColor}
-        size={36}
+        src={group.avatarUrl}
+        size={34}
       />
 
       <div className="flex-1 min-w-0">
@@ -101,6 +102,7 @@ function FeaturedResidentCard() {
         <Avatar
           initials={resident.portraitInitials}
           color={resident.portraitColor}
+          src={resident.avatarUrl}
           size={48}
         />
         <div className="flex-1 min-w-0">
@@ -183,33 +185,15 @@ const PersonIcon = () => (
 function TaglineDecor() {
   return (
     <div
-      className="rounded-xl p-3 text-center relative overflow-hidden"
-      style={{ background: '#0D1E30', border: '1px solid #1E3050' }}
+      className="rounded-xl overflow-hidden relative"
+      style={{ border: '1px solid #1E3050', background: '#0D1E30' }}
     >
-      {/* City silhouette SVG */}
-      <svg
-        width="100%" height="40"
-        viewBox="0 0 280 40"
-        preserveAspectRatio="xMidYMax meet"
-        className="absolute bottom-0 left-0 opacity-10"
-      >
-        <path
-          d="M0 40L0 28L20 28L20 20L30 20L30 10L40 10L40 6L50 6L50 16L60 16L60 22L70 22L70 18L75 18L75 12L82 12L82 18L90 18L90 25L100 25L100 15L108 15L108 8L115 8L115 15L125 15L125 22L135 22L135 28L145 28L145 20L155 20L155 12L162 12L162 6L170 6L170 12L178 12L178 20L188 20L188 28L200 28L200 22L210 22L210 28L220 28L220 20L230 20L230 28L240 28L240 34L250 34L250 28L260 28L260 34L280 34L280 40Z"
-          fill="#FFB81C"
-        />
-      </svg>
-      <p
-        className="text-sm leading-snug relative z-10"
-        style={{
-          color: '#94A3B8',
-          fontFamily: 'Georgia, serif',
-          fontStyle: 'italic',
-        }}
-      >
-        A kinder, smarter city.
-        <br />
-        <span style={{ color: '#FFB81C', fontWeight: 700 }}>Together.</span>
-      </p>
+      <img
+        src="/footer-badge.png"
+        alt="A kinder, smarter city. Together."
+        className="w-full object-cover block"
+        style={{ imageRendering: 'pixelated', maxHeight: 110 }}
+      />
     </div>
   );
 }
