@@ -3,13 +3,14 @@ import { getPool } from '@database/lib/db';
 import type { City } from '@database/types/database';
 
 /** GET /api/city/:id — current canonical city state. Read-only, no simulation logic here. */
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const result = await getPool().query<City>('select * from cities where id = $1', [params.id]);
+    const result = await getPool().query<City>('select * from cities where id = $1', [id]);
     const city = result.rows[0];
 
     if (!city) {
-      return NextResponse.json({ error: `City ${params.id} not found` }, { status: 404 });
+      return NextResponse.json({ error: `City ${id} not found` }, { status: 404 });
     }
 
     return NextResponse.json({
