@@ -1,10 +1,4 @@
-const censusUrl = new URL("https://api.census.gov/data/2024/acs/acs5");
-censusUrl.search = new URLSearchParams({
-  get: "NAME,B01003_001E,B19013_001E,B23025_003E,B23025_005E,B25064_001E,B25077_001E",
-  for: "place:61000",
-  in: "state:42",
-}).toString();
-const CENSUS_URL = censusUrl.toString();
+const CENSUS_URL = "https://api.census.gov/data/2024/acs/acs5";
 
 export interface CityData {
   city: string;
@@ -55,13 +49,19 @@ function parseEstimate(value: unknown): number {
   return estimate;
 }
 
-export async function getPittsburghCityData(): Promise<CityData> {
+export async function getCityData(state: string, place: string): Promise<CityData> {
   const censusApiKey = process.env.CENSUS_API_KEY?.trim();
   if (!censusApiKey) {
     throw new Error("Missing CENSUS_API_KEY environment variable. Set it in .env.local.");
   }
 
   const requestUrl = new URL(CENSUS_URL);
+  requestUrl.search = new URLSearchParams({
+    get: "NAME,B01003_001E,B19013_001E,B23025_003E,B23025_005E,B25064_001E,B25077_001E",
+    for: `place:${place}`,
+    in: `state:${state}`,
+  }).toString();
+  const sourceUrl = requestUrl.toString();
   requestUrl.searchParams.set("key", censusApiKey);
 
   // Upstream error pages may echo the request URL, including its credentials.
@@ -105,8 +105,8 @@ export async function getPittsburghCityData(): Promise<CityData> {
   if (
     typeof city !== "string" ||
     !city.trim() ||
-    field("state") !== "42" ||
-    field("place") !== "61000"
+    field("state") !== state ||
+    field("place") !== place
   ) {
     throw new Error("Census returned an unexpected city.");
   }
@@ -129,8 +129,8 @@ export async function getPittsburghCityData(): Promise<CityData> {
       dataset: "American Community Survey 5-Year Estimates",
       year: 2024,
       period: "2020–2024",
-      url: CENSUS_URL,
-      geography: { state: "42", place: "61000" },
+      url: sourceUrl,
+      geography: { state, place },
       variables: {
         population: "B01003_001E",
         medianHouseholdIncome: "B19013_001E",
