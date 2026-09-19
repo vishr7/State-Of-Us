@@ -3,7 +3,7 @@ import { GW, GH, classifyTile, tileToScreen } from './cityMapData';
 
 type Tile = { x: number; y: number };
 export type Walker = { resident: Resident; route: Tile[]; phase: number; speed: number };
-const centers: Record<string, Tile> = { shadyside: { x: 6, y: 7 }, homewood: { x: 24, y: 17 }, lawrenceville: { x: 19, y: 7 }, golden_triangle: { x: 17, y: 14 } };
+const centers: Record<string, Tile> = { shadyside: { x: 24, y: 15 }, homewood: { x: 24, y: 17 }, lawrenceville: { x: 19, y: 7 }, golden_triangle: { x: 12, y: 16 } };
 export function isWalkable(x: number, y: number) {
   if (x < 0 || y < 0 || x >= GW || y >= GH) return false;
   const tile = classifyTile(x, y);

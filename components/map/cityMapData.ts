@@ -40,7 +40,7 @@ export function rng(tx: number, ty: number): number {
 // Monongahela flows from lower-right (SE) toward The Point.
 // Ohio flows from The Point to the left (W).
 
-export const POINT_TX = 9;
+export const POINT_TX = 7;
 export const POINT_TY = 16;
 
 export function alleghenyY(tx: number) {
@@ -54,7 +54,7 @@ export function monY(tx: number) {
 }
 
 export function isPointPark(tx: number, ty: number) {
-  return tx >= 9 && tx <= 11 && ty >= 15 && ty <= 17;
+  return tx >= 8 && tx <= 10 && Math.abs(ty - 16) <= (tx - 8) * 0.5;
 }
 
 export function isAllegheny(tx: number, ty: number) {
@@ -68,7 +68,7 @@ export function isMon(tx: number, ty: number) {
 }
 
 export function isOhio(tx: number, ty: number) {
-  if (tx >= POINT_TX || tx < 1) return false;
+  if (tx >= POINT_TX || tx < 0) return false;
   return Math.abs(ty - POINT_TY) < 2.15;
 }
 
@@ -95,11 +95,12 @@ export function isBridge(tx: number, ty: number) {
 }
 
 // Cathedral of Learning: special single tile in Oakland
-export const CATHEDRAL_TX = 18;
-export const CATHEDRAL_TY = 15;
+export const CATHEDRAL_TX = 20;
+export const CATHEDRAL_TY = 17;
 
 // ── Tile Classification ──────────────────────────────────────
 export type Zone = 'wealthy' | 'middle' | 'lower' | 'tower' | 'civic';
+export type LandmarkSprite = 'cathedral' | 'hospital' | 'police' | 'skyscraper' | 'office' | 'university';
 export type BridgeKind = 'suspension' | 'truss';
 
 export interface TileInfo {
@@ -107,88 +108,74 @@ export interface TileInfo {
   bridge?: BridgeKind;
   building?: Zone;
   cathedral?: true;
+  landmarkSprite?: LandmarkSprite;
   hillElevation?: number; // 0-4 relative to flat
   tree?: boolean;
 }
 
+// A deliberately compressed geographic model: west is decreasing tx, north decreasing ty.
+// The Strip is on the south/east bank of the Allegheny, alongside Downtown.
 export function classifyTile(tx: number, ty: number): TileInfo {
+  if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return { ground: 'grass' };
   if (isPointPark(tx, ty)) return { ground: 'park' };
-
-  // Water (checked first — rivers override everything)
   if (isWater(tx, ty)) {
-    const b = isBridge(tx, ty);
-    return b ? { ground: 'road', bridge: b } : { ground: 'water' };
+    const bridge = isBridge(tx, ty);
+    return bridge ? { ground: 'road', bridge } : { ground: 'water' };
   }
-
   const r = rng(tx, ty);
-  // Wooded perimeter softens the edge of the model
-  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) {
-    return { ground: 'park', tree: true };
-  }
+  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true, landmarkSprite: 'cathedral' };
+  if (tx === 18 && ty === 17) return { ground: 'grass', landmarkSprite: 'hospital' };
+  if (tx === 14 && ty === 17) return { ground: 'grass', landmarkSprite: 'police' };
+  if ((tx === 20 || tx === 22) && ty === 19) return { ground: 'grass', landmarkSprite: 'university' };
 
-  const northBank = ty < alleghenyY(tx) - 0.7;
-  const southBank = ty > monY(tx) + 0.7;
-  const downtownCore = isInWedge(tx, ty) && tx <= 15;
+  // Continuous bridge approaches and east-west avenues connect the districts.
+  const bridgeApproach = (BRIDGE_TX.has(tx) && Math.abs(ty - alleghenyY(tx)) < 3.1)
+    || (MON_BRIDGE_TX.has(tx) && Math.abs(ty - monY(tx)) < 3.1);
+  if (bridgeApproach && !isInWedge(tx, ty)) return { ground: 'road' };
 
-  // North Shore: stadiums and riverfront parkland opposite Downtown.
-  if (tx >= 4 && tx <= 14 && northBank) {
-    if (tx === 7 || tx === 11 || ty === Math.round(alleghenyY(tx)) - 2) return { ground: 'road' };
-    if ((tx === 6 && ty === 12) || (tx === 9 && ty === 12)) return { ground: 'grass', building: 'civic' };
-    if (tx <= 10 && r > 0.35) return { ground: 'park', tree: r > 0.7 };
-    return { ground: 'grass', building: r > 0.55 ? 'middle' : 'civic' };
-  }
-
-  // Downtown sits inside the Golden Triangle, dense at the Point and thinning east.
-  if (downtownCore) {
-    if (tx === 10 || tx === 12 || tx === 14 || ty === 16) return { ground: 'road' };
-    if (tx === 12 && ty === 15) return { ground: 'park' };
-    return { ground: 'grass', building: tx <= 12 ? 'tower' : (r < 0.35 ? 'civic' : 'tower') };
-  }
-
-  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true };
-
-  // Lawrenceville and the Strip District run along the north bank of the Allegheny.
-  if (tx >= 15 && northBank) {
-    if ([17, 22].includes(tx) || ty === Math.round(alleghenyY(tx)) - 2) return { ground: 'road' };
-    if (tx >= 18 && tx <= 20 && ty <= Math.round(alleghenyY(tx)) - 3) return { ground: 'park', tree: true };
-    return r < 0.15 ? { ground: 'grass', tree: true } : { ground: 'grass', building: 'middle' };
-  }
-
-  // Oakland and Shadyside occupy the East End between the rivers.
-  if (tx >= 16 && tx <= 25 && ty >= 12 && ty <= 17) {
-    if ([18, 22].includes(tx) || ty === 14) return { ground: 'road' };
-    if (tx >= 21 && ty <= 15) {
-      if ((tx + ty) % 4 === 0) return { ground: 'park', tree: true };
-      return { ground: 'grass', building: 'wealthy' };
-    }
-    if (tx >= 16 && tx <= 19 && ty >= 15 && ty <= 16) return { ground: 'park' };
-    return { ground: 'grass', building: 'middle' };
-  }
-
-  // Homewood sits farther east, away from the riverfront boom.
-  if (tx >= 22 && tx <= 27 && ty >= 15 && ty <= 21) {
-    if (tx === 24 || ty === 18) return { ground: 'road' };
-    if (tx === 25 && ty >= 16 && ty <= 17) return { ground: 'park' };
-    if (r < 0.22) return { ground: 'park', tree: true };
-    return { ground: 'grass', building: 'lower' };
-  }
-
-  // South Side and Mt. Washington climb the southern bank above the Mon.
-  if (tx >= POINT_TX && southBank) {
-    if ([11, 13, 18, 24].includes(tx) || ty === 23) return { ground: 'road' };
-    if (r < 0.42 || ty > 24) return { ground: 'hillside', tree: true };
-    return { ground: 'hillside', building: tx <= 15 ? 'wealthy' : 'middle' };
-  }
-
-  // East End infill between the main named neighborhoods.
   if (isInWedge(tx, ty)) {
-    if ([16, 20, 24].includes(tx) || [13, 18].includes(ty)) return { ground: 'road' };
-    return r < 0.25 ? { ground: 'park', tree: true } : { ground: 'grass', building: 'middle' };
+    // Dense Golden Triangle skyline, separated by streets and civic squares.
+    if (tx <= 15) {
+      if (ty === 16 || tx === 15) return { ground: 'road' };
+      if (tx === 10 || (tx === 14 && ty === 18)) return { ground: 'park' };
+      return { ground: 'grass', building: 'tower', landmarkSprite: r < 0.55 ? 'skyscraper' : 'office' };
+    }
+    // Business corridor / Strip District hugs the inside of the Allegheny.
+    if (ty <= 13) {
+      if (ty === 11 || tx === 17 || tx === 21 || tx === 24) return { ground: 'road' };
+      if (r < 0.16) return { ground: 'park', tree: r < 0.06 };
+      return { ground: 'grass', building: 'tower', landmarkSprite: 'office' };
+    }
+    // Oakland: big institutional lots and open Cathedral / campus lawns.
+    if (tx >= 17 && tx <= 22 && ty >= 15 && ty <= 20) {
+      if (ty === 16 || ty === 20 || tx === 19) return { ground: 'road' };
+      if (ty === 18 || (tx === 21 && ty === 17)) return { ground: 'park' };
+      return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'civic', landmarkSprite: 'university' };
+    }
+    // Schenley Park south/east of the university.
+    if (tx >= 21 && tx <= 24 && ty >= 21) return { ground: 'park', tree: r < 0.42 };
+    if (tx === 16 || tx === 23 || ty === 14 || ty === 18 || ty === 22 || tx === 26) return { ground: 'road' };
+    return r < 0.22 ? { ground: 'park', tree: r < 0.1 } : { ground: 'grass', building: tx >= 24 ? 'wealthy' : 'middle' };
   }
-  return r < 0.35 ? { ground: 'park' } : { ground: 'grass', building: 'middle' };
+
+  // North Shore and outer residential hills: fewer trees, legible housing blocks.
+  if (tx === 6 && ty === 12 || tx === 9 && ty === 12) return { ground: 'grass' };
+  if (tx === 3 || tx === 7 || tx === 11 || tx === 17 || tx === 22 || ty === 7 || ty === 12 || ty === 23) return { ground: 'road' };
+  const hillside = ty > monY(tx) + 2;
+  if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) return { ground: 'park', tree: r < 0.3 };
+  if (r < 0.26) return { ground: hillside ? 'hillside' : 'park', tree: r < 0.12 };
+  return { ground: hillside ? 'hillside' : 'grass', building: r < 0.6 ? 'wealthy' : 'middle' };
 }
 
-export type LandmarkKind = 'point' | 'stadium' | 'incline' | 'cathedral' | 'bridgeCluster';
+// These are navigation areas, not renamed simulation neighborhoods.
+export const MAP_AREAS = [
+  { id: 'downtown', name: 'DOWNTOWN', subtitle: 'Golden Triangle · skyline', tx: 12, ty: 19, color: '#f4d28a' },
+  { id: 'corporate', name: 'CORPORATE DISTRICT', subtitle: 'Strip District · offices & commerce', tx: 19, ty: 10, color: '#9bd4e1' },
+  { id: 'pitt', name: 'PITT / OAKLAND', subtitle: 'University · Cathedral · UPMC', tx: 21, ty: 21, color: '#afbbe9' },
+  { id: 'suburbs', name: 'SUBURBS', subtitle: 'Residential hills & garden streets', tx: 6, ty: 6, color: '#c4d7a0' },
+].map(area => ({ ...area, ...tileToScreen(area.tx, area.ty) }));
+
+export type LandmarkKind = 'point' | 'stadium' | 'incline' | 'cathedral' | 'hospital' | 'police' | 'bridgeCluster';
 
 export interface PittsburghLandmark {
   id: string;
@@ -201,12 +188,14 @@ export interface PittsburghLandmark {
 }
 
 export const PITTSBURGH_LANDMARKS: PittsburghLandmark[] = [
-  { id: 'point-state-park', label: 'POINT', kind: 'point', tx: POINT_TX, ty: POINT_TY, wx: tileToScreen(POINT_TX, POINT_TY).x, wy: tileToScreen(POINT_TX, POINT_TY).y },
+  { id: 'upmc', label: 'UPMC HOSPITAL', kind: 'hospital', tx: 18, ty: 17, wx: tileToScreen(18,17).x, wy: tileToScreen(18,17).y },
+  { id: 'police', label: 'POLICE', kind: 'police', tx: 14, ty: 17, wx: tileToScreen(14,17).x, wy: tileToScreen(14,17).y },
+  { id: 'point-state-park', label: 'POINT', kind: 'point', tx: 9, ty: POINT_TY, wx: tileToScreen(9, POINT_TY).x, wy: tileToScreen(9, POINT_TY).y },
   { id: 'acrisure-stadium', label: 'ACRISURE', kind: 'stadium', tx: 6, ty: 12, wx: tileToScreen(6, 12).x, wy: tileToScreen(6, 12).y },
   { id: 'pnc-park', label: 'PNC', kind: 'stadium', tx: 9, ty: 12, wx: tileToScreen(9, 12).x, wy: tileToScreen(9, 12).y },
   { id: 'three-sisters', label: '3 SISTERS', kind: 'bridgeCluster', tx: 12, ty: 11, wx: tileToScreen(12, 11).x, wy: tileToScreen(12, 11).y },
   { id: 'mt-washington', label: 'MT. WASHINGTON', kind: 'incline', tx: 12, ty: 23, wx: tileToScreen(12, 23).x, wy: tileToScreen(12, 23).y },
-  { id: 'cathedral-learning', label: 'CATHEDRAL', kind: 'cathedral', tx: CATHEDRAL_TX, ty: CATHEDRAL_TY, wx: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).x, wy: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).y },
+  { id: 'cathedral-learning', label: 'CATHEDRAL OF LEARNING', kind: 'cathedral', tx: CATHEDRAL_TX, ty: CATHEDRAL_TY, wx: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).x, wy: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).y },
 ];
 
 // ── Neighborhood Definitions ─────────────────────────────────
