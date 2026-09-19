@@ -15,13 +15,7 @@ import AnalyticsModal from '../modals/AnalyticsModal';
 import TownHallModal from '../modals/TownHallModal';
 import { useCityPulseStore } from '@/lib/store';
 
-// PixiJS canvas MUST be dynamically imported with ssr:false.
-// Both PixiJS and Phaser reference window at module scope —
-// this is the fix for "ReferenceError: window is not defined" on Vercel.
-const CityCanvas = dynamic(
-  () => import('../map/CityCanvas'),
-  { ssr: false, loading: () => <MapSkeleton /> }
-);
+import CityCanvas from '../map/CityCanvas';
 
 /**
  * GameDashboard — the single full-screen layout shell.

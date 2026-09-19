@@ -1,496 +1,830 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useCityPulseStore } from '@/lib/store';
 
 // ============================================================
-// CityCanvas — PixiJS v8 isometric Pittsburgh city map.
-// THIS FILE IS DYNAMICALLY IMPORTED WITH ssr:false.
-// window/document are safe to reference here.
-//
-// NOTE: All PixiJS types are referenced via typeof imports
-// inside the async init function to avoid SSR type errors.
+// CityCanvas — Procedural Isometric Pittsburgh City Renderer
+// Pure HTML5 Canvas 2D, no image assets.
+// Art style: chunky retro pixel-art (Township / Design Home).
+// Geography: Three Rivers confluence — Allegheny + Mon → Ohio.
 // ============================================================
 
-// Avoid TypeScript type-annotating PixiJS classes directly —
-// they are only available at runtime inside the async init.
-// We use ReturnType<> and generics instead.
+const TW = 64;     // tile width (px)
+const TH = 32;     // tile height (px) = TW/2
+const GW = 28;     // grid columns
+const GH = 28;     // grid rows
+const FLOOR_H = 22; // px per building floor
 
+// World origin is centered on the grid midpoint tile (14,14)
+const OX = 0;
+const OY = -((GW / 2 + GH / 2) * (TH / 2)); // ≈ -448
+
+function tileToScreen(tx: number, ty: number) {
+  return { x: (tx - ty) * (TW / 2) + OX, y: (tx + ty) * (TH / 2) + OY };
+}
+
+// Stable per-tile pseudo-random in [0,1)
+function rng(tx: number, ty: number): number {
+  return (((tx * 2654435761) ^ (ty * 2246822519)) >>> 0) / 4294967296;
+}
+
+// ── Pittsburgh River Math ────────────────────────────────────
+// The Point (river confluence) is at tile (10, 16).
+// Allegheny flows from upper-right (NE) toward The Point.
+// Mon flows from lower-right (SE) toward The Point.
+// Ohio flows from The Point to the left (W).
+
+function alleghenyY(tx: number) { return 16 - (tx - 10) * 10 / 16; }
+function monY(tx: number)       { return 16 + (tx - 10) * 6  / 16; }
+
+function isAllegheny(tx: number, ty: number) {
+  if (tx < 10 || tx > 27) return false;
+  return Math.abs(ty - alleghenyY(tx)) < 1.7;
+}
+function isMon(tx: number, ty: number) {
+  if (tx < 10 || tx > 27) return false;
+  return Math.abs(ty - monY(tx)) < 1.7;
+}
+function isOhio(tx: number, ty: number) {
+  if (tx >= 10 || tx < 1) return false;
+  return Math.abs(ty - 16) < 2;
+}
+function isWater(tx: number, ty: number) {
+  return isAllegheny(tx, ty) || isMon(tx, ty) || isOhio(tx, ty);
+}
+
+// Tiles between Allegheny and Mon (the Golden Triangle wedge)
+function isInWedge(tx: number, ty: number) {
+  if (tx < 10 || tx > 27) return false;
+  return ty > alleghenyY(tx) + 0.5 && ty < monY(tx) - 0.5;
+}
+
+// The Three Sisters suspension bridges cross the Allegheny at tx=12,13,14
+const BRIDGE_TX = new Set([12, 13, 14]);
+// Smithfield truss bridge crosses the Mon at tx=11,12
+const MON_BRIDGE_TX = new Set([11, 12]);
+
+function isBridge(tx: number, ty: number) {
+  if (BRIDGE_TX.has(tx) && isAllegheny(tx, ty)) return 'suspension';
+  if (MON_BRIDGE_TX.has(tx) && isMon(tx, ty)) return 'truss';
+  return null;
+}
+
+// Cathedral of Learning: special single tile in Oakland
+const CATHEDRAL_TX = 20, CATHEDRAL_TY = 14;
+
+// ── Tile Classification ──────────────────────────────────────
+type Zone = 'wealthy' | 'middle' | 'lower' | 'tower' | 'civic';
+type BridgeKind = 'suspension' | 'truss';
+
+interface TileInfo {
+  ground: 'grass' | 'road' | 'water' | 'park' | 'hillside';
+  bridge?: BridgeKind;
+  building?: Zone;
+  cathedral?: true;
+  hillElevation?: number; // 0-4 relative to flat
+  tree?: boolean;
+}
+
+function classifyTile(tx: number, ty: number): TileInfo {
+  // Water (checked first — rivers override everything)
+  if (isWater(tx, ty)) {
+    const b = isBridge(tx, ty);
+    return b ? { ground: 'road', bridge: b } : { ground: 'water' };
+  }
+
+  // Cathedral of Learning — special tile in Oakland
+  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) {
+    return { ground: 'grass', cathedral: true };
+  }
+
+  // Mount Washington hillside (south of Mon, sloped terrain)
+  if (tx >= 10 && tx <= 22) {
+    const my = monY(tx);
+    if (ty >= my + 1.5 && ty <= my + 7) {
+      const elev = Math.min(4, Math.round(ty - my - 1));
+      const r = rng(tx, ty);
+      if (r > 0.85) return { ground: 'hillside', hillElevation: elev };
+      return { ground: 'hillside', hillElevation: elev, building: 'middle' };
+    }
+  }
+
+  // Major roads
+  if (tx === 11 || tx === 15 || tx === 19 || tx === 23) return { ground: 'road' };
+  if (ty === 6  || ty === 11 || ty === 16 || ty === 21) return { ground: 'road' };
+
+  // Parks
+  if (tx >= 10 && tx <= 13 && ty >= 18 && ty <= 21) return { ground: 'park' }; // Point State Park
+  if (tx >= 17 && tx <= 20 && ty >= 7  && ty <= 10) return { ground: 'park' }; // Schenley Park (Oakland)
+  if (tx >= 2  && tx <= 5  && ty >= 13 && ty <= 16) return { ground: 'park' }; // West side park
+
+  const r = rng(tx, ty);
+
+  // Golden Triangle downtown towers (the wedge, nearest to The Point)
+  if (isInWedge(tx, ty) && tx >= 10 && tx <= 14) {
+    return r < 0.1 ? { ground: 'grass' } : { ground: 'grass', building: 'tower' };
+  }
+  // Mid-downtown / civic (wider part of wedge)
+  if (isInWedge(tx, ty) && tx >= 14 && tx <= 18) {
+    return r < 0.12 ? { ground: 'grass' } : { ground: 'grass', building: 'civic' };
+  }
+  // Hill District / Oakland transition (wider wedge right side)
+  if (isInWedge(tx, ty) && tx >= 18 && tx <= 23) {
+    return r < 0.1 ? { ground: 'grass' } : { ground: 'grass', building: 'middle' };
+  }
+
+  // Strip District — along Allegheny, above the river (tx 12–16, just north)
+  if (tx >= 12 && tx <= 16) {
+    const ay = alleghenyY(tx);
+    if (ty >= ay - 5 && ty < ay - 0.5) {
+      return r < 0.1 ? { ground: 'grass', tree: r > 0.08 } : { ground: 'grass', building: 'middle' };
+    }
+  }
+
+  // Lawrenceville — NE along Allegheny, above the river
+  if (tx >= 16 && tx <= 23) {
+    const ay = alleghenyY(tx);
+    if (ty >= ay - 6 && ty < ay - 0.5) {
+      return r < 0.1 ? { ground: 'grass', tree: r > 0.08 } : { ground: 'grass', building: 'middle' };
+    }
+  }
+
+  // Shadyside — wealthy, northeast
+  if (tx >= 20 && tx <= 26 && isInWedge(tx, ty)) {
+    const mid = (alleghenyY(tx) + monY(tx)) / 2;
+    if (ty < mid) {
+      return r < 0.12 ? { ground: 'grass', tree: r > 0.1 } : { ground: 'grass', building: 'wealthy' };
+    }
+  }
+
+  // Homewood — lower-income, far east between rivers
+  if (tx >= 22 && tx <= 27 && isInWedge(tx, ty)) {
+    const mid = (alleghenyY(tx) + monY(tx)) / 2;
+    if (ty >= mid) {
+      return r < 0.18 ? { ground: 'grass', tree: r > 0.12 } : { ground: 'grass', building: 'lower' };
+    }
+  }
+
+  // Outer areas — scattered trees on grass
+  if (r < 0.14) return { ground: 'grass', tree: true };
+  return { ground: 'grass' };
+}
+
+// ── Colors ───────────────────────────────────────────────────
+// Bright pixel-art palette — no gradients anywhere.
+const SKY_COLOR    = '#87CEEB';
+const GRASS_A      = '#52A83C';
+const GRASS_B      = '#458A32';
+const PARK_COLOR   = '#3FA832';
+const HILL_A       = '#6A9A50';
+const HILL_B       = '#507A3A';
+const WATER_COLOR  = '#1E7EC8';
+const WATER_SHINE  = '#5AB4F8';
+const ROAD_COLOR   = '#5A6475';
+const ROAD_MARK    = 'rgba(255,255,255,0.55)';
+
+// Zone colors [top (lit roof), left face, right face (darkest)]
+const ZONE_PAL: Record<Zone, Array<[string, string, string]>> = {
+  tower: [
+    ['#C8E0F8', '#7AAAC8', '#4878A0'],
+    ['#D0D8E8', '#8898B0', '#607080'],
+    ['#B8D0B0', '#78A070', '#507848'],
+  ],
+  civic: [
+    ['#E8E0C0', '#C0B888', '#A09860'],
+    ['#D8D0B0', '#B0A880', '#908860'],
+  ],
+  wealthy: [
+    ['#E0C880', '#C8A050', '#A87830'],  // cream/gold roof, warm brick
+    ['#D04840', '#A83028', '#882018'],  // red roof, warm cream walls
+    ['#4860B8', '#3040A0', '#203880'],  // blue roof, cream
+  ],
+  middle: [
+    ['#B84838', '#983020', '#781810'],
+    ['#A05840', '#804030', '#602818'],
+    ['#8888A0', '#686880', '#484860'],
+  ],
+  lower: [
+    ['#908878', '#706858', '#504838'],
+    ['#A09080', '#807060', '#584840'],
+    ['#889088', '#688068', '#486048'],
+  ],
+};
+
+const ZONE_FLOORS: Record<Zone, [number, number]> = {
+  tower:  [8, 16],
+  civic:  [4, 7],
+  wealthy:[3, 5],
+  middle: [2, 4],
+  lower:  [1, 3],
+};
+
+// ── Drawing Primitives ───────────────────────────────────────
+function fillPoly(
+  ctx: CanvasRenderingContext2D,
+  pts: [number, number][],
+  fill: string,
+  stroke?: string,
+) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+function diamond(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string) {
+  const hw = TW / 2, hh = TH / 2;
+  fillPoly(ctx, [[cx, cy-hh],[cx+hw, cy],[cx, cy+hh],[cx-hw, cy]], color, 'rgba(0,0,0,0.22)');
+}
+
+function buildingBox(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  bh: number,
+  topC: string, leftC: string, rightC: string,
+) {
+  const hw = TW / 2, hh = TH / 2;
+  const OL = 'rgba(0,0,0,0.38)';
+  // Left (SW) face
+  fillPoly(ctx, [
+    [cx-hw, cy],
+    [cx,    cy+hh],
+    [cx,    cy+hh-bh],
+    [cx-hw, cy-bh],
+  ], leftC, OL);
+  // Right (SE) face
+  fillPoly(ctx, [
+    [cx,    cy+hh],
+    [cx+hw, cy],
+    [cx+hw, cy-bh],
+    [cx,    cy+hh-bh],
+  ], rightC, OL);
+  // Top face (roof) — lit from upper-left
+  fillPoly(ctx, [
+    [cx-hw, cy-bh],
+    [cx,    cy-hh-bh],
+    [cx+hw, cy-bh],
+    [cx,    cy+hh-bh],
+  ], topC, OL);
+}
+
+// Small even-spaced pixel windows on building faces
+function pixelWindows(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  bh: number, floors: number,
+  tx: number, ty: number,
+) {
+  const hw = TW / 2, hh = TH / 2;
+  const fh = bh / floors;
+  for (let f = 0; f < Math.min(floors, 10); f++) {
+    const baseY = cy + hh - (f + 0.6) * fh;
+    // 2 windows on left face
+    for (let w = 0; w < 2; w++) {
+      const t = (w + 1) / 3;
+      const wx = cx - hw + t * hw;
+      const wy = baseY - t * hh * 0.45;
+      const lit = rng(tx * 7 + w, ty * 5 + f) > 0.38;
+      ctx.fillStyle = lit ? '#FFE898' : '#263850';
+      ctx.fillRect(Math.round(wx - 2), Math.round(wy - 3), 4, 5);
+    }
+    // 2 windows on right face
+    for (let w = 0; w < 2; w++) {
+      const t = (w + 1) / 3;
+      const wx = cx + t * hw;
+      const wy = baseY + t * hh * 0.45;
+      const lit = rng(tx * 11 + w, ty * 3 + f) > 0.42;
+      ctx.fillStyle = lit ? '#FFE898' : '#263850';
+      ctx.fillRect(Math.round(wx - 2), Math.round(wy - 3), 4, 5);
+    }
+  }
+}
+
+// Cathedral of Learning — tall gothic tower with pointed spire
+function drawCathedral(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  const hw = TW / 2, hh = TH / 2;
+  const bh = 20 * FLOOR_H; // very tall
+  const OL = 'rgba(0,0,0,0.4)';
+  const topC = '#D8D0A8', leftC = '#B0A878', rightC = '#888850';
+
+  // Main tower body
+  buildingBox(ctx, cx, cy, bh, topC, leftC, rightC);
+  pixelWindows(ctx, cx, cy, bh, 16, CATHEDRAL_TX, CATHEDRAL_TY);
+
+  // Gothic spire on top (triangle above roof)
+  const spireH = 60;
+  const roofY = cy - hh - bh;
+  fillPoly(ctx, [
+    [cx, roofY - spireH],
+    [cx + hw * 0.4, roofY],
+    [cx - hw * 0.4, roofY],
+  ], '#C8C098', OL);
+  // Spire right face (darker)
+  fillPoly(ctx, [
+    [cx, roofY - spireH],
+    [cx + hw * 0.4, roofY],
+    [cx, roofY - 10],
+  ], '#A8A070', OL);
+
+  // Label
+  ctx.save();
+  ctx.font = 'bold 8px monospace';
+  ctx.fillStyle = '#FFD166';
+  ctx.textAlign = 'center';
+  ctx.fillText('CATHEDRAL', cx, roofY - spireH - 6);
+  ctx.restore();
+}
+
+// Drop shadow: soft right-down shadow from a building
+function dropShadow(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  bh: number,
+) {
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = '#000';
+  // Simple parallelogram shadow to lower-right
+  const hw = TW / 2, hh = TH / 2;
+  const ox = 10, oy = 5; // shadow offset
+  fillPoly(ctx, [
+    [cx + ox,      cy + oy - hh],
+    [cx + hw + ox, cy + oy],
+    [cx + ox,      cy + oy + hh],
+    [cx - hw + ox, cy + oy],
+  ], '#000');
+  ctx.restore();
+}
+
+// Lollipop tree — chunky, bright, flat colors
+function drawTree(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number) {
+  const trunkH = Math.round(14 * scale);
+  const cr = Math.round(10 * scale);
+  // Shadow
+  ctx.save(); ctx.globalAlpha = 0.15;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(cx + 4 * scale, cy - 2, cr * 0.7, cr * 0.3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  // Trunk
+  ctx.fillStyle = '#7B5230';
+  ctx.fillRect(Math.round(cx - 2 * scale), cy - trunkH, Math.round(4 * scale), trunkH);
+  // Dark canopy base (outline/shadow)
+  ctx.fillStyle = '#1E5C2A';
+  ctx.beginPath(); ctx.arc(cx, cy - trunkH, cr + 1, 0, Math.PI * 2); ctx.fill();
+  // Main canopy
+  ctx.fillStyle = '#2E8B3A';
+  ctx.beginPath(); ctx.arc(cx, cy - trunkH, cr, 0, Math.PI * 2); ctx.fill();
+  // Highlight
+  ctx.fillStyle = '#4CC858';
+  ctx.beginPath(); ctx.arc(cx - Math.round(2 * scale), cy - trunkH - Math.round(2 * scale), Math.round(cr * 0.55), 0, Math.PI * 2); ctx.fill();
+}
+
+// Road tile with dashed centerline
+function drawRoad(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  diamond(ctx, cx, cy, ROAD_COLOR);
+  ctx.save();
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = ROAD_MARK;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - TW * 0.33, cy); ctx.lineTo(cx + TW * 0.33, cy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Suspension bridge tile (Three Sisters — yellow towers)
+function drawSuspensionBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  drawRoad(ctx, cx, cy);
+  // Tower posts (yellow/gold)
+  const towerH = 36;
+  const towerW = 5;
+  const towerColor = '#FFB81C';
+  [-TW * 0.28, TW * 0.28].forEach(ox => {
+    ctx.fillStyle = '#C88010';
+    ctx.fillRect(Math.round(cx + ox - towerW / 2 + 2), cy - towerH + 2, towerW, towerH);
+    ctx.fillStyle = towerColor;
+    ctx.fillRect(Math.round(cx + ox - towerW / 2), cy - towerH, towerW, towerH);
+    // Cross-beam at top
+    ctx.fillStyle = '#FFD060';
+    ctx.fillRect(Math.round(cx + ox - towerW * 1.1), cy - towerH, Math.round(towerW * 2.2), 3);
+  });
+  // Cable lines from tower tops to road surface
+  ctx.save();
+  ctx.strokeStyle = '#FFB81C';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.8;
+  const lt = cx - TW * 0.28, rt = cx + TW * 0.28;
+  ctx.beginPath();
+  ctx.moveTo(lt, cy - towerH); ctx.lineTo(cx - TW * 0.1, cy - 4);
+  ctx.moveTo(lt, cy - towerH); ctx.lineTo(cx - TW * 0.25, cy - 1);
+  ctx.moveTo(rt, cy - towerH); ctx.lineTo(cx + TW * 0.1, cy - 4);
+  ctx.moveTo(rt, cy - towerH); ctx.lineTo(cx + TW * 0.25, cy - 1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Truss bridge (Smithfield Street — dark grey truss over Mon)
+function drawTrussBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  drawRoad(ctx, cx, cy);
+  const trussColor = '#4A5A6A';
+  const trussH = 22;
+  // Two vertical supports
+  [-TW * 0.3, TW * 0.3].forEach(ox => {
+    ctx.fillStyle = trussColor;
+    ctx.fillRect(Math.round(cx + ox - 3), cy - trussH, 6, trussH);
+  });
+  // Horizontal top chord
+  ctx.fillStyle = trussColor;
+  ctx.fillRect(Math.round(cx - TW * 0.3 - 2), cy - trussH, Math.round(TW * 0.6 + 4), 4);
+  // Diagonal struts
+  ctx.save(); ctx.strokeStyle = trussColor; ctx.lineWidth = 2; ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  ctx.moveTo(cx - TW * 0.3, cy - trussH); ctx.lineTo(cx, cy);
+  ctx.moveTo(cx, cy - trussH);            ctx.lineTo(cx + TW * 0.3, cy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Animated water tile
+function drawWater(ctx: CanvasRenderingContext2D, cx: number, cy: number, time: number) {
+  diamond(ctx, cx, cy, WATER_COLOR);
+  const alpha = 0.35 + Math.sin(time * 1.6 + (cx + cy) * 0.04) * 0.12;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.strokeStyle = WATER_SHINE; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - TW * 0.3, cy - 3); ctx.lineTo(cx + TW * 0.3, cy - 3);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Hillside tile (elevated, darker green for slope)
+function drawHillside(ctx: CanvasRenderingContext2D, cx: number, cy: number, elev: number) {
+  const lift = elev * 14;
+  const color = elev > 2 ? HILL_B : HILL_A;
+  // Draw elevated ground diamond
+  const hw = TW / 2, hh = TH / 2;
+  const OL = 'rgba(0,0,0,0.25)';
+  // Slope face (south-facing cliff side)
+  fillPoly(ctx, [
+    [cx - hw, cy],
+    [cx,      cy + hh],
+    [cx,      cy + hh - lift],
+    [cx - hw, cy - lift],
+  ], '#3A6828', OL);
+  fillPoly(ctx, [
+    [cx,      cy + hh],
+    [cx + hw, cy],
+    [cx + hw, cy - lift],
+    [cx,      cy + hh - lift],
+  ], '#305820', OL);
+  // Top surface
+  fillPoly(ctx, [
+    [cx,    cy-hh-lift],
+    [cx+hw, cy-lift],
+    [cx,    cy+hh-lift],
+    [cx-hw, cy-lift],
+  ], color, OL);
+}
+
+// Pixelated blocky cloud shape (no smooth curves)
+function drawCloud(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.fillStyle = '#F8FCFF';
+  // Base rectangle
+  ctx.fillRect(x, y, w, h);
+  // Bumps on top (blocky 3x3 squares)
+  const bumps = Math.floor(w / 14);
+  for (let i = 0; i < bumps; i++) {
+    ctx.fillRect(x + 4 + i * 14, y - 6, 10, 8);
+  }
+  // Round-off bottom corners a tiny bit
+  ctx.clearRect(x, y + h - 2, 3, 2);
+  ctx.clearRect(x + w - 3, y + h - 2, 3, 2);
+  ctx.fillStyle = 'rgba(200,220,240,0.5)';
+  ctx.fillRect(x + 2, y + h - 2, w - 4, 2); // soft underside
+}
+
+// ── Main Component ───────────────────────────────────────────
 export default function CityCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const appRef = useRef<any>(null);
-  const selectNeighborhood = useCityPulseStore(s => s.selectNeighborhood);
-  const selectBridge = useCityPulseStore(s => s.selectBridge);
-  const neighborhoods = useCityPulseStore(s => s.neighborhoods);
+  const canvasRef    = useRef<HTMLCanvasElement>(null);
 
-  const initPixi = useCallback(async () => {
-    if (!containerRef.current) return;
-    const el = containerRef.current;
+  const selectedNeighborhoodId = useCityPulseStore(s => s.ui.selectedNeighborhoodId);
+  const selectNeighborhood     = useCityPulseStore(s => s.selectNeighborhood);
+  const setMapViewport         = useCityPulseStore(s => s.setMapViewport);
+  const storeViewport          = useCityPulseStore(s => s.ui.mapViewport);
 
-    // Dynamic import — safe here since ssr:false
-    const PIXI = await import('pixi.js');
-    const { Application, Graphics, Container, Text } = PIXI;
+  const [zoom, setZoom]               = useState(1);
+  const [pan, setPan]                 = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging]   = useState(false);
+  const [dragStart, setDragStart]     = useState({ x: 0, y: 0 });
+  const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
+  // Issue 4 fix: track mount state to avoid hydration mismatch
+  const [mounted, setMounted]         = useState(false);
 
-    const app = new Application();
-    await app.init({
-      width: el.clientWidth || 800,
-      height: el.clientHeight || 500,
-      backgroundColor: 0x0D1E30,
-      antialias: true,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true,
-    });
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMapViewport({ x: pan.x, y: pan.y, zoom }); }, [pan, zoom, setMapViewport]);
 
-    appRef.current = app;
-    el.appendChild(app.canvas as HTMLCanvasElement);
+  // Center on neighborhood selection
+  useEffect(() => {
+    if (!selectedNeighborhoodId) return;
+    const centers: Record<string, ReturnType<typeof tileToScreen>> = {
+      shadyside:      tileToScreen(22, 13),
+      lawrenceville:  tileToScreen(19, 7),
+      homewood:       tileToScreen(24, 17),
+    };
+    const c = centers[selectedNeighborhoodId];
+    if (c) { setPan({ x: -c.x, y: -c.y }); setZoom(1.3); }
+  }, [selectedNeighborhoodId]);
 
-    // Resize observer
-    const ro = new ResizeObserver(() => {
-      app.renderer.resize(el.clientWidth, el.clientHeight);
-    });
-    ro.observe(el);
+  useEffect(() => {
+    if (storeViewport && Math.abs(storeViewport.x - pan.x) > 40)
+      setPan({ x: storeViewport.x, y: storeViewport.y });
+  }, [storeViewport, pan.x]);
 
-    // ------ LAYER SETUP ----------------------------------------
-    const worldContainer = new Container();
-    app.stage.addChild(worldContainer);
+  // ── Render loop ──────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const terrainLayer    = new Container();
-    const bridgeLayer     = new Container();
-    const buildingLayer   = new Container();
-    const neighborhoodLayer = new Container();
-    const labelLayer      = new Container();
-    const inclineLayer    = new Container();
+    let animId: number;
+    const startT = performance.now();
 
-    worldContainer.addChild(terrainLayer);
-    worldContainer.addChild(bridgeLayer);
-    worldContainer.addChild(buildingLayer);
-    worldContainer.addChild(neighborhoodLayer);
-    worldContainer.addChild(inclineLayer);
-    worldContainer.addChild(labelLayer);
+    const updateSize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width  = container.clientWidth  * dpr;
+      canvas.height = container.clientHeight * dpr;
+      canvas.style.width  = `${container.clientWidth}px`;
+      canvas.style.height = `${container.clientHeight}px`;
+    };
+    updateSize();
+    const ro = new ResizeObserver(updateSize);
+    ro.observe(container);
 
-    // ------ ISOMETRIC UTILITIES --------------------------------
-    const TILE_W = 64;
-    const TILE_H = 32;
-    const MAP_COLS = 24;
-    const MAP_ROWS = 20;
-    const originX = 400;
-    const originY = 80;
+    function render() {
+      if (!ctx || !canvas) return;
+      const time = (performance.now() - startT) * 0.001;
+      const cw = canvas.width, ch = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
 
-    function isoToScreen(col: number, row: number): [number, number] {
-      const sx = originX + (col - row) * (TILE_W / 2);
-      const sy = originY + (col + row) * (TILE_H / 2);
-      return [sx, sy];
-    }
+      ctx.clearRect(0, 0, cw, ch);
 
-    // ------ WATER TILE CHECK ----------------------------------
-    function isWaterTile(col: number, row: number): boolean {
-      const allegheny = row <= 4 + col * 0.3 && row >= 2 + col * 0.25;
-      const mono = row >= 12 + col * 0.1 && row <= 15 + col * 0.05;
-      const ohio = col < 8 && Math.abs(row - 10) <= 1.5;
-      const confluence = Math.sqrt((col - 8) ** 2 + (row - 9) ** 2) < 2;
-      return allegheny || mono || ohio || confluence;
-    }
+      // ── Sky — flat pixel-art solid fill (NO gradient) ──────
+      ctx.fillStyle = SKY_COLOR;
+      ctx.fillRect(0, 0, cw, ch);
 
-    function isHillTile(col: number, row: number): boolean {
-      const mtWash = row >= 15 && col >= 5 && col <= 14;
-      const eastHills = col >= 18 && row <= 10;
-      return mtWash || eastHills;
-    }
+      // Blocky pixel-art clouds (rectangles, not smooth ellipses)
+      ([
+        [0.10, 0.07, 90, 20],
+        [0.50, 0.04, 120, 24],
+        [0.78, 0.08, 72, 18],
+        [0.32, 0.12, 56, 16],
+      ] as [number, number, number, number][]).forEach(([rx, ry, w, h]) => {
+        drawCloud(
+          ctx,
+          rx * cw + Math.sin(time * 0.035 + rx * 8) * 12,
+          ry * ch,
+          w, h,
+        );
+      });
 
-    // ------ TERRAIN -------------------------------------------
-    function drawTerrain() {
-      const g = new Graphics();
-      for (let col = 0; col < MAP_COLS; col++) {
-        for (let row = 0; row < MAP_ROWS; row++) {
-          const [sx, sy] = isoToScreen(col, row);
-          const isWater = isWaterTile(col, row);
-          const isHill = isHillTile(col, row);
-          g.poly([sx, sy, sx + TILE_W / 2, sy + TILE_H / 2, sx, sy + TILE_H, sx - TILE_W / 2, sy + TILE_H / 2]);
-          if (isWater) {
-            g.fill({ color: 0x1B4E8A, alpha: 0.9 });
-          } else if (isHill) {
-            g.fill({ color: 0x1A3520, alpha: 0.95 });
-            // Hill depth face
-            g.poly([sx - TILE_W / 2, sy + TILE_H / 2, sx, sy + TILE_H, sx, sy + TILE_H + 12, sx - TILE_W / 2, sy + TILE_H / 2 + 12]);
-            g.fill({ color: 0x142B14 });
-          } else {
-            g.fill({ color: (col + row) % 2 === 0 ? 0x1A2E1A : 0x1E3520 });
+      // ── Camera transform ────────────────────────────────────
+      ctx.save();
+      ctx.translate(cw / 2 + pan.x * dpr, ch / 2 + pan.y * dpr);
+      ctx.scale(zoom * dpr, zoom * dpr);
+      ctx.imageSmoothingEnabled = false;
+
+      // Precompute tiles once
+      const tiles: Array<{
+        tx: number; ty: number;
+        cx: number; cy: number;
+        info: TileInfo;
+      }> = [];
+      for (let ty = 0; ty < GH; ty++) {
+        for (let tx = 0; tx < GW; tx++) {
+          const { x: cx, y: cy } = tileToScreen(tx, ty);
+          tiles.push({ tx, ty, cx, cy, info: classifyTile(tx, ty) });
+        }
+      }
+
+      // ── Pass 1: Ground tiles ────────────────────────────────
+      for (const { tx, ty, cx, cy, info } of tiles) {
+        switch (info.ground) {
+          case 'water':
+            drawWater(ctx, cx, cy, time);
+            break;
+          case 'road':
+            if      (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
+            else if (info.bridge === 'truss')      drawTrussBridge(ctx, cx, cy);
+            else                                   drawRoad(ctx, cx, cy);
+            break;
+          case 'park':
+            diamond(ctx, cx, cy, PARK_COLOR);
+            break;
+          case 'hillside':
+            drawHillside(ctx, cx, cy, info.hillElevation ?? 0);
+            break;
+          default: {
+            const shade = rng(tx, ty) > 0.5 ? GRASS_A : GRASS_B;
+            diamond(ctx, cx, cy, shade);
+            break;
           }
         }
       }
-      terrainLayer.addChild(g);
-    }
 
-    // ------ THREE RIVERS --------------------------------------
-    function drawRivers() {
-      const g = new Graphics();
+      // ── Pass 2: Buildings, trees, special structures ────────
+      for (const { tx, ty, cx, cy, info } of tiles) {
+        // Cathedral of Learning — special, drawn before other buildings
+        if (info.cathedral) {
+          drawCathedral(ctx, cx, cy);
+          continue;
+        }
 
-      const drawRiverLine = (pts: [number,number][], width: number, color: number) => {
-        if (pts.length < 2) return;
-        g.setStrokeStyle({ width, color, alpha: 0.95, cap: 'round', join: 'round' });
-        g.moveTo(pts[0][0], pts[0][1]);
-        for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
-        g.stroke();
-      };
+        // Trees
+        if (info.tree && !info.building) {
+          const scale = 0.65 + rng(tx * 3, ty * 3) * 0.55;
+          drawTree(ctx, cx, cy - TH / 2, scale);
+          continue;
+        }
 
-      drawRiverLine([
-        isoToScreen(24,0), isoToScreen(22,1), isoToScreen(20,2),
-        isoToScreen(17,3), isoToScreen(14,4), isoToScreen(12,5),
-        isoToScreen(10,7), isoToScreen(8,9),
-      ], 20, 0x1E5FA0);
+        // Park trees
+        if (info.ground === 'park') {
+          if (rng(tx, ty) > 0.25) {
+            const scale = 0.55 + rng(tx * 5, ty * 7) * 0.65;
+            const ox = (rng(tx, ty + 1) - 0.5) * 22;
+            drawTree(ctx, cx + ox, cy - TH / 2, scale);
+          }
+          continue;
+        }
 
-      drawRiverLine([
-        isoToScreen(24,18), isoToScreen(22,17), isoToScreen(20,16),
-        isoToScreen(17,15), isoToScreen(14,14), isoToScreen(11,13),
-        isoToScreen(9,11), isoToScreen(8,9),
-      ], 22, 0x1A5090);
+        if (!info.building) continue;
 
-      drawRiverLine([
-        isoToScreen(8,9), isoToScreen(6,9), isoToScreen(4,9),
-        isoToScreen(2,9), isoToScreen(0,9),
-      ], 28, 0x1B4E8A);
+        const zone = info.building;
+        const r    = rng(tx, ty);
+        const [lo, hi] = ZONE_FLOORS[zone];
+        const floors   = lo + Math.round(r * (hi - lo));
 
-      // Confluence fill
-      g.circle(isoToScreen(8,9)[0], isoToScreen(8,9)[1], 18);
-      g.fill({ color: 0x1B4E8A });
+        // Hillside buildings are shorter
+        const floorMult = info.ground === 'hillside' ? 0.65 : 1;
+        const bh = Math.round(floors * FLOOR_H * floorMult);
 
-      // Water ripples
-      g.setStrokeStyle({ width: 1, color: 0x2E6BB0, alpha: 0.4 });
-      for (let i = 0; i < 5; i++) {
-        const [sx, sy] = isoToScreen(4 + i * 3, 9);
-        g.moveTo(sx - 10, sy); g.lineTo(sx + 10, sy);
+        const pal = ZONE_PAL[zone];
+        const ci  = Math.floor(rng(tx + 1, ty) * pal.length);
+        const [topC, leftC, rightC] = pal[ci];
+
+        // Drop shadow behind building
+        dropShadow(ctx, cx, cy, bh);
+        buildingBox(ctx, cx, cy, bh, topC, leftC, rightC);
+        if (zoom > 0.55) pixelWindows(ctx, cx, cy, bh, floors, tx, ty);
       }
-      g.stroke();
 
-      terrainLayer.addChild(g);
+      ctx.restore();
+      animId = requestAnimationFrame(render);
     }
 
-    // ------ BRIDGES -------------------------------------------
-    function drawBridges() {
-      // Three Sisters (gold suspension)
-      const threeSisters = [
-        { col: 12, rowN: 4, rowS: 7, id: 'br-clemente', name: 'R. Clemente Bridge' },
-        { col: 13, rowN: 4, rowS: 7, id: 'br-warhol', name: 'A. Warhol Bridge' },
-        { col: 14, rowN: 4, rowS: 7, id: 'br-rachel-carson', name: 'R. Carson Bridge' },
-      ];
+    animId = requestAnimationFrame(render);
+    return () => { cancelAnimationFrame(animId); ro.disconnect(); };
+  }, [pan, zoom]);
 
-      threeSisters.forEach(({ col, rowN, rowS, id, name }) => {
-        const g = new Graphics();
-        const [x1, y1] = isoToScreen(col, rowN);
-        const [x2, y2] = isoToScreen(col, rowS);
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2 - 24;
+  // ── Input handlers ───────────────────────────────────────────
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.hud-ctrl')) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  };
+  const handleMouseUp   = () => setIsDragging(false);
+  const handleWheel     = (e: React.WheelEvent) => {
+    e.preventDefault();
+    setZoom(z => Math.min(3.0, Math.max(0.4, z * (e.deltaY < 0 ? 1.15 : 0.88))));
+  };
+  const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
+  const handleZoomOut = () => setZoom(z => Math.max(0.4, z * 0.8));
+  const handleReset   = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
-        // Bridge deck
-        g.setStrokeStyle({ width: 3, color: 0xFFB81C });
-        g.moveTo(x1, y1 + 16); g.lineTo(x2, y2 + 16); g.stroke();
-
-        // Cables
-        g.setStrokeStyle({ width: 1, color: 0xFFD166 });
-        g.moveTo(x1, y1 + 16); g.lineTo(midX, midY); g.lineTo(x2, y2 + 16); g.stroke();
-
-        // Tower
-        g.setFillStyle({ color: 0xFFB81C });
-        g.rect(midX - 2, midY - 12, 4, 12); g.fill();
-
-        g.eventMode = 'static';
-        g.cursor = 'pointer';
-        g.on('pointerdown', () => selectBridge(id));
-        bridgeLayer.addChild(g);
-
-        // Label
-        const label = new Text({ text: name, style: { fontSize: 8, fill: 0xFFD166, fontFamily: 'monospace' } });
-        label.x = midX - label.width / 2;
-        label.y = midY - 16;
-        bridgeLayer.addChild(label);
-      });
-
-      // Mon bridges (grey)
-      [
-        { col: 8, rowN: 9, rowS: 12, id: 'br-fort-pitt' },
-        { col: 9, rowN: 9, rowS: 13, id: 'br-smithfield' },
-      ].forEach(({ col, rowN, rowS, id }) => {
-        const g = new Graphics();
-        const [x1, y1] = isoToScreen(col, rowN);
-        const [x2, y2] = isoToScreen(col, rowS);
-        g.setStrokeStyle({ width: 4, color: 0x7A9EC0 });
-        g.moveTo(x1, y1 + 16); g.lineTo(x2, y2 + 16); g.stroke();
-        g.eventMode = 'static';
-        g.cursor = 'pointer';
-        g.on('pointerdown', () => selectBridge(id));
-        bridgeLayer.addChild(g);
-      });
-    }
-
-    // ------ BUILDINGS -----------------------------------------
-    type PIXIContainer = InstanceType<typeof Container>;
-
-    function drawSkyscraper(
-      layer: PIXIContainer, col: number, row: number,
-      w: number, h: number, colorTop: number, colorSide: number, name: string
-    ) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.poly([sx, sy-h, sx+w*2, sy-h+w, sx+w*2, sy+w, sx, sy+w*2, sx-w*2, sy+w, sx-w*2, sy-h+w]);
-      g.fill({ color: colorTop });
-      g.poly([sx-w*2, sy-h+w, sx, sy-h, sx, sy+w*2-h*0, sx-w*2, sy+w]); g.fill({ color: colorSide });
-      g.poly([sx+w*2, sy-h+w, sx, sy-h, sx, sy+w*2-h*0, sx+w*2, sy+w]);
-      g.fill({ color: Math.max(0, colorSide - 0x202020) });
-      // Windows
-      g.setFillStyle({ color: 0x93C5FD, alpha: 0.4 });
-      for (let wx = 0; wx < 2; wx++)
-        for (let wy = 0; wy < Math.floor(h / 8); wy++)
-          g.rect(sx - w + wx * w, sy - h + 4 + wy * 8, 3, 4);
-      g.fill();
-      layer.addChild(g);
-      if (name) {
-        const t = new Text({ text: name, style: { fontSize: 7, fill: 0x93C5FD, fontFamily: 'monospace' } });
-        t.x = sx - t.width / 2; t.y = sy - h - 10;
-        layer.addChild(t);
-      }
-    }
-
-    function drawCathedralOfLearning(layer: PIXIContainer, col: number, row: number) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.poly([sx-5, sy, sx+5, sy-4, sx+5, sy-60, sx, sy-66, sx-5, sy-60]); g.fill({ color: 0x6B7280 });
-      g.poly([sx-5, sy-60, sx, sy-66, sx-3, sy-60, sx+3, sy-60, sx, sy-66, sx+5, sy-60]); g.fill({ color: 0x4B5563 });
-      g.poly([sx-2, sy-66, sx, sy-80, sx+2, sy-66]); g.fill({ color: 0x9CA3AF });
-      layer.addChild(g);
-      const label = new Text({ text: 'Cathedral of\nLearning', style: { fontSize: 6, fill: 0xD1D5DB, fontFamily: 'monospace', align: 'center' } });
-      label.x = sx - label.width / 2; label.y = sy - 90;
-      layer.addChild(label);
-    }
-
-    function drawStadium(layer: PIXIContainer, col: number, row: number, name: string) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.ellipse(sx, sy+10, 28, 14); g.fill({ color: 0x1E3A5F });
-      g.setStrokeStyle({ width: 2, color: 0xFFB81C }); g.ellipse(sx, sy+10, 28, 14); g.stroke();
-      g.ellipse(sx, sy+10, 18, 8); g.fill({ color: 0x166534 });
-      layer.addChild(g);
-      const label = new Text({ text: name, style: { fontSize: 6, fill: 0xFFD166, fontFamily: 'monospace' } });
-      label.x = sx - label.width / 2; label.y = sy - 8;
-      layer.addChild(label);
-    }
-
-    function drawHospital(layer: PIXIContainer, col: number, row: number) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.rect(sx-18, sy-22, 36, 24); g.fill({ color: 0xF8FAFC });
-      g.setFillStyle({ color: 0xEF4444 });
-      g.rect(sx-3, sy-20, 6, 14); g.fill();
-      g.rect(sx-8, sy-15, 16, 5); g.fill();
-      layer.addChild(g);
-      const label = new Text({ text: 'HOSPITAL', style: { fontSize: 7, fill: 0xEF4444, fontWeight: 'bold', fontFamily: 'monospace' } });
-      label.x = sx - label.width / 2; label.y = sy - 30;
-      layer.addChild(label);
-    }
-
-    function drawFountain(layer: PIXIContainer, col: number, row: number) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.circle(sx, sy, 16); g.fill({ color: 0x166534, alpha: 0.7 });
-      g.circle(sx, sy, 6); g.fill({ color: 0x1B4E8A });
-      g.setStrokeStyle({ width: 1, color: 0x93C5FD, alpha: 0.7 });
-      for (let a = 0; a < 6; a++) {
-        const angle = (a / 6) * Math.PI * 2;
-        g.moveTo(sx, sy); g.lineTo(sx + Math.cos(angle) * 8, sy + Math.sin(angle) * 4);
-      }
-      g.stroke();
-      layer.addChild(g);
-    }
-
-    function drawWarehouse(layer: PIXIContainer, col: number, row: number) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.poly([sx, sy-8, sx+20, sy-4, sx+20, sy+12, sx, sy+16, sx-20, sy+12, sx-20, sy-4]); g.fill({ color: 0x78350F });
-      layer.addChild(g);
-      const label = new Text({ text: 'Strip District', style: { fontSize: 6, fill: 0xFDE68A, fontFamily: 'monospace' } });
-      label.x = sx - label.width / 2; label.y = sy - 18;
-      layer.addChild(label);
-    }
-
-    function drawChurch(layer: PIXIContainer, col: number, row: number) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.rect(sx-6, sy-10, 12, 12); g.fill({ color: 0x374151 });
-      g.poly([sx-3, sy-10, sx, sy-22, sx+3, sy-10]); g.fill({ color: 0x4B5563 });
-      g.setFillStyle({ color: 0xD1D5DB });
-      g.rect(sx-0.5, sy-21, 1, 5); g.fill();
-      g.rect(sx-2, sy-19, 5, 1); g.fill();
-      layer.addChild(g);
-    }
-
-    function drawHouseSprite(layer: PIXIContainer, col: number, row: number, color: number) {
-      const g = new Graphics();
-      const [sx, sy] = isoToScreen(col, row);
-      g.poly([sx, sy-6, sx+8, sy-3, sx+8, sy+5, sx, sy+8, sx-8, sy+5, sx-8, sy-3]); g.fill({ color });
-      g.poly([sx, sy-6, sx+8, sy-3, sx, sy-10, sx-8, sy-3]); g.fill({ color: Math.max(0, color - 0x101010) });
-      g.setFillStyle({ color: 0xFEF3C7, alpha: 0.6 }); g.rect(sx-2, sy-3, 3, 3); g.fill();
-      layer.addChild(g);
-    }
-
-    function drawBuildings() {
-      drawSkyscraper(buildingLayer, 9, 8, 8, 40, 0x2563EB, 0x1D4ED8, 'PPG Place');
-      drawSkyscraper(buildingLayer, 9, 7, 6, 30, 0x1E40AF, 0x1E3A8A, 'U.S. Steel');
-      drawSkyscraper(buildingLayer, 10, 8, 5, 25, 0x3B82F6, 0x2563EB, '');
-      drawSkyscraper(buildingLayer, 10, 9, 4, 20, 0x60A5FA, 0x3B82F6, '');
-      drawSkyscraper(buildingLayer, 8, 9, 4, 18, 0x7C3AED, 0x6D28D9, '');
-      drawCathedralOfLearning(buildingLayer, 16, 6);
-      drawStadium(buildingLayer, 11, 2, 'PNC Park');
-      drawStadium(buildingLayer, 13, 2, 'Acrisure Stadium');
-      drawHospital(buildingLayer, 17, 7);
-      drawFountain(buildingLayer, 7, 10);
-      drawWarehouse(buildingLayer, 13, 6);
-      drawChurch(buildingLayer, 12, 10);
-      drawChurch(buildingLayer, 15, 9);
-      drawChurch(buildingLayer, 10, 12);
-
-      // Houses
-      const houses: Array<{col:number;row:number;color:number}> = [
-        {col:20,row:3,color:0xD97706},{col:21,row:4,color:0xB45309},{col:22,row:3,color:0xD97706},
-        {col:15,row:5,color:0x2563EB},{col:16,row:4,color:0x1D4ED8},{col:17,row:5,color:0x3B82F6},
-        {col:22,row:7,color:0xDC2626},{col:23,row:6,color:0xB91C1C},
-        {col:11,row:10,color:0xDC2626},{col:12,row:11,color:0xB91C1C},
-        {col:10,row:14,color:0x2563EB},{col:11,row:15,color:0x1D4ED8},
-        {col:8,row:16,color:0x059669},{col:9,row:17,color:0x047857},
-      ];
-      houses.forEach(({col, row, color}) => drawHouseSprite(buildingLayer, col, row, color));
-    }
-
-    // ------ INCLINES (animated) --------------------------------
-    function drawInclines() {
-      [[8.5,13,6.5,16.5],[9.5,13,7.5,16.5]].forEach(([tc, tr, bc, br]) => {
-        const g = new Graphics();
-        const [tx, ty] = isoToScreen(tc, tr);
-        const [bx, by] = isoToScreen(bc, br);
-        g.setStrokeStyle({ width: 2, color: 0x4B5563 });
-        g.moveTo(tx-3,ty); g.lineTo(bx-3,by);
-        g.moveTo(tx+3,ty); g.lineTo(bx+3,by);
-        g.stroke();
-        inclineLayer.addChild(g);
-
-        // Animated car
-        const car = new Graphics();
-        car.poly([-5,-4,5,-4,5,4,-5,4]); car.fill({ color: 0xFFB81C });
-        inclineLayer.addChild(car);
-        let progress = Math.random();
-        let dir = 1;
-        app.ticker.add(() => {
-          progress += 0.003 * dir;
-          if (progress >= 1) { progress = 1; dir = -1; }
-          if (progress <= 0) { progress = 0; dir = 1; }
-          car.x = tx + (bx - tx) * progress;
-          car.y = ty + (by - ty) * progress;
-        });
-      });
-    }
-
-    // ------ NEIGHBORHOOD ZONES --------------------------------
-    function drawNeighborhoodZones() {
-      const canvasW = el.clientWidth || 800;
-      const canvasH = el.clientHeight || 500;
-
-      neighborhoods.forEach(n => {
-        const cx = n.mapX * canvasW;
-        const cy = n.mapY * canvasH;
-        const borderColor = n.incomeGroup === 'higher' ? 0xFFB81C
-          : n.incomeGroup === 'middle' ? 0x3B82F6 : 0xEF4444;
-
-        // Zone overlay circle
-        const g = new Graphics();
-        g.circle(cx, cy, 32); g.fill({ color: borderColor, alpha: 0.08 });
-        g.setStrokeStyle({ width: 1.5, color: borderColor, alpha: 0.4 }); g.circle(cx, cy, 32); g.stroke();
-        g.eventMode = 'static'; g.cursor = 'pointer';
-        g.on('pointerdown', () => selectNeighborhood(n.id));
-        neighborhoodLayer.addChild(g);
-
-        // Floating label pill
-        const labelGroup = new Container();
-        const pillW = 115, pillH = 32;
-        const bg = new Graphics();
-        bg.roundRect(-pillW/2, -pillH/2, pillW, pillH, 8);
-        bg.fill({ color: 0x0A1628, alpha: 0.92 });
-        bg.setStrokeStyle({ width: 1.5, color: borderColor });
-        bg.roundRect(-pillW/2, -pillH/2, pillW, pillH, 8); bg.stroke();
-        labelGroup.addChild(bg);
-
-        const icon = new Text({ text: n.incomeGroup === 'higher' ? '👑' : n.incomeGroup === 'middle' ? '🏠' : '🏘️', style: { fontSize: 10 } });
-        icon.x = -pillW/2 + 6; icon.y = -7; labelGroup.addChild(icon);
-
-        const nameText = new Text({ text: n.name.toUpperCase(), style: { fontSize: 7, fill: borderColor, fontWeight: 'bold', fontFamily: 'monospace' } });
-        nameText.x = -pillW/2 + 22; nameText.y = -12; labelGroup.addChild(nameText);
-
-        const sub = new Text({ text: n.incomeGroup.charAt(0).toUpperCase() + n.incomeGroup.slice(1) + ' Income', style: { fontSize: 6, fill: 0x94A3B8, fontFamily: 'monospace' } });
-        sub.x = -pillW/2 + 22; sub.y = 1; labelGroup.addChild(sub);
-
-        labelGroup.eventMode = 'static'; labelGroup.cursor = 'pointer';
-        labelGroup.on('pointerdown', () => selectNeighborhood(n.id));
-        labelGroup.x = cx; labelGroup.y = cy - 44;
-        labelLayer.addChild(labelGroup);
-      });
-    }
-
-    // ------ PAN / ZOOM ----------------------------------------
-    function setupPanZoom() {
-      let isDragging = false;
-      let lastX = 0; let lastY = 0;
-      const canvas = app.canvas as HTMLCanvasElement;
-      canvas.addEventListener('mousedown', (e: MouseEvent) => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
-      canvas.addEventListener('mousemove', (e: MouseEvent) => {
-        if (!isDragging) return;
-        worldContainer.x += e.clientX - lastX;
-        worldContainer.y += e.clientY - lastY;
-        lastX = e.clientX; lastY = e.clientY;
-      });
-      canvas.addEventListener('mouseup', () => { isDragging = false; });
-      canvas.addEventListener('mouseleave', () => { isDragging = false; });
-      canvas.addEventListener('wheel', (e: WheelEvent) => {
-        e.preventDefault();
-        const zf = e.deltaY < 0 ? 1.1 : 0.9;
-        const old = worldContainer.scale.x;
-        const nw = Math.min(3, Math.max(0.3, old * zf));
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        worldContainer.x = mx - (mx - worldContainer.x) * (nw / old);
-        worldContainer.y = my - (my - worldContainer.y) * (nw / old);
-        worldContainer.scale.set(nw);
-      }, { passive: false });
-    }
-
-    // ------ RENDER --------------------------------------------
-    drawTerrain();
-    drawRivers();
-    drawBridges();
-    drawBuildings();
-    drawInclines();
-    drawNeighborhoodZones();
-    setupPanZoom();
-
-    worldContainer.x = (el.clientWidth || 800) * 0.05;
-    worldContainer.y = (el.clientHeight || 500) * 0.08;
-
-    return () => {
-      ro.disconnect();
-      app.destroy(true, { children: true });
-      appRef.current = null;
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    initPixi().then(fn => { cleanup = fn; });
-    return () => { if (cleanup) cleanup(); };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Neighborhood badge definitions ───────────────────────────
+  // Tile centers match classifyTile zone assignments above
+  const badges = [
+    {
+      id: 'shadyside', name: 'SHADYSIDE', subtitle: 'Wealthy',
+      wx: tileToScreen(22, 13).x, wy: tileToScreen(22, 13).y,
+      borderColor: '#FFB81C', bgColor: 'rgba(14,28,10,0.93)', textColor: '#FFD166',
+      tooltip: 'Shadyside — Wealthy | 81% Happiness | $94K Median Income',
+      action: () => selectNeighborhood('shadyside'),
+    },
+    {
+      id: 'lawrenceville', name: 'LAWRENCEVILLE', subtitle: 'Middle-Income',
+      wx: tileToScreen(19, 7).x, wy: tileToScreen(19, 7).y,
+      borderColor: '#60A5FA', bgColor: 'rgba(8,18,40,0.93)', textColor: '#93C5FD',
+      tooltip: 'Lawrenceville — Middle-Income | 68% Happiness | $52K Median Income',
+      action: () => selectNeighborhood('lawrenceville'),
+    },
+    {
+      id: 'homewood', name: 'HOMEWOOD', subtitle: 'Lower-Income',
+      wx: tileToScreen(24, 17).x, wy: tileToScreen(24, 17).y,
+      borderColor: '#F87171', bgColor: 'rgba(28,8,8,0.93)', textColor: '#FCA5A5',
+      tooltip: 'Homewood — Lower-Income | 42% Happiness | $28K Median Income',
+      action: () => selectNeighborhood('homewood'),
+    },
+  ];
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full"
-      style={{ cursor: 'grab' }}
-    />
+      className="w-full h-full relative overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onWheel={handleWheel}
+    >
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full block pointer-events-none"
+      />
+
+      {/* Neighborhood badges — only rendered client-side (avoids hydration mismatch) */}
+      {mounted && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {badges.map(b => {
+            const cw = containerRef.current?.clientWidth  ?? 800;
+            const ch = containerRef.current?.clientHeight ?? 600;
+            const sx = cw / 2 + pan.x + b.wx * zoom;
+            const sy = ch / 2 + pan.y + b.wy * zoom;
+            if (sx < -220 || sx > cw + 220 || sy < -120 || sy > ch + 120) return null;
+            const isSelected = selectedNeighborhoodId === b.id;
+            const isHovered  = hoveredBadge === b.id;
+            return (
+              <div
+                key={b.id}
+                className="absolute pointer-events-auto transition-transform hover:scale-105 active:scale-95 cursor-pointer z-10"
+                style={{ left: sx, top: sy, transform: 'translate(-50%, -100%)' }}
+                onClick={e => { e.stopPropagation(); b.action(); }}
+                onMouseEnter={() => setHoveredBadge(b.id)}
+                onMouseLeave={() => setHoveredBadge(null)}
+                title={b.tooltip}
+              >
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg shadow-2xl backdrop-blur-md"
+                  style={{
+                    background: b.bgColor,
+                    border: `2px solid ${b.borderColor}`,
+                    boxShadow: isSelected || isHovered
+                      ? `0 0 18px ${b.borderColor}`
+                      : '0 4px 14px rgba(0,0,0,0.7)',
+                  }}
+                >
+                  <div className="flex flex-col leading-none">
+                    <span className="text-xs font-black tracking-wider uppercase" style={{ color: b.textColor }}>
+                      {b.name}
+                    </span>
+                    <span className="text-[10px] text-slate-300 font-medium mt-0.5">{b.subtitle}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* HUD controls */}
+      <div className="hud-ctrl absolute bottom-4 right-4 flex items-center gap-1.5 z-20">
+        {([
+          { label: '+',     title: 'Zoom In',    onClick: handleZoomIn,  cls: 'w-9 h-9 text-lg font-black' },
+          { label: '−',     title: 'Zoom Out',   onClick: handleZoomOut, cls: 'w-9 h-9 text-lg font-black' },
+          { label: 'Reset', title: 'Reset View', onClick: handleReset,   cls: 'h-9 px-3 text-xs font-bold' },
+        ] as const).map(btn => (
+          <button
+            key={btn.label}
+            onClick={btn.onClick}
+            title={btn.title}
+            className={`${btn.cls} rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer`}
+            style={{ background: 'rgba(10,22,40,0.95)', border: '1.5px solid #1E3050', color: '#F0F4FA' }}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Interaction hint */}
+      <div
+        className="hud-ctrl absolute top-3 left-4 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 pointer-events-none z-20 backdrop-blur-md"
+        style={{ background: 'rgba(10,22,40,0.85)', border: '1px solid rgba(30,48,80,0.7)', color: '#94A3B8' }}
+      >
+        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        <span>Click neighborhoods · Drag to pan · Scroll to zoom</span>
+      </div>
+    </div>
   );
 }

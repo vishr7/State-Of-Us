@@ -84,7 +84,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   snapshots: initialSnapshots,
   consequenceQueue: [],
 
-  weather: { condition: 'overcast', tempC: 14 },
+  weather: { condition: 'sunny', tempC: 18 },
   ui: defaultUI,
 
   turnIntervalId: null,

@@ -10,9 +10,32 @@ interface AvatarProps {
   color: string;
   size?: number;
   className?: string;
+  src?: string;
 }
 
-export default function Avatar({ initials, color, size = 40, className = '' }: AvatarProps) {
+export default function Avatar({ initials, color, size = 40, className = '', src }: AvatarProps) {
+  if (src) {
+    return (
+      <div
+        className={`flex-shrink-0 overflow-hidden relative ${className}`}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: Math.max(6, size * 0.22),
+          border: `1.5px solid ${color}88`,
+          background: `${color}22`,
+        }}
+      >
+        <img
+          src={src}
+          alt={initials}
+          className="w-full h-full object-cover"
+          style={{ imageRendering: 'pixelated' }}
+        />
+      </div>
+    );
+  }
+
   const fontSize = Math.round(size * 0.33);
   return (
     <svg

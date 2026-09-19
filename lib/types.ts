@@ -116,15 +116,14 @@ export interface Resident {
   policySupport: Record<string, number>; // policyId → support 0–1
   // Personality
   archetype: string;            // e.g. "veteran_union_member"
-  portraitColor: string;        // hex for avatar background
-  portraitInitials: string;
-  // Memories (latest N)
+  portraitColor: string;        // Hex for avatar fallback
+  portraitInitials: string;     // e.g. "DK"
+  avatarUrl?: string;           // Optional pixel art avatar URL
   memories: AgentMemory[];
-  // Quote shown in sidebar
   currentQuote: string;
 }
 
-// ------ Agent Group -----------------------------------------
+// ------ Agent Group (sentiment aggregation) -----------------
 
 export interface AgentGroup {
   id: string;
@@ -134,9 +133,10 @@ export interface AgentGroup {
   medianIncome: number;
   renterFraction: number;
   currentSentiment: number;     // 0–100
-  policyPreferences: Record<CategoryId, number>; // 0–1 support
+  policyPreferences: Record<CategoryId, number>;
   currentQuote: string;
   avatarColor: string;
+  avatarUrl?: string;           // Optional pixel art avatar URL
 }
 
 // ------ Policy ----------------------------------------------
