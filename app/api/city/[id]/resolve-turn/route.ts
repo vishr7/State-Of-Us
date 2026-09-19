@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { resolveTurn } from '@/simulation/resolveTurn';
+import { resolveTurn } from '@database/simulation/resolveTurn';
 import {
   CityNotFoundError,
   MalformedPolicyEffectsError,
   PolicyNotFoundError,
   SnapshotAlreadyExistsError,
   UnsupportedEffectsVersionError,
-} from '@/simulation/errors';
+} from '@database/simulation/errors';
 
 /**
  * POST /api/city/:id/resolve-turn — advances one turn.
@@ -14,7 +14,7 @@ import {
  * Route handler only: validates the id exists as a path param and delegates
  * to the simulation service. All simulation logic (loading state, applying
  * policy effects, recomputing aggregates, persisting, snapshotting) lives in
- * src/simulation/resolveTurn.ts, inside one database transaction.
+ * database/simulation/resolveTurn.ts, inside one database transaction.
  */
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
   try {

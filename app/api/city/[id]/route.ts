@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
-import type { City } from '@/types/database';
+import { getPool } from '@database/lib/db';
+import type { City } from '@database/types/database';
 
 /** GET /api/city/:id — current canonical city state. Read-only, no simulation logic here. */
 export async function GET(_request: Request, { params }: { params: { id: string } }) {

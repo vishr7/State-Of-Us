@@ -1,6 +1,6 @@
 /**
  * Deterministic interpreter for `policies.effects` (the `PolicyEffects`
- * contract in src/types/database.ts).
+ * contract in database/types/database.ts).
  *
  * PURE: takes and returns plain in-memory data. Never touches the database,
  * never reads the clock, never calls an LLM. Given the same inputs it always
@@ -33,7 +33,7 @@ export interface PolicyEffectResult {
   residents: Resident[];
 }
 
-// Runtime mirrors of the *EffectTarget unions in src/types/database.ts. These
+// Runtime mirrors of the *EffectTarget unions in database/types/database.ts. These
 // exist only as compile-time types there (erased at runtime), but `effects`
 // arrives from the database as untyped JSONB, so the same whitelist has to be
 // enforced again at runtime — otherwise a malformed or hand-edited policy row

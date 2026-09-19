@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
-import type { Resident } from '@/types/database';
+import { getPool } from '@database/lib/db';
+import type { Resident } from '@database/types/database';
 
 /** GET /api/city/:id/residents — read-only. */
 export async function GET(_request: Request, { params }: { params: { id: string } }) {

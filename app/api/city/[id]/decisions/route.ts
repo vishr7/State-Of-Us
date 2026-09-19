@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
-import type { City, Decision, Policy } from '@/types/database';
+import { getPool } from '@database/lib/db';
+import type { City, Decision, Policy } from '@database/types/database';
 
 interface CreateDecisionBody {
   policy_id?: unknown;

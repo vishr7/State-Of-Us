@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
-import type { Policy } from '@/types/database';
+import { getPool } from '@database/lib/db';
+import type { Policy } from '@database/types/database';
 
 /** GET /api/policies — the global policy catalogue, read-only. */
 export async function GET() {

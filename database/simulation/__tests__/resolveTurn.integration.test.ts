@@ -1,10 +1,10 @@
 /**
  * End-to-end proof that one full turn resolves correctly against a real
  * Postgres database running the actual migration + seed
- * (supabase/migrations, supabase/seed.sql).
+ * (database/supabase/migrations, database/supabase/seed.sql).
  *
  * Requires DATABASE_URL to point at such a database — see .env.example and
- * supabase/README.md "Running it". Skips (not fails) if it's not set, so
+ * database/supabase/README.md "Running it". Skips (not fails) if it's not set, so
  * `npm test` stays green in an environment with no database configured; run
  * `npm run test:integration` explicitly when you have one.
  *
@@ -32,7 +32,7 @@ describe.runIf(hasDatabase)('resolveTurn (integration)', () => {
     const cityResult = await getPool().query<City>('select * from cities where name = $1', ['Marrow Bay']);
     if (!cityResult.rows[0]) {
       throw new Error(
-        'Seeded city "Marrow Bay" not found. Run the migration + supabase/seed.sql against DATABASE_URL first.'
+        'Seeded city "Marrow Bay" not found. Run the migration + database/supabase/seed.sql against DATABASE_URL first.'
       );
     }
     cityId = cityResult.rows[0].id;

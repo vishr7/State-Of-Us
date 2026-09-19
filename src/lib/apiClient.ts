@@ -9,7 +9,7 @@
  * database access, matching the architecture rule (only the server mutates
  * canonical state).
  */
-import type { AppliedDecision, City, Decision, Neighborhood, Policy, Resident } from '../types/database';
+import type { AppliedDecision, City, Decision, Neighborhood, Policy, Resident } from '@database/types/database';
 
 /** What GET /api/city/:id returns — City minus its timestamps (see that route). */
 export type CitySummary = Omit<City, 'created_at' | 'updated_at'>;

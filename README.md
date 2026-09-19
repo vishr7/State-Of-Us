@@ -2,30 +2,30 @@
 
 Backend for the financial city simulator: a deterministic policy interpreter,
 turn resolver, and the minimum API the frontend needs. Database schema lives
-in [supabase/](supabase/README.md) — this README covers what was built on top
+in [database/supabase/](database/supabase/README.md) — this README covers what was built on top
 of it.
 
 > Database and simulation engine are the source of truth. Nothing here calls
 > an LLM or lets one touch canonical state — see
-> [supabase/README.md "The architecture rule"](supabase/README.md#the-architecture-rule-expressed-in-the-schema).
+> [database/supabase/README.md "The architecture rule"](database/supabase/README.md#the-architecture-rule-expressed-in-the-schema).
 
 ## What's here
 
 | Path | What |
 | --- | --- |
-| [src/simulation/applyPolicyEffects.ts](src/simulation/applyPolicyEffects.ts) | Pure interpreter for `policies.effects` — set/multiply/add, city/neighborhood/resident selectors |
-| [src/simulation/recalculateAggregates.ts](src/simulation/recalculateAggregates.ts) | Pure recompute of derived neighborhood/city fields from residents |
-| [src/simulation/loadTurnState.ts](src/simulation/loadTurnState.ts) | DB reads for one turn (city, neighborhoods, residents, decisions, policies) |
-| [src/simulation/persistTurnState.ts](src/simulation/persistTurnState.ts) | DB writes for one turn |
-| [src/simulation/resolveTurn.ts](src/simulation/resolveTurn.ts) | Orchestrates the above in one transaction |
-| [src/simulation/errors.ts](src/simulation/errors.ts) | Typed errors (`CityNotFoundError`, etc.) |
-| [src/lib/db.ts](src/lib/db.ts) | `pg` pool + transaction helper |
+| [database/simulation/applyPolicyEffects.ts](database/simulation/applyPolicyEffects.ts) | Pure interpreter for `policies.effects` — set/multiply/add, city/neighborhood/resident selectors |
+| [database/simulation/recalculateAggregates.ts](database/simulation/recalculateAggregates.ts) | Pure recompute of derived neighborhood/city fields from residents |
+| [database/simulation/loadTurnState.ts](database/simulation/loadTurnState.ts) | DB reads for one turn (city, neighborhoods, residents, decisions, policies) |
+| [database/simulation/persistTurnState.ts](database/simulation/persistTurnState.ts) | DB writes for one turn |
+| [database/simulation/resolveTurn.ts](database/simulation/resolveTurn.ts) | Orchestrates the above in one transaction |
+| [database/simulation/errors.ts](database/simulation/errors.ts) | Typed errors (`CityNotFoundError`, etc.) |
+| [database/lib/db.ts](database/lib/db.ts) | `pg` pool + transaction helper |
 | [app/api/city/[id]/route.ts](app/api/city/%5Bid%5D/route.ts) | `GET /api/city/:id` |
 | [app/api/city/[id]/decisions/route.ts](app/api/city/%5Bid%5D/decisions/route.ts) | `POST /api/city/:id/decisions` — queue a policy decision |
 | [app/api/city/[id]/resolve-turn/route.ts](app/api/city/%5Bid%5D/resolve-turn/route.ts) | `POST /api/city/:id/resolve-turn` |
 | [app/api/city/[id]/neighborhoods](app/api/city/%5Bid%5D/neighborhoods/route.ts), [/residents](app/api/city/%5Bid%5D/residents/route.ts), [app/api/policies](app/api/policies/route.ts) | Optional read-only endpoints |
 | [src/lib/apiClient.ts](src/lib/apiClient.ts) | Frontend fetch wrappers: `getCity`, `getNeighborhoods`, `getResidents`, `getPolicies`, `createDecision`, `resolveTurn` |
-| `src/simulation/__tests__/` | Unit tests (pure functions) + one integration test (real DB) |
+| `database/simulation/__tests__/` | Unit tests (pure functions) + one integration test (real DB) |
 | `src/lib/__tests__/apiClient.test.ts` | Unit tests for the client, with `fetch` mocked |
 
 No UI was added — `app/` exists only to host the API route handlers.
@@ -44,19 +44,19 @@ snapshot N
 ```
 
 All of it — every read and write — happens inside one Postgres transaction
-(`src/lib/db.ts`'s `withTransaction`). If anything throws partway through,
+(`database/lib/db.ts`'s `withTransaction`). If anything throws partway through,
 everything rolls back; a turn is never half-resolved.
 
 **Determinism across multiple policies in one turn:** decisions are loaded
 ordered by `(created_at, id)`, and policies are applied in exactly that order.
 Within a single policy, ops apply `set` → `multiply` → `add` per field (see
 the comment on `applyPolicyEffects`), which is the ordering already implied by
-the `PolicyEffects` contract in `src/types/database.ts`.
+the `PolicyEffects` contract in `database/types/database.ts`.
 
 **Derived fields are recomputed, not policy targets.** `population`,
 `average_income`, city/neighborhood `average_rent`, and `happiness` are always
 rewritten from residents after effects are applied — the same convention
-`supabase/seed.sql` uses. A policy's `effects` cannot set these directly: the
+`database/supabase/seed.sql` uses. A policy's `effects` cannot set these directly: the
 interpreter validates every target field against the exact `CityEffectTarget`
 / `NeighborhoodEffectTarget` / `ResidentEffectTarget` unions and throws
 `MalformedPolicyEffectsError` on anything else (including a hypothetical

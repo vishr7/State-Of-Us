@@ -6,7 +6,7 @@ PostgreSQL schema for the MVP, targeting Supabase. Six tables, one seeded city.
 | --- | --- |
 | [migrations/20260919120000_initial_schema.sql](migrations/20260919120000_initial_schema.sql) | Enums, tables, FKs, indexes, RLS |
 | [seed.sql](seed.sql) | 1 city, 4 neighborhoods, 100 households, 6 policies, 1 decision, turn-0 snapshot |
-| [../src/types/database.ts](../src/types/database.ts) | TypeScript mirror + the two JSONB contracts |
+| [../types/database.ts](../types/database.ts) | TypeScript mirror + the two JSONB contracts |
 
 Both files have been applied against PostgreSQL 18 and the seed verified for
 determinism; see [Verification](#verification).
@@ -150,7 +150,7 @@ values are **reserved and load-bearing**: `unemployed`, `retired`, and
 
 ## JSONB contract: `policies.effects`
 
-Typed as `PolicyEffects` in [database.ts](../src/types/database.ts). Guarded in
+Typed as `PolicyEffects` in [database.ts](../types/database.ts). Guarded in
 the DB by `check (jsonb_typeof(effects) = 'object')`.
 
 ```jsonc

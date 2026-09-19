@@ -1,7 +1,7 @@
 /**
  * Recomputes the denormalised aggregate columns on `neighborhoods` and
  * `cities` from `residents` — the same derivation the seed uses (see
- * supabase/seed.sql steps 4-5 and supabase/README.md "Derived columns").
+ * database/supabase/seed.sql steps 4-5 and database/supabase/README.md "Derived columns").
  * Kept in this one file so the two stay in sync by construction.
  *
  * PURE, like applyPolicyEffects.ts: no I/O, no randomness.
@@ -43,7 +43,7 @@ export function recalculateNeighborhoodAggregates(
   return {
     ...neighborhood,
     // Households, not people: population is the sum of family_size, never
-    // resident-row count. See supabase/README.md "A resident row is one household".
+    // resident-row count. See database/supabase/README.md "A resident row is one household".
     population: local.reduce((sum, r) => sum + r.family_size, 0),
     average_income: round2(average(local.map((r) => r.income))),
     average_rent: averageRent(local),
@@ -59,7 +59,7 @@ export function recalculateNeighborhoodAggregates(
  */
 export function recalculateCityAggregates(city: City, residents: Resident[]): City {
   // Labour force excludes retired and student residents — matches the seed's
-  // unemployment convention (supabase/README.md, occupation column doc).
+  // unemployment convention (database/supabase/README.md, occupation column doc).
   const laborForce = residents.filter((r) => r.occupation !== 'retired' && r.occupation !== 'student');
   const unemployed = laborForce.filter((r) => r.occupation === 'unemployed');
 

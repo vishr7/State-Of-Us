@@ -13,10 +13,10 @@ import { Pool, type PoolClient, types } from 'pg';
 
 // node-postgres returns `numeric`/`decimal` columns as STRINGS by default, to
 // avoid silently losing precision. Every numeric column in this schema is
-// documented (see src/types/database.ts) as a JS `number`, so we opt in to
+// documented (see database/types/database.ts) as a JS `number`, so we opt in to
 // that here, once, globally. OID 1700 = numeric.
 // (This is the opposite gotcha from PostgREST, which already serialises
-// numeric as a JSON number — see supabase/README.md "Known MVP limitations".)
+// numeric as a JSON number — see database/supabase/README.md "Known MVP limitations".)
 types.setTypeParser(1700, (value: string) => parseFloat(value));
 
 let pool: Pool | undefined;

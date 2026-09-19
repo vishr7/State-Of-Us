@@ -8,9 +8,9 @@
  *     -> write snapshot N+1 (the resulting canonical state)
  *     -> set cities.current_turn = N+1
  *
- * All of it runs inside one database transaction (src/lib/db.ts
+ * All of it runs inside one database transaction (database/lib/db.ts
  * withTransaction): if any step throws, everything rolls back and the turn
- * is not partially resolved. This is the only file in src/simulation that
+ * is not partially resolved. This is the only file in database/simulation that
  * talks to the database directly — applyPolicyEffects.ts and
  * recalculateAggregates.ts stay pure and DB-free.
  */

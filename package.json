@@ -8,8 +8,8 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:unit": "vitest run src/simulation/__tests__/applyPolicyEffects.test.ts src/simulation/__tests__/recalculateAggregates.test.ts",
-    "test:integration": "vitest run src/simulation/__tests__/resolveTurn.integration.test.ts"
+    "test:unit": "vitest run database/simulation/__tests__/applyPolicyEffects.test.ts database/simulation/__tests__/recalculateAggregates.test.ts",
+    "test:integration": "vitest run database/simulation/__tests__/resolveTurn.integration.test.ts"
   },
   "dependencies": {
     "next": "^14.2.35",
