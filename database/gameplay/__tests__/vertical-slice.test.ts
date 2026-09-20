@@ -103,10 +103,48 @@ describe("real database vertical slice with mocked providers", () => {
     expect(savedReactions[0].provenance.promptVersion).toBe("resident-emotion-v3");
     expect((await holder.db.query("select * from simulation_snapshots where city_id=$1", [cityId])).rows).toHaveLength(2);
     const next = await prepareGameDay(cityId, 1, dependencies);
-    expect(next.slate.decisions).toHaveLength(5);
+    expect(next.slate.decisions).toHaveLength(2);
+    expect(await getGameDay(cityId, 1)).toEqual(next);
     expect(next.slate.decisions.every(c => c.generation.model === 'authored-catalog')).toBe(true); // previously shown source/action IDs excluded
     expect(dependencies.extract).toHaveBeenCalledTimes(1); // feed dedupe survives the next day
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  }, 30000);
+
+  it.each([0, 1])('persists and applies protest response %s once, with different household effects', async index => {
+    await holder.db.query('update cities set current_turn=1 where id=$1', [cityId]);
+    const day = await prepareGameDay(cityId, 1, providers());
+    const candidate = day.slate.decisions[index];
+    await chooseGameDayCandidate(cityId, 1, candidate.id);
+    expect(await getGameDay(cityId, 1)).toEqual(day);
+    await expect(chooseGameDayCandidate(cityId, 1, day.slate.decisions[1-index].id)).rejects.toThrow();
+    const result = await resolveGameDay(cityId, 1, async () => []);
+    expect(result.after.city.treasury).toBe(result.before.city.treasury - (index === 0 ? 250000 : 0) + (result.after.assessment?.grant ?? 0));
+    for (const resident of result.before.residents) {
+      const after = result.after.residents.find(r => r.id === resident.id)!;
+      const delta = index === 0 ? resident.income < 60000 ? 6 : 2 : resident.income < 60000 ? 2 : -3;
+      expect(after.happiness).toBe(Math.min(100,Math.max(0,resident.happiness + delta)));
+    }
+    expect((await resolveGameDay(cityId, 1, async () => [])).after).toEqual(result.after);
+  }, 30000);
+
+  it.each([0, 1])('applies outage option %s only to eligible Homewood households', async index => {
+    await holder.db.query('update cities set current_turn=3 where id=$1', [cityId]);
+    const day = await prepareGameDay(cityId, 3, providers());
+    expect(day.slate.decisions).toHaveLength(2);
+    expect(await getGameDay(cityId, 3)).toEqual(day);
+    await chooseGameDayCandidate(cityId, 3, day.slate.decisions[index].id);
+    const result = await resolveGameDay(cityId, 3, async () => []);
+    expect(result.after.city.treasury).toBe(result.before.city.treasury - (index === 0 ? 180000 : 0));
+    const homewood = result.before.neighborhoods.find(n => n.name === 'Homewood')!;
+    const affected = result.before.residents.filter(r => r.neighborhood_id === homewood.id && r.income < 40000);
+    expect(affected.length).toBeGreaterThan(0);
+    for (const resident of result.before.residents) {
+      const after = result.after.residents.find(r => r.id === resident.id)!;
+      const eligible = affected.some(r => r.id === resident.id);
+      expect(after.happiness).toBe(Math.min(100, Math.max(0, resident.happiness + (eligible ? index === 0 ? 5 : -8 : 0))));
+      if (!eligible) expect(after).toEqual(resident);
+    }
+    expect((await resolveGameDay(cityId, 3, async () => [])).after).toEqual(result.after);
   }, 30000);
 
   it("keeps simulation committed on Nemotron failure and retries only reactions", async () => {
@@ -163,5 +201,42 @@ describe("real database vertical slice with mocked providers", () => {
 
     await holder.db.query("update cities set treasury = 5000000 where id = $1", [cityId]);
     expect((await post(TRANSIT_POLICY_ID)).status).toBe(201);
+  }, 30000);
+
+  it("interviews the people who walk the map, each answering from their own background", async () => {
+    vi.stubEnv("NVIDIA_API_KEY", ""); vi.stubEnv("NEMOTRON_API_KEY", ""); // offline path: answers are built from the persona profile
+    const { personaResidents } = await import("../../../lib/personas");
+    const { POST } = await import("../../../app/api/city/[id]/interviews/route");
+    await prepareGameDay(cityId, 0, providers()); // interviewees are reserved on the game day, so it must exist
+    await holder.db.query("insert into decisions (city_id, policy_id, turn) values ($1, $2, 0)", [cityId, TRANSIT_POLICY_ID]);
+
+    const ask = () => POST(
+      new Request(`http://localhost/api/city/${cityId}/interviews`, { method: "POST", body: JSON.stringify({ turn: 0 }) }),
+      { params: Promise.resolve({ id: cityId }) },
+    );
+    const response = await ask();
+    expect(response.status).toBe(200);
+    const { lines } = await response.json() as { lines: { speaker: string; text: string; label?: string; residentId?: string }[] };
+    expect(lines.map(l => l.speaker)).toEqual(["news", "resident", "news", "resident"]);
+
+    const speakers = lines.filter(l => l.speaker === "resident");
+    expect(new Set(speakers.map(l => l.residentId)).size).toBe(2);
+    for (const line of speakers) {
+      // A real person from the map, not an anonymous household.
+      const persona = personaResidents.find(p => p.id === line.residentId);
+      expect(persona).toBeDefined();
+      expect(line.label).toContain(persona!.name);
+      const profile = [...(persona!.persona?.skills ?? []), ...(persona!.persona?.interests ?? [])].map(x => x.charAt(0).toLowerCase() + x.slice(1));
+      expect(profile.some(item => line.text.includes(item)) || line.text.includes("ordinary people")).toBe(true);
+    }
+    // The reporter names them too.
+    for (const [i, line] of lines.entries()) if (line.speaker === "news") expect(line.text).toContain(speakers[i / 2 | 0].label!.split(" · ")[0]);
+
+    // The two people are reserved on the game day (so nobody is interviewed twice), and asking again returns the same two.
+    const ids = speakers.map(l => l.residentId);
+    const saved = (await holder.db.query("select generation_metadata->'interviewResidentIds' as ids from game_days where city_id = $1 and turn = 0", [cityId])).rows[0] as { ids: string[] };
+    expect(saved.ids).toEqual(ids);
+    const again = await (await ask()).json() as { lines: { speaker: string; residentId?: string }[] };
+    expect(again.lines.filter(l => l.speaker === "resident").map(l => l.residentId)).toEqual(ids);
   }, 30000);
 });

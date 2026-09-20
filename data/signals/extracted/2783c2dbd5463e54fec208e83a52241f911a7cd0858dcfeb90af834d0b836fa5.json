@@ -1,0 +1,71 @@
+{
+  "documentId": "2783c2dbd5463e54fec208e83a52241f911a7cd0858dcfeb90af834d0b836fa5",
+  "source": {
+    "title": "Bus Line Redesign",
+    "url": "https://engage.rideprt.org/buslineredesign",
+    "publisher": "Engage PRT",
+    "publishedAt": null
+  },
+  "provenance": {
+    "retrievedAt": "2026-09-20T07:37:40.018Z",
+    "adapterVersion": "general-article-html-v1",
+    "contentHash": "f03b340aa498f9e21ddbf26d28bb3a097fc4bd856b543b4948ffd23a59d7e724",
+    "extractedAt": "2026-09-20T07:37:48.546Z",
+    "model": "gemini-3.6-flash",
+    "promptVersion": "external-signals-v3-gemini"
+  },
+  "signals": [
+    {
+      "category": "infrastructure",
+      "headline": "PRT Proposes Final Bus Line Refresh Network in Allegheny County",
+      "summary": "Pittsburgh Regional Transit (PRT) has detailed a proposed final Bus Line Refresh network designed to enhance transit reliability, service frequency, and seven-day service across Allegheny County. The PRT Board is anticipated to vote on the plan in November 2026, with service changes targeted for implementation in the second half of 2027 if approved.",
+      "geography": {
+        "name": "Allegheny County",
+        "scope": "county"
+      },
+      "eventDate": null,
+      "status": "proposed",
+      "evidence": [
+        {
+          "quote": "The Proposed Final Bus Line Refresh keeps the routes you know and strengthens the connections you asked for: more frequent service, better reliability, and seven-day service that reflects how you travel today."
+        },
+        {
+          "quote": "Below you'll find a summary of the steps toward implementing the Bus Line Refresh service changes across Allegheny County."
+        },
+        {
+          "quote": "Following the public comment period, the board will formally review the plan and the public testimony ahead of an anticipated vote in November 2026."
+        },
+        {
+          "quote": "Assuming the board approves the Bus Line Refresh Proposed Final Network, PRT expects to make service changes in the second half of 2027."
+        }
+      ],
+      "id": "1fb4b6692227e4a8eb8730188c1faed2eccb454602b0d1e44c8eb59b879155a6",
+      "documentId": "2783c2dbd5463e54fec208e83a52241f911a7cd0858dcfeb90af834d0b836fa5",
+      "source": {
+        "title": "Bus Line Redesign",
+        "url": "https://engage.rideprt.org/buslineredesign",
+        "publisher": "Engage PRT",
+        "publishedAt": null
+      },
+      "provenance": {
+        "retrievedAt": "2026-09-20T07:37:40.018Z",
+        "adapterVersion": "general-article-html-v1",
+        "contentHash": "f03b340aa498f9e21ddbf26d28bb3a097fc4bd856b543b4948ffd23a59d7e724",
+        "extractedAt": "2026-09-20T07:37:48.546Z",
+        "model": "gemini-3.6-flash",
+        "promptVersion": "external-signals-v3-gemini"
+      }
+    }
+  ],
+  "discovery": {
+    "title": "",
+    "url": "https://engage.rideprt.org/buslineredesign",
+    "publishedAt": null,
+    "publisher": "Pittsburgh Regional Transit",
+    "feedUrl": "https://engage.rideprt.org/buslineredesign"
+  },
+  "discoveredUrls": [
+    "https://engage.rideprt.org/buslineredesign",
+    "https://engage.rideprt.org/buslineredesign"
+  ]
+}

@@ -68,3 +68,20 @@ The unchanged manual command does not participate in the feed lock/journal.
 The summary reports entries found, duplicates, successes, article/feed failures,
 blocked prior attempts, and Claude calls. Errors do not stop other articles/feeds;
 the CLI exits nonzero if failures or blocked attempts need attention.
+
+### Connected Pittsburgh sources
+
+The default collector now includes PublicSource RSS, WESA Politics & Government RSS,
+the official Engage Pittsburgh housing-needs project and Engage PRT bus redesign.
+Official project pages have no invented publication date. Each source gets a turn
+in the collection batch, and articles within each feed are processed newest first.
+
+Run `npm run ingest:feed -- --limit 4` from the project directory to collect and
+extract sources using GEMINI_API_KEY in .env (or .env.local).
+This is a manual refresh command, not an installed scheduler. Game-day preparation
+loads cached extracted evidence without fetching articles or running extraction.
+Newly collected evidence affects future prepared days; saved choices remain intact.
+
+Failed extraction attempts are journaled in attempts.json to avoid automatic
+repeated API calls. After confirming an authentication failure and fixing the key,
+remove only the corresponding failed URLs from that journal before retrying.

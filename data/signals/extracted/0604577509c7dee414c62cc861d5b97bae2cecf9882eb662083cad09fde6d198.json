@@ -1,0 +1,94 @@
+{
+  "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+  "source": {
+    "title": "Implementing the Housing Needs Assessment",
+    "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+    "publisher": "EngagePgh",
+    "publishedAt": null
+  },
+  "provenance": {
+    "retrievedAt": "2026-09-20T07:37:28.496Z",
+    "adapterVersion": "general-article-html-v1",
+    "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+    "extractedAt": "2026-09-20T07:37:38.423Z",
+    "model": "gemini-3.6-flash",
+    "promptVersion": "external-signals-v3-gemini"
+  },
+  "signals": [
+    {
+      "category": "housing",
+      "headline": "Pittsburgh Enacts Minimum Lot Size Zoning Amendments",
+      "summary": "Pittsburgh City Council approved Bill #2025-1579 regarding minimum lot size requirements on May 5, 2025, and the Mayor signed the legislation on May 7, 2025.",
+      "geography": {
+        "name": "Pittsburgh",
+        "scope": "city"
+      },
+      "eventDate": "2025-05-07",
+      "status": "completed",
+      "evidence": [
+        {
+          "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+        }
+      ],
+      "id": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+      "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+      "source": {
+        "title": "Implementing the Housing Needs Assessment",
+        "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+        "publisher": "EngagePgh",
+        "publishedAt": null
+      },
+      "provenance": {
+        "retrievedAt": "2026-09-20T07:37:28.496Z",
+        "adapterVersion": "general-article-html-v1",
+        "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+        "extractedAt": "2026-09-20T07:37:38.423Z",
+        "model": "gemini-3.6-flash",
+        "promptVersion": "external-signals-v3-gemini"
+      }
+    },
+    {
+      "category": "housing",
+      "headline": "Pittsburgh City Council Replaces City-Wide Inclusionary Zoning Proposal with Optional Housing Bonus",
+      "summary": "In October 2025, Pittsburgh City Council amended zoning legislation by substitute, replacing a proposed mandatory city-wide inclusionary zoning program with a city-wide optional Affordable Housing Bonus program.",
+      "geography": {
+        "name": "Pittsburgh",
+        "scope": "city"
+      },
+      "eventDate": null,
+      "status": "completed",
+      "evidence": [
+        {
+          "quote": "In October 2025, City Council amended by substitute to replace the mandatory city-wide IZ program with a city-wide optional Affordable Housing Bonus program."
+        }
+      ],
+      "id": "db39fcac05212e9c350a7173da5655c6f8434a8888fd436547d51c49dce077c9",
+      "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+      "source": {
+        "title": "Implementing the Housing Needs Assessment",
+        "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+        "publisher": "EngagePgh",
+        "publishedAt": null
+      },
+      "provenance": {
+        "retrievedAt": "2026-09-20T07:37:28.496Z",
+        "adapterVersion": "general-article-html-v1",
+        "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+        "extractedAt": "2026-09-20T07:37:38.423Z",
+        "model": "gemini-3.6-flash",
+        "promptVersion": "external-signals-v3-gemini"
+      }
+    }
+  ],
+  "discovery": {
+    "title": "",
+    "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+    "publishedAt": null,
+    "publisher": "City of Pittsburgh",
+    "feedUrl": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment"
+  },
+  "discoveredUrls": [
+    "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+    "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment"
+  ]
+}

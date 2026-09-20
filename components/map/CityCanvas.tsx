@@ -1,3 +1,5 @@
+import { drawRiverLife } from '../animations/riverLife';
+import { drawProtest } from '../animations/protest';
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -67,9 +69,12 @@ function drawSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, inde
 
 const landmarkCells: Record<LandmarkSprite, number> = { cathedral: 0, hospital: 1, police: 2, skyscraper: 3, office: 4, university: 5 };
 function drawLandmarkSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, kind: LandmarkSprite, x: number, y: number) {
+  // The hospital campus spans columns 17–18: anchor at its midpoint,
+  // leaving the entrance and ambulance bay inside the grass parcel.
+  if (kind === 'hospital') { x -= TW / 4; y -= TH / 4; }
   const index = landmarkCells[kind];
   const sw = atlas.naturalWidth / 3, sh = atlas.naturalHeight / 2;
-  const size = kind === 'cathedral' ? 190 : kind === 'skyscraper' ? 154 : kind === 'hospital' ? 145 : kind === 'office' ? 128 : 112;
+  const size = kind === 'cathedral' ? 190 : kind === 'skyscraper' ? 154 : kind === 'hospital' ? 132 : kind === 'office' ? 128 : 112;
   // The second atlas row contains the bottom tips of the row above it.
   // Trim only that narrow strip and keep the building's scale and anchor.
   const trim = index >= 3 ? 26 : 0;
@@ -102,27 +107,44 @@ function drawRoad(ctx: CanvasRenderingContext2D, cx: number, cy: number, tx?: nu
   ctx.transform(TW / 2, TH / 2, -TW / 2, TH / 2, cx, cy);
   ctx.fillStyle = '#b9b7a0';
   ctx.fillRect(-0.5, -0.5, 1, 1);
-  const roadAt = (dx: number, dy: number) => tx === undefined || ty === undefined || classifyTile(tx + dx, ty + dy).ground === 'road';
-  const alongX = tx !== undefined && (roadAt(-1, 0) || roadAt(1, 0));
-  const alongY = roadAt(0, -1) || roadAt(0, 1);
+  const roadAt = (dx: number, dy: number) => {
+    if (tx === undefined || ty === undefined) return dx === 0;
+    const neighbor = classifyTile(tx + dx, ty + dy);
+    // Every river crossing follows the tile Y axis.
+    return neighbor.ground === 'road' && (!neighbor.bridge || dx === 0);
+  };
+  const west = roadAt(-1,0), east = roadAt(1,0);
+  const north = roadAt(0,-1), south = roadAt(0,1);
+  const connections = Number(west)+Number(east)+Number(north)+Number(south);
   ctx.fillStyle = ROAD_COLOR;
-  if (alongX) ctx.fillRect(-0.5, -0.34, 1, 0.68);
-  if (alongY) ctx.fillRect(-0.34, -0.5, 0.68, 1);
-  ctx.strokeStyle = '#ddd5a5';
-  ctx.lineWidth = 0.018;
-  ctx.setLineDash([0.12, 0.1]);
-  if (!(alongX && alongY)) {
+  ctx.fillRect(-.34,-.34,.68,.68);
+  if(west) ctx.fillRect(-.5,-.34,.5,.68);
+  if(east) ctx.fillRect(0,-.34,.5,.68);
+  if(north) ctx.fillRect(-.34,-.5,.68,.5);
+  if(south) ctx.fillRect(-.34,0,.68,.5);
+  // Fine curb edges follow the actual pavement, never crossing a junction.
+  ctx.strokeStyle = '#d0ceba'; ctx.lineWidth=.015;
+  ctx.beginPath();
+  if(!north) { ctx.moveTo(-.34,-.34);ctx.lineTo(.34,-.34); }
+  if(!south) { ctx.moveTo(-.34,.34);ctx.lineTo(.34,.34); }
+  if(!west) { ctx.moveTo(-.34,-.34);ctx.lineTo(-.34,.34); }
+  if(!east) { ctx.moveTo(.34,-.34);ctx.lineTo(.34,.34); }
+  ctx.stroke();
+  ctx.strokeStyle = '#c8c39c'; ctx.lineWidth=.013;
+  ctx.setLineDash([.09,.12]);
+  if(connections === 2 && ((west && east) || (north && south))) {
     ctx.beginPath();
-    if (alongX) { ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); }
-    else { ctx.moveTo(0, -0.5); ctx.lineTo(0, 0.5); }
+    if(west && east) { ctx.moveTo(-.5,0);ctx.lineTo(.5,0); }
+    else { ctx.moveTo(0,-.5);ctx.lineTo(0,.5); }
     ctx.stroke();
-  } else {
-    ctx.fillStyle = '#e6dfca';
-    for (let stripe = -0.26; stripe < 0.3; stripe += 0.1) {
-      ctx.fillRect(stripe, -0.46, 0.055, 0.12);
-      ctx.fillRect(stripe, 0.34, 0.055, 0.12);
-      ctx.fillRect(-0.46, stripe, 0.12, 0.055);
-      ctx.fillRect(0.34, stripe, 0.12, 0.055);
+  } else if(connections >= 3) {
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#dedccb';
+    for(let stripe=-.25;stripe<.26;stripe+=.1) {
+      if(north) ctx.fillRect(stripe,-.44,.045,.075);
+      if(south) ctx.fillRect(stripe,.365,.045,.075);
+      if(west) ctx.fillRect(-.44,stripe,.075,.045);
+      if(east) ctx.fillRect(.365,stripe,.075,.045);
     }
   }
   ctx.restore();
@@ -137,7 +159,7 @@ function drawQuay(ctx: CanvasRenderingContext2D, tx: number, ty: number, cx: num
     { dx: 0, dy: 1, a: [0, 24], b: [-48, 0] },
   ];
   for (const edge of edges) {
-    if (!isWater(tx + edge.dx, ty + edge.dy)) continue;
+    if (classifyTile(tx + edge.dx, ty + edge.dy).ground !== 'water') continue;
     const [ax, ay] = edge.a, [bx, by] = edge.b;
     fillPoly(ctx, [[cx+ax,cy+ay],[cx+bx,cy+by],[cx+bx,cy+by+8],[cx+ax,cy+ay+8]], '#777c72');
     ctx.strokeStyle = '#d9cfaa'; ctx.lineWidth = 3;
@@ -554,6 +576,7 @@ export default function CityCanvas() {
   const [pncParkSprite, setPncParkSprite] = useState<HTMLImageElement | null>(null);
   const [pncTowerSprite, setPncTowerSprite] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
+  const replacements = useAnimationStore(s => s.replacements);
   const removedBuildings = useAnimationStore(s => s.removed);
   const demolition = useAnimationStore(s => s.queue[0]);
   const demolitionClock = useRef<{ id: string; start: number } | null>(null);
@@ -764,6 +787,7 @@ export default function CityCanvas() {
               policy.category === 'environment' ? 13 : policy.category === 'transit' ? 15 : 4;
           }
         }
+        if (replacements[tileKey(tx, ty)] !== undefined) sprite = replacements[tileKey(tx, ty)];
         if (sprite !== null) {
           const setback = lotSetback(tx, ty);
           drawSprite(ctx, atlas, sprite, cx + setback.x, cy + setback.y);
@@ -831,6 +855,7 @@ export default function CityCanvas() {
         ctx.moveTo(cx - 8 + drift, cy + 5); ctx.lineTo(cx + 8 + drift, cy + 5);
       }
       ctx.stroke(); ctx.globalAlpha = 1;
+      drawRiverLife(ctx, ambientMotion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? time : 0);
       const walkingTime = walkingTimeRef.current;
       const positions = walkers.map(walker => ({ walker, position: walkerPosition(walker, walkingTime) })).sort((a,b) => a.position.y-b.position.y);
       walkerHitsRef.current = positions.filter(({position}) => {
@@ -854,6 +879,39 @@ export default function CityCanvas() {
       // Transparent building/tree silhouettes occlude pedestrians behind them.
       ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
       ctx.drawImage(labels, -labels.width / 2, -labels.height / 2);
+      const protestState = useCityPulseStore.getState();
+      if (protestState.city.turn === 4) {
+        const district = NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === 'homewood');
+        if (district) {
+          ctx.save();
+          const shade = ctx.createRadialGradient(district.wx, district.wy, 20, district.wx, district.wy, 145);
+          shade.addColorStop(0, '#020917dd'); shade.addColorStop(.65, '#020917aa'); shade.addColorStop(1, '#02091700');
+          ctx.fillStyle = shade; ctx.fillRect(district.wx-145,district.wy-145,290,290);
+          ctx.fillStyle = '#ffcd71'; ctx.textAlign = 'center'; ctx.font = 'bold 12px sans-serif';
+          ctx.fillText('⚡ LOCAL POWER FAILURE', district.wx, district.wy-70);
+          ctx.font = '9px sans-serif'; ctx.fillText('Affected lower-income households', district.wx, district.wy-55);
+          ctx.strokeStyle = '#ffcd7188'; ctx.setLineDash([5,6]); ctx.lineWidth=2;
+          ctx.beginPath();ctx.ellipse(district.wx,district.wy,110,55,0,0,Math.PI*2);ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      if (protestState.city.turn === 2) {
+        const downtown = tileToScreen(CATHEDRAL_TX + 1, CATHEDRAL_TY + 1);
+        if (downtown) drawProtest(ctx, downtown.x, downtown.y + 45, time, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      }
+      // "Find on map" marker: drawn over the foreground so a resident who walks behind a building can still be found.
+      const focusMark = focusMarkRef.current && focusMarkRef.current.until > now ? focusMarkRef.current : null;
+      const focused = focusMark ? positions.find(item => item.walker.resident.id === focusMark.id) : undefined;
+      if (focused) {
+        const { x, y } = focused.position;
+        const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+        ctx.strokeStyle = `rgba(255,214,120,${0.6 + pulse * 0.4})`; ctx.lineWidth = 1.8 / camera.zoom;
+        ctx.beginPath(); ctx.ellipse(x, y + 1, 8 + pulse * 2.5, 3.4 + pulse, 0, 0, Math.PI * 2); ctx.stroke();
+        const bob = Math.sin(time * 5) * 1.5;
+        ctx.fillStyle = '#ffd678'; ctx.strokeStyle = '#3b2a10'; ctx.lineWidth = 0.8 / camera.zoom;
+        ctx.beginPath(); ctx.moveTo(x, y - 20 + bob); ctx.lineTo(x - 3.4, y - 25.5 + bob); ctx.lineTo(x + 3.4, y - 25.5 + bob); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
       const segment = useAnimationStore.getState().queue[0];
       if (segment) {
         if (demolitionClock.current?.id !== segment.id) demolitionClock.current = { id: segment.id, start: performance.now() };
@@ -959,15 +1017,25 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
-  const tour = useCityPulseStore(s => s.announcements[0]?.tour);
+  // A speaking map resident gets a camera lock on them (mapFocus); the district tour would fight it.
+  const tour = useCityPulseStore(s => { const a = s.announcements[0]; return a?.speaker === 'resident' && a.residentId ? undefined : a?.tour; });
   useEffect(() => {
     if (!tour) return;
     const container = containerRef.current;
     if (!container) return;
-    const marker = tour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === tour.slice(9).toLowerCase()) : undefined;
-    const area = marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === tour);
+    const demo = tour === 'demo-house' || tour === 'demo-result';
+    let demoLot: { tx: number; ty: number } | undefined;
+    if (demo) {
+      for (let ty = 3; ty < 12 && !demoLot; ty++) for (let tx = 3; tx < 12 && !demoLot; tx++) {
+        const tile = classifyTile(tx, ty);
+        if (tile.tree && !tile.building && !tile.landmarkSprite && !tile.cathedral) demoLot = { tx, ty };
+      }
+    }
+    const focusTour = tour === 'outage' ? 'district:Homewood' : tour;
+    const marker = focusTour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === focusTour.slice(9).toLowerCase() || n.id === focusTour.slice(9).toLowerCase().replaceAll(' ', '_')) : undefined;
+    const area = tour === 'protest' ? tileToScreen(CATHEDRAL_TX + 1, CATHEDRAL_TY + 1) : demoLot ? tileToScreen(demoLot.tx, demoLot.ty) : marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === (tour === 'protest' ? 'downtown' : tour));
     const fit = Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * .96;
-    const z = area ? Math.min(1.05, fit * 2) : fit;
+    const z = area ? (tour === 'protest' || tour === 'outage') ? 1.8 : demo ? 1.65 : Math.min(1.05, fit * 2) : fit;
     const target = area ? { x: -area.x * z, y: -area.y * z - container.clientHeight * .12, zoom: z } : { x: 0, y: 30, zoom: z };
     const start = { ...cameraRef.current };
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -980,8 +1048,52 @@ export default function CityCanvas() {
       if (t < 1) frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+    const timer = tour === 'demo-house' && demoLot ? setTimeout(() => {
+      useAnimationStore.getState().demolish({ id: 'intro-tree-housing', ...demoLot!, replacement: 0, clearTrees: true });
+    }, 2200) : undefined;
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, [tour, setMapViewport]);
+
+  // "Find on map" (e.g. from the Featured Resident card): fly to the resident and mark them for a few seconds.
+  const mapFocus = useCityPulseStore(s => s.mapFocus);
+  const walkersRef = useRef(walkers);
+  walkersRef.current = walkers;
+  const focusMarkRef = useRef<{ id: string; until: number } | null>(null);
+  useEffect(() => {
+    if (!mapFocus) return;
+    const container = containerRef.current;
+    const walker = walkersRef.current.find(w => w.resident.id === mapFocus.residentId);
+    if (!container || !walker) return;
+    const start = { ...cameraRef.current };
+    const targetZoom = Math.max(1.3, start.zoom);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const began = performance.now();
+    const until = began + 6000;
+    focusMarkRef.current = { id: walker.resident.id, until };
+    // Fly there, then stay locked on (they keep walking) until the marker fades or the user takes the camera.
+    let following = true;
+    const release = () => { following = false; };
+    container.addEventListener('pointerdown', release, { capture: true, once: true });
+    container.addEventListener('wheel', release, { passive: true, once: true });
+    let frame = 0;
+    const animate = (now: number) => {
+      if (!following) return;
+      const t = reduced ? 1 : Math.min(1, (now - began) / 1300);
+      const ease = t * t * (3 - 2 * t);
+      const zoom = start.zoom + (targetZoom - start.zoom) * ease;
+      // Aim at where they are NOW, not where they were when clicked: residents keep walking during the flight.
+      const p = walkerPosition(walker, walkingTimeRef.current);
+      const target = { x: -p.x * zoom, y: -(p.y - 7) * zoom - container.clientHeight * 0.08 };
+      setMapViewport({ x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease, zoom });
+      if (now < until) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(frame);
+      container.removeEventListener('pointerdown', release, { capture: true });
+      container.removeEventListener('wheel', release);
+    };
+  }, [mapFocus, setMapViewport]);
 
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
   const handleZoomOut = () => setZoom(z => Math.max(0.25, z * 0.8));

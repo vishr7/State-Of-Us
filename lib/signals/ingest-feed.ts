@@ -9,7 +9,7 @@ import type { NormalizedDocument, SignalDraft } from "./types";
 import { ingestArticle } from "./adapters/article";
 
 export interface FeedOptions {
-  feeds: { url: string; publisher?: string }[];
+  feeds: { url: string; publisher?: string; kind?: 'page' }[];
   limit?: number;
   directory?: string;
 }
@@ -30,7 +30,7 @@ export async function ingestFeeds(options: FeedOptions, dependencies: FeedDepend
     throw new Error("Feed ingestion is locked. If a previous process crashed, verify it stopped before removing data/signals/.ingest-feed.lock.");
   });
   const log = dependencies.log ?? console.log;
-  const summary = { entriesFound: 0, duplicatesSkipped: 0, processed: 0, failed: 0, feedsFailed: 0, attemptsBlocked: 0, claudeCalls: 0 };
+  const summary = { entriesFound: 0, duplicatesSkipped: 0, processed: 0, failed: 0, feedsFailed: 0, attemptsBlocked: 0, extractionCalls: 0 };
   try {
     const store = new ProcessedStore(directory);
     await store.load();
@@ -39,12 +39,17 @@ export async function ingestFeeds(options: FeedOptions, dependencies: FeedDepend
     // Durable pre-call journal: ambiguous/failed model calls require review, not automatic spending again.
     const attempts = z.record(z.string(), z.object({ contentHash: z.string(), attemptedAt: z.string() })).parse(await readJson(attemptsPath) ?? {});
     const entries: FeedEntry[] = [];
+    const batches: FeedEntry[][] = [];
     for (const feed of options.feeds) {
-      try { entries.push(...await (dependencies.discover ?? fetchFeed)(feed)); }
+      try { batches.push(await (dependencies.discover ?? fetchFeed)(feed)); }
       catch { summary.feedsFailed++; log(`Feed failed: ${feed.url}`); }
     }
+    for (const batch of batches) batch.sort((a,b) => (Date.parse(b.publishedAt ?? "") || 0) - (Date.parse(a.publishedAt ?? "") || 0) || a.url.localeCompare(b.url));
+    for (let row = 0; batches.some(batch => batch.length > row); row++) {
+      for (const batch of batches) if (batch[row]) entries.push(batch[row]);
+    }
     summary.entriesFound = entries.length;
-    entries.sort((a, b) => (Date.parse(b.publishedAt ?? "") || 0) - (Date.parse(a.publishedAt ?? "") || 0) || a.url.localeCompare(b.url));
+
     const seen = new Set<string>();
     let selected = 0;
     for (const entry of entries) {
@@ -75,7 +80,7 @@ export async function ingestFeeds(options: FeedOptions, dependencies: FeedDepend
               attempts[url] = attempt;
               attempts[canonical] = attempt;
               await writeJson(attemptsPath, attempts);
-              summary.claudeCalls++;
+              summary.extractionCalls++;
               return (dependencies.extract ?? extractSignals)(doc);
             },
           },
@@ -85,9 +90,15 @@ export async function ingestFeeds(options: FeedOptions, dependencies: FeedDepend
         await store.mark(url, batch);
         await store.mark(canonical, batch);
         summary.processed++;
-      } catch { summary.failed++; log(`Article failed: ${url}`); }
+       } catch (error) {
+        summary.failed++;
+        const message = error instanceof Error ? error.message : '';
+        // Only expose transport errors authored by our Gemini client, not source/model text.
+        const detail = /^Gemini returned HTTP \d{3}\.$/.test(message) ? ` ${message}` : '';
+        log(`Article failed: ${url}${detail}`);
+      }
     }
-    log(`Feed entries found: ${summary.entriesFound}; duplicates skipped: ${summary.duplicatesSkipped}; successfully processed: ${summary.processed}; failed: ${summary.failed}; feeds failed: ${summary.feedsFailed}; prior attempts blocked: ${summary.attemptsBlocked}; Claude calls: ${summary.claudeCalls}.`);
+    log(`Feed entries found: ${summary.entriesFound}; duplicates skipped: ${summary.duplicatesSkipped}; successfully processed: ${summary.processed}; failed: ${summary.failed}; feeds failed: ${summary.feedsFailed}; prior attempts blocked: ${summary.attemptsBlocked}; Gemini extraction calls: ${summary.extractionCalls}.`);
     return summary;
   } finally {
     await lock.close();

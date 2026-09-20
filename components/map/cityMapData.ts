@@ -161,11 +161,19 @@ function classifyTileRaw(tx: number, ty: number): TileInfo {
   // Keep the incline on a hillside block south of the road at ty 23.
   if (tx >= MT_WASHINGTON_TX - 1 && tx <= MT_WASHINGTON_TX + 1 &&
       ty >= MT_WASHINGTON_TY - 2 && ty <= MT_WASHINGTON_TY) return { ground: 'hillside' };
+  // A continuous woodland block surrounds the incline. The three-by-three
+  // clearing above keeps trees off its stations, tracks and viewing terrace.
+  // Border streets at tx 11/17 and ty 23 remain accessible.
+  if (tx >= MT_WASHINGTON_TX - 2 && tx <= MT_WASHINGTON_TX + 2 &&
+      ty >= MT_WASHINGTON_TY - 3 && ty <= MT_WASHINGTON_TY) {
+    return { ground: 'hillside', tree: r < 0.88 };
+  }
+
 
   // Continuous bridge approaches and east-west avenues connect the districts.
   const bridgeApproach = (BRIDGE_TX.has(tx) && Math.abs(ty - alleghenyY(tx)) < 3.1)
     || (MON_BRIDGE_TX.has(tx) && Math.abs(ty - monY(tx)) < 3.1);
-  if (bridgeApproach && !isInWedge(tx, ty)) return { ground: 'road' };
+  if (bridgeApproach) return { ground: 'road' };
 
   if (isInWedge(tx, ty)) {
     // Dense Golden Triangle skyline, separated by streets and civic squares.
@@ -316,7 +324,7 @@ export interface PittsburghLandmark {
 }
 
 export const PITTSBURGH_LANDMARKS: PittsburghLandmark[] = [
-  { id: 'upmc', label: 'UPMC HOSPITAL', kind: 'hospital', tx: 18, ty: 18, wx: tileToScreen(18,18).x, wy: tileToScreen(18,18).y },
+  { id: 'upmc', label: 'UPMC HOSPITAL', kind: 'hospital', tx: 18, ty: 18, wx: tileToScreen(17.5,18).x, wy: tileToScreen(17.5,18).y },
   { id: 'police', label: 'POLICE', kind: 'police', tx: 14, ty: 17, wx: tileToScreen(14,17).x, wy: tileToScreen(14,17).y },
   { id: 'point-state-park', label: 'POINT', kind: 'point', tx: 9, ty: POINT_TY, wx: tileToScreen(9, POINT_TY).x, wy: tileToScreen(9, POINT_TY).y },
   { id: 'acrisure-stadium', label: 'ACRISURE', kind: 'stadium', tx: 6, ty: 12, wx: tileToScreen(6, 12).x, wy: tileToScreen(6, 12).y },

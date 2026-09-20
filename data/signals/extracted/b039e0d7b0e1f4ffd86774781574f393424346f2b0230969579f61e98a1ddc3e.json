@@ -1,0 +1,29 @@
+{
+  "documentId": "b039e0d7b0e1f4ffd86774781574f393424346f2b0230969579f61e98a1ddc3e",
+  "source": {
+    "title": "Public Source at 15: Showing up in our communities",
+    "url": "https://www.publicsource.org/public-source-at-15/",
+    "publisher": "Pittsburgh's Public Source",
+    "publishedAt": "2026-09-19T17:50:36+00:00"
+  },
+  "provenance": {
+    "retrievedAt": "2026-09-20T07:37:00.594Z",
+    "adapterVersion": "general-article-html-v1",
+    "contentHash": "5ae60d23032a8c4f38b5b033cea937ceb6a2461660453189c9acd19e2b28087a",
+    "extractedAt": "2026-09-20T07:37:04.651Z",
+    "model": "gemini-3.6-flash",
+    "promptVersion": "external-signals-v3-gemini"
+  },
+  "signals": [],
+  "discovery": {
+    "title": "Public Source at 15: Showing up in our communities",
+    "url": "https://www.publicsource.org/public-source-at-15/",
+    "publishedAt": "2026-09-19T17:50:36.000Z",
+    "publisher": "PublicSource",
+    "feedUrl": "https://www.publicsource.org/feed/"
+  },
+  "discoveredUrls": [
+    "https://www.publicsource.org/public-source-at-15/",
+    "https://www.publicsource.org/public-source-at-15/"
+  ]
+}

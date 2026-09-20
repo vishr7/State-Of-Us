@@ -49,7 +49,11 @@ export function parseFeed(xml: string, feedUrl: string, publisher?: string): Fee
   return entries;
 }
 
-export async function fetchFeed(feed: { url: string; publisher?: string }): Promise<FeedEntry[]> {
+export async function fetchFeed(feed: { url: string; publisher?: string; kind?: 'page' }): Promise<FeedEntry[]> {
+  if (feed.kind === 'page') return [{
+    title: '', url: normalizeUrl(feed.url), publishedAt: null,
+    publisher: feed.publisher ?? null, feedUrl: feed.url,
+  }];
   const response = await fetch(normalizeUrl(feed.url), {
     signal: AbortSignal.timeout(20_000),
     headers: { Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },

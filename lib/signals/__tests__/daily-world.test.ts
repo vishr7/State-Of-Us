@@ -18,7 +18,7 @@ function signal(id: string, text: string, category: ExternalSignal["category"] =
 }
 const candidate = (id: string, text = "The city announces a pilot.", category: ExternalSignal["category"] = "policy") => toDecisionCandidate(signal(id, text, category));
 const options = { day: 1, generatedAt: timestamp };
-const stats = { entriesFound: 0, duplicatesSkipped: 0, processed: 0, failed: 0, feedsFailed: 0, attemptsBlocked: 0, claudeCalls: 0 };
+const stats = { entriesFound: 0, duplicatesSkipped: 0, processed: 0, failed: 0, feedsFailed: 0, attemptsBlocked: 0, extractionCalls: 0 };
 const directories: string[] = [];
 afterEach(async () => { for (const dir of directories.splice(0)) await rm(dir, { recursive: true, force: true }); });
 async function directory() { const dir = await mkdtemp(join(tmpdir(), "daily-world-test-")); directories.push(dir); await mkdir(join(dir, "extracted")); return dir; }

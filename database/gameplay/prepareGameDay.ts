@@ -1,3 +1,4 @@
+import { ensureAIProtest, isProtestPolicy } from './aiProtest';
 import { fillDailyChoices } from './catalogChoices';
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -22,6 +23,7 @@ export function gameDayResponse(row: GameDayRow): GameDayResponse {
   return { gameDayId: row.id, status: row.status, slate: generatedSlateSchema.parse({ cityId: row.city_id, turn: row.turn, candidatePoolIds: candidates.map((candidate) => candidate.id), selectedDecisionIds: row.selected_ids, decisions, generatedAt: new Date(row.completed_at ?? row.created_at).toISOString(), selectionVersion: SELECTOR_PROMPT_VERSION }) };
 }
 export async function getGameDay(cityId: string, turn: number) {
+  await ensureAIProtest(cityId, turn);
   const row = (await getPool().query<GameDayRow>("select * from game_days where city_id=$1 and turn=$2", [cityId, turn])).rows[0];
   if (!row) throw new GameplayError("Game day not found.", 404);
   if (row.status !== "ready") throw new GameplayError(`Game day is ${row.status}. Provider stages will not be automatically repeated.`);
@@ -30,6 +32,7 @@ export async function getGameDay(cityId: string, turn: number) {
 
 export interface PrepareDependencies { ingest?: typeof ingestFeeds; gemini?: GeminiClient; directory?: string; retryFailed?: boolean }
 export async function prepareGameDay(cityId: string, turn: number, dependencies: PrepareDependencies = {}): Promise<GameDayResponse> {
+  if (turn === 1 || turn === 3) { await ensureAIProtest(cityId, turn); return getGameDay(cityId, turn); }
   const claim = await withTransaction(async (db) => {
     const city = (await db.query<City>("select * from cities where id=$1 for update", [cityId])).rows[0];
     if (!city) throw new GameplayError("City not found.", 404);
@@ -51,7 +54,10 @@ export async function prepareGameDay(cityId: string, turn: number, dependencies:
   try {
     let feedWarning: string | null = null;
     try {
-      const summary = await (dependencies.ingest ?? ingestFeeds)({ feeds: SIGNAL_FEEDS, directory, limit: 5 });
+      // Collection runs separately; game days consume the cached evidence.
+      const summary = dependencies.ingest
+        ? await dependencies.ingest({ feeds: SIGNAL_FEEDS, directory, limit: 5 })
+        : { feedsFailed: 0, failed: 0, attemptsBlocked: 0 };
       if (summary.feedsFailed || summary.failed || summary.attemptsBlocked) feedWarning = "Some feed/article attempts failed or are blocked; using available validated signals.";
     } catch { feedWarning = "Feed ingestion failed; using available validated signals."; }
     if (feedWarning) console.warn(feedWarning);
@@ -72,7 +78,7 @@ export async function prepareGameDay(cityId: string, turn: number, dependencies:
       generationWarning = error instanceof Error ? error.message.slice(0, 400) : 'Generation failed';
       console.warn('Daily generation unavailable; using authored choices:', generationWarning);
     }
-    const catalog = (await getPool().query<Policy>("select * from policies order by id")).rows;
+    const catalog = (await getPool().query<Policy>("select * from policies order by id")).rows.filter(p => !isProtestPolicy(p.id));
     const bound = bindExecutableActions(pool, catalog);
     const hashes = Object.fromEntries(catalog.filter((policy) => bound.some((candidate) => candidate.policyId === policy.id)).map((policy) => [policy.id, policyFingerprint(policy)]));
     const metadata = { generatorModel: process.env.GEMINI_MODEL ?? null, generatorPromptVersion: GENERATOR_PROMPT_VERSION, selectorModel: process.env.GEMINI_MODEL ?? null, selectorPromptVersion: SELECTOR_PROMPT_VERSION, feedWarning, generationWarning };

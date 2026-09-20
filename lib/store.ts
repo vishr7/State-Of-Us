@@ -1,3 +1,7 @@
+'use client';
+
+import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from './dialogue/protest';
+import { dailyWeather } from './weather';
 import { MAYOR_INTRODUCTION } from './dialogue/introduction';
 import { briefingSpeaker } from './dialogue/speakers';
 // ============================================================
@@ -7,11 +11,10 @@ import { briefingSpeaker } from './dialogue/speakers';
 // The turn interval runs here, not in a component.
 // ============================================================
 
-'use client';
-
 import { create } from 'zustand';
 import type { CityInsight, InsightRequest } from './ai/contracts';
 import { selectPolicyLock, unaffordableReason } from './policyProgress';
+import { pickRandomResident, RECENT_MEMORY } from './featuredResident';
 export { selectPolicyLock, unaffordableReason } from './policyProgress';
 import { personaResidents } from './personas';
 import {
@@ -24,7 +27,7 @@ import {
   initialAgentGroups, initialPolicies, initialBridges,
   initialEvents, initialSnapshots,
 } from './mockData';
-import { simulateTurn, enactPolicy, rollEvent, advanceDate, rollWeather } from './mockEngine';
+import { simulateTurn, enactPolicy, rollEvent, advanceDate } from './mockEngine';
 import { getGroupReactions } from './mockAgents';
 import {
   connectToBackend, overlayCity, overlayNeighborhoods, updateAgentGroups, toDisplayTurn,
@@ -50,7 +53,7 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { tour?: string; label?: string; speaker?: 'mayor' | 'assistant' | 'news' | 'resident'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
+export interface ResidentAnnouncement { residentId?: string; residentAge?: number; tour?: string; label?: string; speaker?: 'mayor' | 'assistant' | 'news' | 'resident'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
   insights: CityInsight[];
@@ -62,6 +65,12 @@ interface CityPulseStore extends GameState {
   announce: (text: string, kind?: ResidentAnnouncement['kind']) => void;
   dismissAnnouncement: () => void;
   submittingPolicy: boolean;
+  /** Ask the map to fly to a resident. `nonce` makes repeat requests for the same resident fire again. */
+  mapFocus: { residentId: string; nonce: number } | null;
+  /** Today's featured resident, chosen at random once per game day (`recent` = earlier picks, kept so they aren't repeated soon). */
+  featured: { day: number; residentId: string; recent: string[] } | null;
+  rollFeaturedResident: () => void;
+  focusResidentOnMap: (residentId: string) => void;
   pendingPolicy: { name: string; turn: number } | null;
   // Derived / convenience
   weather: { condition: WeatherCondition; tempC: number };
@@ -106,6 +115,20 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   requestInsights: async (request, speak = false) => {
     const link = get().backendLink;
     if (!link) { set({ insightsError: 'Connect to the live database to generate grounded city analysis.' }); return null; }
+    // Day 2 is authored: don't hold its opening behind external AI providers.
+    if (speak && [2, 4].includes(get().city.turn) && (request.mode === 'outcome' || request.mode === 'briefing')) {
+      const city = get().city;
+      const outage = city.turn === 4;
+      set(state => ({ announcements: [...state.announcements,
+        { id: ++announcementId, speaker: 'assistant', kind: 'info', turn: city.turn,
+          text: `Yesterday’s results are in. City happiness is ${city.happiness} out of 100, approval is ${city.approval} percent, and we have $${city.treasury.toLocaleString('en-US')} in the budget. Now we need to respond to ${outage ? 'a power outage in Homewood' : 'a protest in Oakland'}.` },
+        { id: ++announcementId, speaker: 'news', kind: 'warning', turn: city.turn, tour: outage ? 'outage' : 'protest', text: outage ? OUTAGE_BRIEFING : PROTEST_BRIEFING },
+        { id: ++announcementId, speaker: 'assistant', kind: 'info', turn: city.turn, tour: 'choices',
+          text: 'Here are the two responses. Review the costs and effects, then make your emergency decision.' },
+      ] }));
+      return null;
+    }
+    const requestedAt = Date.now();
     set(state => ({ insightsPending: state.insightsPending + 1, insightsError: null }));
     try {
       const response = await fetch(`/api/city/${link.cityId}/insights`, {
@@ -116,7 +139,8 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       const insight = data as CityInsight;
       set(state => ({ insights: [insight, ...state.insights.filter(item => item.id !== insight.id)].slice(0, 12) }));
       // Slow AI responses can be reviewed in history but must not interrupt a newer turn.
-      if (speak && get().city.turn === insight.facts.turn) {
+      if (speak && get().city.turn === insight.facts.turn && get().backendLink?.cityId === link.cityId
+        && !get().pendingPolicy && !get().submittingPolicy && !get().resolvingTurn && Date.now() - requestedAt < 8000) {
         const day = insight.facts.turn;
         const speaker = briefingSpeaker(day, request.mode);
         const duet = speaker === 'mayor';
@@ -124,6 +148,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         if (insight.facts.assessment && speaker === 'mayor') lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: `Since Day ${insight.facts.assessment.baselineDay}, happiness changed by ${insight.facts.assessment.happinessChange} points and approval by ${insight.facts.assessment.approvalChange} points. ${insight.facts.assessment.improvedDistricts} districts improved. The performance grant is $${insight.facts.assessment.grant.toLocaleString('en-US')}, already included in the budget.` });
         if (duet) lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: day === 1 ? 'Mayor, the city is ready. Shall we walk through the first decision?' : 'Mayor, the latest results are in. What should we take from them?' });
         lines.push({ id: ++announcementId, speaker, duet, text: day === 1 && speaker === 'mayor' ? 'Choose one of the five plans, check its cost and tradeoffs, and confirm your choice. That moves us into the next day. My assistant will guide you; I’ll return every third day to review the results. ' + insight.commentary.mayorSpeech.slice(0, 620) : insight.commentary.mayorSpeech, kind: 'info', source: insight.source, speechSource: insight.speechSource, turn: day });
+        if (day === 2) lines.push({ id: ++announcementId, speaker: 'news', kind: 'warning', turn: day, tour: 'protest', text: PROTEST_BRIEFING });
         lines.push({ id: ++announcementId, tour: 'choices', speaker: 'assistant', duet, kind: 'info', turn: day, text: 'Next, we’ll look at today’s plans. Open a card to compare its cost and tradeoffs, then choose how we move forward.' });
         set(state => ({ announcements: [...state.announcements, ...lines] }));
       }
@@ -137,6 +162,18 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   announce: (text, kind = 'info') => set(state => ({ announcements: [...state.announcements, { id: ++announcementId, speaker: kind === 'warning' ? 'news' : 'assistant', tour: /next decision/i.test(text) ? 'choices' : undefined, text: text.replace(/^[✓✗⚡]\s*/, ''), kind }] })),
   dismissAnnouncement: () => set(state => ({ announcements: state.announcements.slice(1) })),
   submittingPolicy: false,
+  mapFocus: null,
+  featured: null,
+  // Idempotent: called on every render pass that might need it; only picks when the day has changed.
+  rollFeaturedResident: () => set(state => {
+    const { residents, featured, city } = state;
+    if (featured && featured.day === city.turn && residents.some(r => r.id === featured.residentId)) return {};
+    const memory = Math.min(RECENT_MEMORY, residents.length - 1);
+    const recent = featured && memory > 0 ? [...featured.recent, featured.residentId].slice(-memory) : [];
+    const pick = pickRandomResident(residents, recent);
+    return pick ? { featured: { day: city.turn, residentId: pick.id, recent } } : {};
+  }),
+  focusResidentOnMap: (residentId) => set(state => ({ mapFocus: { residentId, nonce: (state.mapFocus?.nonce ?? 0) + 1 } })),
   pendingPolicy: null,
   // Initial game state
   city: initialCity,
@@ -186,6 +223,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         // Charts restart from the database's current state rather than mixing in mock history.
         snapshots: [buildSnapshot(world.city, world.neighborhoods, [])],
         lastSnapshot: null,
+        weather: dailyWeather(world.city.turn, world.link.cityId),
         ...(world.city.turn === 1 ? { announcements: MAYOR_INTRODUCTION.map(({ text, tour }) => ({ tour, id: ++announcementId, speaker: 'mayor' as const, text, kind: 'info' as const, turn: 1, source: 'scripted' as const })) } : {}),
       }));
       if (world.pendingPolicy) get().announce(`${world.pendingPolicy.name} is selected. End the day to apply it and see what changes.`);
@@ -280,7 +318,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       activeEvents: newActiveEvents,
       eventLog: newEvent ? [...state.eventLog, newEvent] : state.eventLog,
       snapshots: newSnapshots,
-      weather: result.weather,
+      weather: dailyWeather(result.updatedCity.turn),
       lastSnapshot: snapshots[snapshots.length - 1] ?? null,
     }));
 
@@ -534,7 +572,7 @@ async function advanceViaBackend(get: Get, set: Set) {
       eventLog: newEvent ? [...state.eventLog, newEvent] : state.eventLog,
       decisionHistory: history,
       snapshots: [...snapshots, buildSnapshot(nextCity, neighborhoods, nextEvents)].slice(-30),
-      weather: rollWeather(nextCity.season),
+      weather: dailyWeather(nextCity.turn, link.cityId),
       lastSnapshot: snapshots[snapshots.length - 1] ?? null,
     }));
 
@@ -543,8 +581,18 @@ async function advanceViaBackend(get: Get, set: Set) {
       if (!result.applied_decisions.length) void get().requestInsights({ mode: 'event', policyIds: [], event: newEvent.pittsburghFlavor }, true);
     }
     if (result.applied_decisions.length > 0) {
-      void get().requestInsights({ mode: 'outcome', policyIds: result.applied_decisions.slice(0,2).map(d => d.policy_id), event: newEvent?.pittsburghFlavor }, true);
-      get().showToast(`✓ ${result.applied_decisions.map(d => d.policy_name).join(', ')} took full effect. City happiness is now ${nextCity.happiness} out of 100, and approval is ${nextCity.approval} percent. You can now make your next decision.`, 'success');
+      // The outcome narration owns the handoff to today's choices. A success
+      // toast also speaks, so announcing choices here races the AI response.
+      void get().requestInsights({ mode: 'outcome', policyIds: result.applied_decisions.slice(0,2).map(d => d.policy_id), event: newEvent?.pittsburghFlavor }, true).then(insight => {
+        if ([2, 4].includes(nextCity.turn) || insight || get().city.turn !== nextCity.turn || get().backendLink?.cityId !== link.cityId) return;
+        // Provider failures still get a grounded results-first briefing.
+        set(state => ({ announcements: [...state.announcements,
+          { id: ++announcementId, speaker: 'assistant', kind: 'success', turn: nextCity.turn,
+            text: `${result.applied_decisions.map(d => d.policy_name).join(', ')} took full effect. City happiness is now ${nextCity.happiness} out of 100, and approval is ${nextCity.approval} percent.` },
+          { id: ++announcementId, speaker: 'assistant', kind: 'info', turn: nextCity.turn, tour: 'choices',
+            text: 'Now, here are today’s plans. Open a card to review its cost and tradeoffs before choosing.' },
+        ] }));
+      });
     }
   } catch (err) {
     get().stopPlaying();
@@ -568,8 +616,9 @@ export const selectActiveBridge = (state: CityPulseStore) =>
 export const selectActiveResident = (state: CityPulseStore) =>
   state.residents.find(r => r.id === state.ui.selectedResidentId) ?? null;
 
+// A random resident is featured each game day (chosen by rollFeaturedResident; kept until the next roll so nothing flickers).
 export const selectFeaturedResident = (state: CityPulseStore) =>
-  state.residents[0]; // Could rotate based on turn
+  state.featured ? state.residents.find(r => r.id === state.featured!.residentId) : undefined;
 
 export const selectProposedPolicies = (state: CityPulseStore) =>
   state.policies.filter(p => p.status === 'proposed');
