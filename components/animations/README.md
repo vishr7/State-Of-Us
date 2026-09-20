@@ -1,5 +1,48 @@
 # Map animation segments
 
+## Protest event scene
+
+`ProtestEventAnimation.tsx` is a decorative, reusable scene. Preview it at
+`/demo/protest` with `npm run dev`; the page includes a large scene and a 360px
+result panel using the existing drawer palette and spacing.
+
+```tsx
+import ProtestEventAnimation from '@/components/animations/ProtestEventAnimation';
+
+<ProtestEventAnimation width="100%" autoPlay loop={false} showReplayButton />
+```
+
+Optional props: `width`, `height` (CSS sizes or numeric pixels), `autoPlay`
+(default true), `loop` (default false), `onComplete`, `className`, and
+`showReplayButton` (default true). Pass callbacks from a client component.
+Hide controls for overlays; mount on an event or change `key` to start a new
+sequence. No event classification, API calls or game-state changes are included.
+
+The 360×280 scene preserves its aspect ratio and letterboxes explicit heights.
+Width is capped by its parent. Nine citizens remain about 24px tall in a padded
+360px panel. Very narrow containers or short explicit heights reduce readability.
+The civic hall (14), shop (6), and trees (12) reuse `city-atlas.png`. Citizens use
+the actual map renderer via `drawCitizen`, with fixed IDs and outfit colors;
+their proportions, cosmetics and palette are unchanged. Signs are small canvas
+pixel shapes with equality, home and heart symbols. No additional assets.
+
+A 4.6-second timeline staggers entrances, walking strides, sign raises and subtle
+individual bobbing/waving, then stops on a stable crowd. A single canvas avoids
+per-person DOM trees and per-frame React updates. Fixed configurations and pure
+frame math ensure repeatability; browser APIs run only after hydration. The
+server renders the city backdrop and an accessible scene description.
+
+Reduced motion shows the complete static protest, even with autoplay disabled.
+Turning reduced motion on during playback settles immediately. Explicit looping
+pauses 1.2 seconds between plays and is suppressed for reduced motion. Completion
+fires once per completed play (including reduced-motion autoplay); replay cancels
+the previous play. Unmount cancels animation frames, listeners and loop timers.
+The live region announces gathering/completion; replay is keyboard accessible.
+
+The scene is an illustrative civic square rather than a live map tile. The
+preview does not wire it to simulation events. Canvas citizens appear after
+hydration, as with the existing resident portraits.
+
 `demolition.ts` draws a wrecking ball falling from the sky, an impact ring and dust.
 At impact, CityCanvas removes the target building from both cached sprite layers,
 leaving the ground visible. Animations use world coordinates so zoom and pan stay

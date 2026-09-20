@@ -65,7 +65,7 @@ export function walkerPosition(walker: Walker, seconds: number) {
   return { ...position, facing: b.x-b.y >= a.x-a.y ? 1 : -1, stride: Math.sin(seconds * 8 + walker.phase) * 1.5 };
 }
 // Draws one resident, feet at the origin and facing right. The map animates `stride`; a portrait passes 0.
-function drawResidentSprite(ctx: CanvasRenderingContext2D, resident: Resident, look: Appearance, stride: number) {
+function drawResidentSprite(ctx: CanvasRenderingContext2D, resident: Pick<Resident, 'portraitColor'>, look: Appearance, stride: number) {
   ctx.fillStyle = '#10232e55'; ctx.beginPath(); ctx.ellipse(0,1,4,1.6,0,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle = look.skirt ? look.skin : look.bottoms; ctx.lineWidth = look.skirt ? 1.3 : 1.8;
   ctx.beginPath();ctx.moveTo(-1,-4);ctx.lineTo(-1+stride,-0.5);ctx.moveTo(1,-4);ctx.lineTo(1-stride,-0.5);ctx.stroke();
@@ -116,6 +116,11 @@ function drawResidentSprite(ctx: CanvasRenderingContext2D, resident: Resident, l
   } else {
     ctx.fillStyle = '#343033';ctx.fillRect(1,-11.7,0.6,0.8);
   }
+}
+
+/** Reuse the map citizen artwork in decorative scenes without creating a game resident. */
+export function drawCitizen(ctx: CanvasRenderingContext2D, id: string, portraitColor: string, stride = 0) {
+  drawResidentSprite(ctx, { portraitColor }, appearanceFor(id), stride);
 }
 
 export function drawWalker(ctx: CanvasRenderingContext2D, walker: Walker, seconds: number) {
