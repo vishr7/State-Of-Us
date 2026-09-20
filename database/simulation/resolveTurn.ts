@@ -17,7 +17,7 @@
 import { withTransaction } from '../lib/db';
 import type { AppliedDecision, City, SimulationState } from '../types/database';
 import { applyPolicyEffects } from './applyPolicyEffects';
-import { SnapshotAlreadyExistsError } from './errors';
+import { SnapshotAlreadyExistsError, ExpectedTurnError } from './errors';
 import { loadTurnState } from './loadTurnState';
 import { insertSnapshot, persistCity, persistNeighborhoods, persistResidents } from './persistTurnState';
 import { recalculateCityAggregates, recalculateNeighborhoodAggregates } from './recalculateAggregates';
@@ -32,7 +32,8 @@ export interface ResolveTurnResult {
 /** Postgres error code for a unique-constraint violation. */
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 
-export async function resolveTurn(cityId: string): Promise<ResolveTurnResult> {
+export async function resolveTurn(cityId: string, expectedTurn?: number): Promise<ResolveTurnResult> {
+  if (expectedTurn !== undefined && (!Number.isSafeInteger(expectedTurn) || expectedTurn < 0)) throw new ExpectedTurnError('Invalid expected turn.');
   return withTransaction(async (client) => {
     const {
       city: initialCity,
@@ -43,6 +44,20 @@ export async function resolveTurn(cityId: string): Promise<ResolveTurnResult> {
     } = await loadTurnState(client, cityId);
 
     const previousTurn = initialCity.current_turn;
+
+    // Check under the existing city row lock. A repeated request returns its committed result.
+    if (expectedTurn !== undefined && previousTurn !== expectedTurn) {
+      const saved = await client.query<{ state: SimulationState }>('select state from simulation_snapshots where city_id=$1 and turn=$2', [cityId, expectedTurn + 1]);
+      if (previousTurn > expectedTurn && saved.rows[0]) {
+        const state = saved.rows[0].state;
+        return { city: { ...initialCity, ...state.city }, previousTurn: expectedTurn, newTurn: expectedTurn + 1, appliedDecisions: state.applied_decisions };
+      }
+      throw new ExpectedTurnError('Expected turn does not match the current city turn.');
+    }
+    const beforeSnapshot = await client.query('select id from simulation_snapshots where city_id=$1 and turn=$2', [cityId, previousTurn]);
+    if (!beforeSnapshot.rows.length) await insertSnapshot(client, cityId, previousTurn, {
+      version: 1, turn: previousTurn, city: omitTimestamps(initialCity), neighborhoods: initialNeighborhoods, residents: initialResidents, applied_decisions: [],
+    });
 
     let city = initialCity;
     let neighborhoods = initialNeighborhoods;

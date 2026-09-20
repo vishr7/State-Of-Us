@@ -476,7 +476,7 @@ async function advanceViaBackend(get: Get, set: Set) {
 
   set(() => ({ resolvingTurn: true }));
   try {
-    const result = await resolveTurn(link.cityId);
+    const result = await resolveTurn(link.cityId, get().city.turn - 1);
     const dbNeighborhoods = await getNeighborhoods(link.cityId);
 
     const { city: prevCity, neighborhoods: prevNeighborhoods, agentGroups, activeEvents, snapshots, decisionHistory } = get();

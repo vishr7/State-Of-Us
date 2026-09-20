@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getPool, withTransaction } from '@database/lib/db';
 import type { City, Decision, Policy } from '@database/types/database';
+import { z } from 'zod';
+import { chooseGameDayCandidate } from '@database/gameplay/chooseGameDayCandidate';
+import { GameplayError } from '@database/gameplay/contracts';
 
 interface CreateDecisionBody {
   policy_id?: unknown;
   player_reasoning?: unknown;
+  candidate_id?: unknown;
+  turn?: unknown;
 }
 
 const UNIQUE_VIOLATION = '23505';
@@ -45,6 +50,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Request body must be valid JSON' }, { status: 400 });
   }
 
+  if (body && typeof body === 'object' && 'candidate_id' in body) {
+    try {
+      z.uuid().parse(id);
+      const choice = z.object({ candidate_id: z.string().min(1), turn: z.number().int().nonnegative(), player_reasoning: z.string().optional() }).strict().parse(body);
+      return NextResponse.json(await chooseGameDayCandidate(id, choice.turn, choice.candidate_id, choice.player_reasoning), { status: 201 });
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof GameplayError ? error.message : 'Invalid game-day choice.' }, { status: error instanceof GameplayError ? error.status : error instanceof z.ZodError ? 400 : 500 });
+    }
+  }
+
+  if (!body || typeof body !== 'object' || Object.keys(body).some(key => !['policy_id', 'player_reasoning'].includes(key))) {
+    return NextResponse.json({ error: 'Only a catalog policy or saved candidate may be selected.' }, { status: 400 });
+  }
   const policyId = body.policy_id;
   if (typeof policyId !== 'string' || policyId.length === 0) {
     return NextResponse.json({ error: '"policy_id" is required and must be a non-empty string' }, { status: 400 });

@@ -18,6 +18,8 @@
  *   integers or a decimal library, not by summing these directly.
  */
 
+import type { GameDayRow, ReactionRunRow, ResidentReactionRow } from '../gameplay/contracts';
+
 export type Json =
   | string
   | number
@@ -175,6 +177,9 @@ export interface Policy {
 
 /** Append-only log. A decision at turn N is applied when turn N is resolved. */
 export interface Decision {
+  /** Set only for a choice from a persisted Gemini slate. */
+  game_day_id?: string | null;
+  candidate_id?: string | null;
   id: string;
   city_id: string;
   policy_id: string;
@@ -345,6 +350,21 @@ type Insert<T, Optional extends keyof T> = Omit<T, Optional> &
 export interface Database {
   public: {
     Tables: {
+      game_days: {
+        Row: GameDayRow;
+        Insert: Insert<GameDayRow, 'id' | 'candidate_pool' | 'selected_ids' | 'policy_hashes' | 'generation_metadata' | 'error' | 'created_at' | 'completed_at'>;
+        Update: Partial<GameDayRow>;
+      };
+      reaction_runs: {
+        Row: ReactionRunRow;
+        Insert: Insert<ReactionRunRow, 'model' | 'error' | 'started_at' | 'completed_at'>;
+        Update: Partial<ReactionRunRow>;
+      };
+      resident_reactions: {
+        Row: ResidentReactionRow;
+        Insert: Insert<ResidentReactionRow, 'id' | 'created_at'>;
+        Update: Partial<ResidentReactionRow>;
+      };
       cities: {
         Row: City;
         Insert: Insert<

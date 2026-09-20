@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { resolveTurn } from '@database/simulation/resolveTurn';
+import { z } from 'zod';
+import { findChosenDecision } from '@database/gameplay/chooseGameDayCandidate';
+import { resolveGameDay } from '@database/gameplay/resolveGameDay';
+import { GameplayError } from '@database/gameplay/contracts';
 import {
   CityNotFoundError,
   MalformedPolicyEffectsError,
   PolicyNotFoundError,
   SnapshotAlreadyExistsError,
   UnsupportedEffectsVersionError,
+  ExpectedTurnError,
 } from '@database/simulation/errors';
 
 /**
@@ -16,10 +21,19 @@ import {
  * policy effects, recomputing aggregates, persisting, snapshotting) lives in
  * database/simulation/resolveTurn.ts, inside one database transaction.
  */
-export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const runtime = 'nodejs';
+export const maxDuration = 120;
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
-    const result = await resolveTurn(id);
+    z.uuid().parse(id);
+    const { expected_turn } = z.object({ expected_turn: z.number().int().nonnegative() }).strict().parse(await request.json());
+    const chosen = await findChosenDecision(id, expected_turn);
+    if (chosen) {
+      const outcome = await resolveGameDay(id, expected_turn);
+      return NextResponse.json({ city: outcome.after.city, previous_turn: expected_turn, turn: expected_turn + 1, applied_decisions: outcome.after.applied_decisions, outcome });
+    }
+    const result = await resolveTurn(id, expected_turn);
 
     return NextResponse.json({
       city: result.city,
@@ -28,6 +42,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       applied_decisions: result.appliedDecisions,
     });
   } catch (err) {
+    if (err instanceof z.ZodError || err instanceof SyntaxError) return NextResponse.json({ error: 'A valid expected_turn is required.' }, { status: 400 });
+    if (err instanceof ExpectedTurnError || err instanceof GameplayError) return NextResponse.json({ error: err.message }, { status: err instanceof GameplayError ? err.status : 409 });
     if (err instanceof CityNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 404 });
     }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiClientError, createDecision, getCity, getDecisions, getPolicies, listCities, resolveTurn } from '../apiClient';
+import { ApiClientError, createDecision, getCity, getDecisions, getPolicies, listCities, resolveTurn, prepareGameDay, getGameDay, chooseGameDayCandidate, getGameDayOutcome } from '../apiClient';
 
 function mockFetchOnce(status: number, body: unknown) {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -16,6 +16,21 @@ afterEach(() => {
 });
 
 describe('apiClient', () => {
+  it('exposes game-day preparation, retrieval, choice and outcome contracts', async () => {
+    let mocked = mockFetchOnce(200, { slate: { decisions: [] } });
+    await prepareGameDay('city-1', 0);
+    expect(mocked.mock.calls[0][0]).toBe('/api/city/city-1/game-day');
+    expect(JSON.parse(mocked.mock.calls[0][1].body)).toEqual({ turn: 0 });
+    mocked = mockFetchOnce(200, {});
+    await getGameDay('city-1', 0);
+    expect(mocked.mock.calls[0][0]).toBe('/api/city/city-1/game-day?turn=0');
+    mocked = mockFetchOnce(201, {});
+    await chooseGameDayCandidate('city-1', 0, 'candidate-1');
+    expect(JSON.parse(mocked.mock.calls[0][1].body)).toEqual({ candidate_id: 'candidate-1', turn: 0 });
+    mocked = mockFetchOnce(200, {});
+    await getGameDayOutcome('city-1', 0);
+    expect(mocked.mock.calls[0][0]).toBe('/api/city/city-1/game-day/outcome?turn=0');
+  });
   it('getCity requests the right path and returns the parsed body', async () => {
     const fetchMock = mockFetchOnce(200, { id: 'city-1', name: 'Marrow Bay' });
     const result = await getCity('city-1');
@@ -32,12 +47,13 @@ describe('apiClient', () => {
     expect(JSON.parse(init.body)).toEqual({ policy_id: 'policy-1', player_reasoning: 'because reasons' });
   });
 
-  it('resolveTurn POSTs with no body', async () => {
+  it('resolveTurn POSTs the expected turn to make retries safe', async () => {
     const fetchMock = mockFetchOnce(200, { turn: 1, applied_decisions: [] });
-    await resolveTurn('city-1');
+    await resolveTurn('city-1', 0);
     const [path, init] = fetchMock.mock.calls[0];
     expect(path).toBe('/api/city/city-1/resolve-turn');
     expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual({ expected_turn: 0 });
   });
 
   it('throws ApiClientError with the server message and status on a non-2xx response', async () => {
