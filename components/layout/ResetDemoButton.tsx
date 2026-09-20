@@ -30,6 +30,7 @@ export default function ResetDemoButton() {
       window.location.reload();
     } catch (error) {
       setResetting(false);
+      useAgenda.getState().setOpen(true);
       state.showToast(error instanceof Error ? error.message : 'Could not reset the demo.', 'error');
     }
   }

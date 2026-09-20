@@ -939,6 +939,29 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
+  const tour = useCityPulseStore(s => s.announcements[0]?.tour);
+  useEffect(() => {
+    if (!tour) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const area = MAP_AREAS.find(a => a.id === tour);
+    const fit = Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * .96;
+    const z = area ? Math.min(1.05, fit * 2) : fit;
+    const target = area ? { x: -area.x * z, y: -area.y * z - container.clientHeight * .12, zoom: z } : { x: 0, y: 30, zoom: z };
+    const start = { ...cameraRef.current };
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const began = performance.now();
+    let frame = 0;
+    const animate = (now: number) => {
+      const t = reduced ? 1 : Math.min(1, (now - began) / 1800);
+      const ease = t * t * (3 - 2 * t);
+      setMapViewport({ x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease, zoom: start.zoom + (target.zoom - start.zoom) * ease });
+      if (t < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [tour, setMapViewport]);
+
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
   const handleZoomOut = () => setZoom(z => Math.max(0.25, z * 0.8));
   const handleReset = () => {

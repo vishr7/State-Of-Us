@@ -25,12 +25,23 @@ describe('demo reset', () => {
     expect(mocks.residents).toHaveBeenCalledWith(expect.anything(), baseline.residents);
     expect(mocks.neighborhoods).toHaveBeenCalledWith(expect.anything(), baseline.neighborhoods);
     const deletes = mocks.query.mock.calls.filter(([sql]) => sql.startsWith('delete'));
-    expect(deletes).toHaveLength(4);
+    expect(deletes).toHaveLength(3);
     for (const [sql, params] of deletes) {
       expect(sql).toContain('where city_id=$1');
       expect(params).toEqual(['demo-city']);
     }
     expect(deletes.at(-1)?.[0]).toContain('turn>0');
+  });
+
+  it('clears events when the optional event table exists', async () => {
+    mocks.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('from cities')) return { rows: [{ id: 'demo-city', current_turn: 8 }] };
+      if (sql.includes('select state')) return { rows: [{ state: baseline }] };
+      if (sql.includes('to_regclass')) return { rows: [{ present: 'city_events' }] };
+      return { rows: [] };
+    });
+    await resetDemo('demo-city', 8);
+    expect(mocks.query).toHaveBeenCalledWith('delete from city_events where city_id=$1', ['demo-city']);
   });
 
   it('leaves all progress intact if the original snapshot is missing', async () => {

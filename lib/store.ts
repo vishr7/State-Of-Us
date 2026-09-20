@@ -1,3 +1,4 @@
+import { MAYOR_INTRODUCTION } from './dialogue/introduction';
 import { briefingSpeaker } from './dialogue/speakers';
 // ============================================================
 // CityPulse — Zustand Global Store
@@ -49,7 +50,7 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { speaker?: 'mayor' | 'assistant' | 'news'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
+export interface ResidentAnnouncement { tour?: string; speaker?: 'mayor' | 'assistant' | 'news'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
   insights: CityInsight[];
@@ -184,9 +185,10 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         // Charts restart from the database's current state rather than mixing in mock history.
         snapshots: [buildSnapshot(world.city, world.neighborhoods, [])],
         lastSnapshot: null,
+        ...(world.city.turn === 1 ? { announcements: MAYOR_INTRODUCTION.map(({ text, tour }) => ({ tour, id: ++announcementId, speaker: 'mayor' as const, text, kind: 'info' as const, turn: 1, source: 'scripted' as const })) } : {}),
       }));
       if (world.pendingPolicy) get().announce(`${world.pendingPolicy.name} is selected. End the day to apply it and see what changes.`);
-      void get().requestInsights({ mode: 'briefing', policyIds: [] }, true);
+      void get().requestInsights({ mode: 'briefing', policyIds: [] }, world.city.turn !== 1);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.info(`[CityPulse] Backend unavailable — running on the local mock engine. (${message})`);

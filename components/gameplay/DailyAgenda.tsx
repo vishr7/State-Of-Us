@@ -60,6 +60,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const { open, setOpen } = useAgenda();
   const cityId = useCityPulseStore(s => s.backendLink?.cityId);
   const turn = useCityPulseStore(s => s.city.turn - 1);
+  const introHidden = useCityPulseStore(s => !!s.announcements[0]?.tour && s.announcements[0].tour !== 'choices');
   const resolving = useCityPulseStore(s => s.resolvingTurn);
   const pending = useCityPulseStore(s => s.pendingPolicy);
   const [day, setDay] = useState<GameDayResponse | null>(null);
@@ -147,7 +148,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const money = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
   const costs = (candidate: GeneratedEventCandidate) => catalog.find(p => p.id === candidate.policyId);
   const canEnd = !!cityId && !!(day || choice || pending) && !busy && !resolving && !loadFailed && (!day?.slate.decisions.length || !!choice || !!pending);
-  return <section className="daily-dock" aria-label="Daily agenda">
+  return <section hidden={introHidden} className="daily-dock" aria-label="Daily agenda">
     {transition && transitionContainer && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, transitionContainer)}
     <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>City gameplan</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
       {outcome && <button onClick={() => setExpanded(expanded === 'outcome' ? null : 'outcome')}>Last results</button>}

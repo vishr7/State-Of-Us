@@ -1,0 +1,10 @@
+/** Each spoken segment directs one stop of the introductory tour. */
+export const MAYOR_INTRODUCTION = [
+  { tour: 'overview', text: 'Welcome to Pittsburgh. You’re helping me decide what this city does next. Let me show you around before we look at the plans.' },
+  { tour: 'downtown', text: 'This is Downtown, our city center at the meeting of the rivers. Decisions about jobs, transport and public services matter here, but their benefits won’t stop at the district boundary.' },
+  { tour: 'pitt', text: 'Over here is Pitt and Oakland, with the university and hospitals. Students, workers and nearby households can experience the same policy very differently. A shorter commute might mean much more to one person than another.' },
+  { tour: 'corporate', text: 'This is the Corporate District, our office and commercial hub. Supporting businesses can create opportunities, but we also need to ask who benefits and what the city is paying for.' },
+  { tour: 'suburbs', text: 'And these are the Suburbs, our residential neighborhoods. Housing support could make a big difference to a family struggling with rent while doing very little for a homeowner elsewhere. People will compare those outcomes and talk about whether they feel fair.' },
+  { tour: 'controls', text: 'You can explore for yourself: drag the map to move around, scroll or use the plus and minus buttons to zoom, and click or drag the minimap to jump across the city. Reset returns the map to its overview. Click a district label to take a closer look.' },
+  { tour: 'choices', text: 'Here are your five plans. Open a card to see what it does, its cost and tradeoffs. Confirming a plan applies your choice and moves us into the next day. Watch the budget and the residents’ reactions, not just the citywide average. My assistant will help each day. I’ll return on Days 3, 6, 9, and every third day after that to review the results.' },
+] as const;

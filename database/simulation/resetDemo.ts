@@ -23,7 +23,10 @@ export async function resetDemo(cityId: string, expectedTurn: number) {
     // Deleting decisions also removes their reaction runs and resident reactions.
     await client.query('delete from decisions where city_id=$1', [cityId]);
     await client.query('delete from game_days where city_id=$1', [cityId]);
-    await client.query('delete from city_events where city_id=$1', [cityId]);
+    // Older local databases predate the optional news-event migration.
+    // Check before issuing SQL: a missing relation aborts the whole transaction.
+    const eventsTable = (await client.query<{ present: string | null }>("select to_regclass('public.city_events')::text as present")).rows[0]?.present;
+    if (eventsTable) await client.query('delete from city_events where city_id=$1', [cityId]);
     await client.query('delete from simulation_snapshots where city_id=$1 and turn>0', [cityId]);
     await persistResidents(client, baseline.residents);
     await persistNeighborhoods(client, baseline.neighborhoods);
