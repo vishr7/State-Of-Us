@@ -1,0 +1,315 @@
+{
+  "https://content.govdelivery.com/accounts/PAPITT/bulletins/40df652": {
+    "documentId": "9a69f1f64eced1929da6c6a25d09843d23255808acd88c99b81a1d2436cf8be9",
+    "source": {
+      "url": "https://content.govdelivery.com/accounts/PAPITT/bulletins/40df652",
+      "title": "Mayor Corey O’Connor Provides Transparent and Honest Update on City’s Financial Position",
+      "publisher": "City of Pittsburgh",
+      "publishedAt": "2026-03-12"
+    },
+    "provenance": {
+      "contentHash": "30b83300896ce6fec218458480c6ce7a78c0b3a6d1e85dcca11ade9020747f19",
+      "model": "claude-haiku-4-5-20251001",
+      "promptVersion": "external-signals-v2",
+      "extractedAt": "2026-09-19T18:35:43.290Z",
+      "retrievedAt": "2026-09-19T18:35:39.488Z",
+      "adapterVersion": "pittsburgh-govdelivery-html-v2"
+    },
+    "signals": [
+      {
+        "category": "public_finance",
+        "headline": "Pittsburgh Mayor Announces Budget Deficit and Re-opening of 2026 Budget",
+        "summary": "Mayor Corey O'Connor announced that the city will re-open its 2026 budget to address accuracy concerns. The city ended 2025 with an $8.6 million deficit instead of the projected surplus, including $20 million in unbudgeted employee overtime spending. The 5-year emergency fund projections showed it would be depleted to $84 million instead of $127 million. Multiple areas have been identified as underfunded or improperly funded, including healthcare contributions, fuel costs, emergency repairs, and other essential services.",
+        "geography": {
+          "name": "Pittsburgh",
+          "scope": "city"
+        },
+        "eventDate": "2026-03-12",
+        "status": "announced",
+        "evidence": [
+          {
+            "quote": "Mayor Corey O'Connor announced today that his administration will be re-opening the City's 2026 budget to address serious concerns with the accuracy of the budget and the 5-year financial projections."
+          },
+          {
+            "quote": "Despite projections last year that the City would end 2025 with a small surplus, the preliminary end-of-year financials indicate an $8.6 million deficit for the year, which includes spending $20 million more in employee overtime than what was budgeted."
+          },
+          {
+            "quote": "The 2026 budget's 5-year projections showed spending down of the City's emergency rainy day fund from $160 million to $127 million over those five years. However, review of the projection showed that it would actually be spent down to $84 million."
+          }
+        ],
+        "id": "fff3fdd961deacc291c6c33550e48a0569aa1817a5ed2490357a93b127f61abd",
+        "documentId": "9a69f1f64eced1929da6c6a25d09843d23255808acd88c99b81a1d2436cf8be9",
+        "source": {
+          "title": "Mayor Corey O’Connor Provides Transparent and Honest Update on City’s Financial Position",
+          "url": "https://content.govdelivery.com/accounts/PAPITT/bulletins/40df652",
+          "publisher": "City of Pittsburgh",
+          "publishedAt": "2026-03-12"
+        },
+        "provenance": {
+          "retrievedAt": "2026-09-19T18:35:39.488Z",
+          "adapterVersion": "pittsburgh-govdelivery-html-v2",
+          "contentHash": "30b83300896ce6fec218458480c6ce7a78c0b3a6d1e85dcca11ade9020747f19",
+          "extractedAt": "2026-09-19T18:35:43.290Z",
+          "model": "claude-haiku-4-5-20251001",
+          "promptVersion": "external-signals-v2"
+        }
+      }
+    ]
+  },
+  "https://www.publicsource.org/public-source-at-15/": {
+    "documentId": "b039e0d7b0e1f4ffd86774781574f393424346f2b0230969579f61e98a1ddc3e",
+    "source": {
+      "url": "https://www.publicsource.org/public-source-at-15/",
+      "title": "Public Source at 15: Showing up in our communities",
+      "publisher": "Pittsburgh's Public Source",
+      "publishedAt": "2026-09-19T17:50:36+00:00"
+    },
+    "provenance": {
+      "contentHash": "5ae60d23032a8c4f38b5b033cea937ceb6a2461660453189c9acd19e2b28087a",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "external-signals-v3-gemini",
+      "extractedAt": "2026-09-20T07:37:04.651Z",
+      "retrievedAt": "2026-09-20T07:37:00.594Z",
+      "adapterVersion": "general-article-html-v1"
+    },
+    "signals": [],
+    "discovery": {
+      "title": "Public Source at 15: Showing up in our communities",
+      "url": "https://www.publicsource.org/public-source-at-15/",
+      "publishedAt": "2026-09-19T17:50:36.000Z",
+      "publisher": "PublicSource",
+      "feedUrl": "https://www.publicsource.org/feed/"
+    },
+    "discoveredUrls": [
+      "https://www.publicsource.org/public-source-at-15/",
+      "https://www.publicsource.org/public-source-at-15/"
+    ]
+  },
+  "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium": {
+    "documentId": "407eb1a5e3011420e25d4ddb844ebee2f478af992680b0f054b612fe96856640",
+    "source": {
+      "url": "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+      "title": "UPMC to pay DOJ nearly $1M, agrees to 10-year moratorium on gender-affirming care for trans youth",
+      "publisher": "90.5 WESA",
+      "publishedAt": "2026-09-18T17:57:42Z"
+    },
+    "provenance": {
+      "contentHash": "93620c01382d6f90fc4b5d349a55832c5b218d8be8e0faa0b712d96522a5f699",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "external-signals-v3-gemini",
+      "extractedAt": "2026-09-20T07:37:26.960Z",
+      "retrievedAt": "2026-09-20T07:37:04.697Z",
+      "adapterVersion": "general-article-html-v1"
+    },
+    "signals": [
+      {
+        "category": "policy",
+        "headline": "UPMC Agrees to $950,000 DOJ Settlement and 10-Year Moratorium on Gender-Affirming Care for Youth",
+        "summary": "UPMC announced a deal with the U.S. Department of Justice to settle a federal investigation into gender-affirming care for minors. Under the agreement, UPMC will pay $950,000 to the government and refrain from providing gender-affirming care to transgender patients under the age of 19.",
+        "geography": {
+          "name": "Pittsburgh",
+          "scope": "city"
+        },
+        "eventDate": "2026-09-18",
+        "status": "announced",
+        "evidence": [
+          {
+            "quote": "UPMC will not resume gender-affirming care for transgender patients under the age of 19 in a new deal announced with the U.S. Department of Justice. The health system will also pay the government $950,000 to settle the Trump administration’s investigation into such care."
+          }
+        ],
+        "id": "1c8c4bb72bd1530c4f16ea150b435b9c8cdf6c3af19c557d5c1a039937b848dc",
+        "documentId": "407eb1a5e3011420e25d4ddb844ebee2f478af992680b0f054b612fe96856640",
+        "source": {
+          "title": "UPMC to pay DOJ nearly $1M, agrees to 10-year moratorium on gender-affirming care for trans youth",
+          "url": "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+          "publisher": "90.5 WESA",
+          "publishedAt": "2026-09-18T17:57:42Z"
+        },
+        "provenance": {
+          "retrievedAt": "2026-09-20T07:37:04.697Z",
+          "adapterVersion": "general-article-html-v1",
+          "contentHash": "93620c01382d6f90fc4b5d349a55832c5b218d8be8e0faa0b712d96522a5f699",
+          "extractedAt": "2026-09-20T07:37:26.960Z",
+          "model": "gemini-3.6-flash",
+          "promptVersion": "external-signals-v3-gemini"
+        }
+      }
+    ],
+    "discovery": {
+      "title": "UPMC to pay DOJ nearly $1M, agrees to 10-year moratorium on gender-affirming care for trans youth",
+      "url": "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+      "publishedAt": "2026-09-18T21:57:42.000Z",
+      "publisher": "90.5 WESA",
+      "feedUrl": "https://www.wesanews.org/politics-government.rss"
+    },
+    "discoveredUrls": [
+      "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+      "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium"
+    ]
+  },
+  "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment": {
+    "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+    "source": {
+      "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+      "title": "Implementing the Housing Needs Assessment",
+      "publisher": "EngagePgh",
+      "publishedAt": null
+    },
+    "provenance": {
+      "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "external-signals-v3-gemini",
+      "extractedAt": "2026-09-20T07:37:38.423Z",
+      "retrievedAt": "2026-09-20T07:37:28.496Z",
+      "adapterVersion": "general-article-html-v1"
+    },
+    "signals": [
+      {
+        "category": "housing",
+        "headline": "Pittsburgh Enacts Minimum Lot Size Zoning Amendments",
+        "summary": "Pittsburgh City Council approved Bill #2025-1579 regarding minimum lot size requirements on May 5, 2025, and the Mayor signed the legislation on May 7, 2025.",
+        "geography": {
+          "name": "Pittsburgh",
+          "scope": "city"
+        },
+        "eventDate": "2025-05-07",
+        "status": "completed",
+        "evidence": [
+          {
+            "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+          }
+        ],
+        "id": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+        "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+        "source": {
+          "title": "Implementing the Housing Needs Assessment",
+          "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+          "publisher": "EngagePgh",
+          "publishedAt": null
+        },
+        "provenance": {
+          "retrievedAt": "2026-09-20T07:37:28.496Z",
+          "adapterVersion": "general-article-html-v1",
+          "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+          "extractedAt": "2026-09-20T07:37:38.423Z",
+          "model": "gemini-3.6-flash",
+          "promptVersion": "external-signals-v3-gemini"
+        }
+      },
+      {
+        "category": "housing",
+        "headline": "Pittsburgh City Council Replaces City-Wide Inclusionary Zoning Proposal with Optional Housing Bonus",
+        "summary": "In October 2025, Pittsburgh City Council amended zoning legislation by substitute, replacing a proposed mandatory city-wide inclusionary zoning program with a city-wide optional Affordable Housing Bonus program.",
+        "geography": {
+          "name": "Pittsburgh",
+          "scope": "city"
+        },
+        "eventDate": null,
+        "status": "completed",
+        "evidence": [
+          {
+            "quote": "In October 2025, City Council amended by substitute to replace the mandatory city-wide IZ program with a city-wide optional Affordable Housing Bonus program."
+          }
+        ],
+        "id": "db39fcac05212e9c350a7173da5655c6f8434a8888fd436547d51c49dce077c9",
+        "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+        "source": {
+          "title": "Implementing the Housing Needs Assessment",
+          "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+          "publisher": "EngagePgh",
+          "publishedAt": null
+        },
+        "provenance": {
+          "retrievedAt": "2026-09-20T07:37:28.496Z",
+          "adapterVersion": "general-article-html-v1",
+          "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+          "extractedAt": "2026-09-20T07:37:38.423Z",
+          "model": "gemini-3.6-flash",
+          "promptVersion": "external-signals-v3-gemini"
+        }
+      }
+    ],
+    "discovery": {
+      "title": "",
+      "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+      "publishedAt": null,
+      "publisher": "City of Pittsburgh",
+      "feedUrl": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment"
+    },
+    "discoveredUrls": [
+      "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+      "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment"
+    ]
+  },
+  "https://engage.rideprt.org/buslineredesign": {
+    "documentId": "2783c2dbd5463e54fec208e83a52241f911a7cd0858dcfeb90af834d0b836fa5",
+    "source": {
+      "url": "https://engage.rideprt.org/buslineredesign",
+      "title": "Bus Line Redesign",
+      "publisher": "Engage PRT",
+      "publishedAt": null
+    },
+    "provenance": {
+      "contentHash": "f03b340aa498f9e21ddbf26d28bb3a097fc4bd856b543b4948ffd23a59d7e724",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "external-signals-v3-gemini",
+      "extractedAt": "2026-09-20T07:37:48.546Z",
+      "retrievedAt": "2026-09-20T07:37:40.018Z",
+      "adapterVersion": "general-article-html-v1"
+    },
+    "signals": [
+      {
+        "category": "infrastructure",
+        "headline": "PRT Proposes Final Bus Line Refresh Network in Allegheny County",
+        "summary": "Pittsburgh Regional Transit (PRT) has detailed a proposed final Bus Line Refresh network designed to enhance transit reliability, service frequency, and seven-day service across Allegheny County. The PRT Board is anticipated to vote on the plan in November 2026, with service changes targeted for implementation in the second half of 2027 if approved.",
+        "geography": {
+          "name": "Allegheny County",
+          "scope": "county"
+        },
+        "eventDate": null,
+        "status": "proposed",
+        "evidence": [
+          {
+            "quote": "The Proposed Final Bus Line Refresh keeps the routes you know and strengthens the connections you asked for: more frequent service, better reliability, and seven-day service that reflects how you travel today."
+          },
+          {
+            "quote": "Below you'll find a summary of the steps toward implementing the Bus Line Refresh service changes across Allegheny County."
+          },
+          {
+            "quote": "Following the public comment period, the board will formally review the plan and the public testimony ahead of an anticipated vote in November 2026."
+          },
+          {
+            "quote": "Assuming the board approves the Bus Line Refresh Proposed Final Network, PRT expects to make service changes in the second half of 2027."
+          }
+        ],
+        "id": "1fb4b6692227e4a8eb8730188c1faed2eccb454602b0d1e44c8eb59b879155a6",
+        "documentId": "2783c2dbd5463e54fec208e83a52241f911a7cd0858dcfeb90af834d0b836fa5",
+        "source": {
+          "title": "Bus Line Redesign",
+          "url": "https://engage.rideprt.org/buslineredesign",
+          "publisher": "Engage PRT",
+          "publishedAt": null
+        },
+        "provenance": {
+          "retrievedAt": "2026-09-20T07:37:40.018Z",
+          "adapterVersion": "general-article-html-v1",
+          "contentHash": "f03b340aa498f9e21ddbf26d28bb3a097fc4bd856b543b4948ffd23a59d7e724",
+          "extractedAt": "2026-09-20T07:37:48.546Z",
+          "model": "gemini-3.6-flash",
+          "promptVersion": "external-signals-v3-gemini"
+        }
+      }
+    ],
+    "discovery": {
+      "title": "",
+      "url": "https://engage.rideprt.org/buslineredesign",
+      "publishedAt": null,
+      "publisher": "Pittsburgh Regional Transit",
+      "feedUrl": "https://engage.rideprt.org/buslineredesign"
+    },
+    "discoveredUrls": [
+      "https://engage.rideprt.org/buslineredesign",
+      "https://engage.rideprt.org/buslineredesign"
+    ]
+  }
+}

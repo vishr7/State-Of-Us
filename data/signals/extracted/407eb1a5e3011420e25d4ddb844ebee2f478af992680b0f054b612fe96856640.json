@@ -1,0 +1,62 @@
+{
+  "documentId": "407eb1a5e3011420e25d4ddb844ebee2f478af992680b0f054b612fe96856640",
+  "source": {
+    "title": "UPMC to pay DOJ nearly $1M, agrees to 10-year moratorium on gender-affirming care for trans youth",
+    "url": "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+    "publisher": "90.5 WESA",
+    "publishedAt": "2026-09-18T17:57:42Z"
+  },
+  "provenance": {
+    "retrievedAt": "2026-09-20T07:37:04.697Z",
+    "adapterVersion": "general-article-html-v1",
+    "contentHash": "93620c01382d6f90fc4b5d349a55832c5b218d8be8e0faa0b712d96522a5f699",
+    "extractedAt": "2026-09-20T07:37:26.960Z",
+    "model": "gemini-3.6-flash",
+    "promptVersion": "external-signals-v3-gemini"
+  },
+  "signals": [
+    {
+      "category": "policy",
+      "headline": "UPMC Agrees to $950,000 DOJ Settlement and 10-Year Moratorium on Gender-Affirming Care for Youth",
+      "summary": "UPMC announced a deal with the U.S. Department of Justice to settle a federal investigation into gender-affirming care for minors. Under the agreement, UPMC will pay $950,000 to the government and refrain from providing gender-affirming care to transgender patients under the age of 19.",
+      "geography": {
+        "name": "Pittsburgh",
+        "scope": "city"
+      },
+      "eventDate": "2026-09-18",
+      "status": "announced",
+      "evidence": [
+        {
+          "quote": "UPMC will not resume gender-affirming care for transgender patients under the age of 19 in a new deal announced with the U.S. Department of Justice. The health system will also pay the government $950,000 to settle the Trump administration’s investigation into such care."
+        }
+      ],
+      "id": "1c8c4bb72bd1530c4f16ea150b435b9c8cdf6c3af19c557d5c1a039937b848dc",
+      "documentId": "407eb1a5e3011420e25d4ddb844ebee2f478af992680b0f054b612fe96856640",
+      "source": {
+        "title": "UPMC to pay DOJ nearly $1M, agrees to 10-year moratorium on gender-affirming care for trans youth",
+        "url": "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+        "publisher": "90.5 WESA",
+        "publishedAt": "2026-09-18T17:57:42Z"
+      },
+      "provenance": {
+        "retrievedAt": "2026-09-20T07:37:04.697Z",
+        "adapterVersion": "general-article-html-v1",
+        "contentHash": "93620c01382d6f90fc4b5d349a55832c5b218d8be8e0faa0b712d96522a5f699",
+        "extractedAt": "2026-09-20T07:37:26.960Z",
+        "model": "gemini-3.6-flash",
+        "promptVersion": "external-signals-v3-gemini"
+      }
+    }
+  ],
+  "discovery": {
+    "title": "UPMC to pay DOJ nearly $1M, agrees to 10-year moratorium on gender-affirming care for trans youth",
+    "url": "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+    "publishedAt": "2026-09-18T21:57:42.000Z",
+    "publisher": "90.5 WESA",
+    "feedUrl": "https://www.wesanews.org/politics-government.rss"
+  },
+  "discoveredUrls": [
+    "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium",
+    "https://www.wesanews.org/health-science-tech/2026-09-18/upmc-doj-gender-affirming-care-trans-youth-moratorium"
+  ]
+}

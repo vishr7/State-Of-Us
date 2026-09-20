@@ -1,0 +1,227 @@
+{
+  "verifiedAt": "2026-09-20T07:39:29.220Z",
+  "cityId": "11111111-1111-4111-8111-111111111111",
+  "turn": 0,
+  "candidates": [
+    {
+      "id": "ea2fb685f2fb7e68ddc2b16b1fed45cf0fdfd33319d9827ce21d0c9f55ecfb00",
+      "sourceSignalIds": [
+        "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc"
+      ],
+      "actionKey": "build_affordable_housing",
+      "category": "housing",
+      "title": "Homewood Housing Needs Assessment Construction Initiative",
+      "description": "City Council approved these amendments on May 5, 2025.",
+      "problem": "It was signed by the Mayor on May 7, 2025.",
+      "proposedAction": "Construct new low-cost housing units in Homewood in alignment with updated municipal housing legislation.",
+      "supportedBenefits": [],
+      "supportedRisks": [],
+      "affectedGroups": [],
+      "claims": {
+        "sourceSignalIds": [
+          "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc"
+        ],
+        "actionKey": "build_affordable_housing",
+        "category": "housing",
+        "title": {
+          "text": "Homewood Housing Needs Assessment Construction Initiative",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "description": {
+          "text": "City Council approved these amendments on May 5, 2025.",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "problem": {
+          "text": "It was signed by the Mayor on May 7, 2025.",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "proposedAction": {
+          "text": "Construct new low-cost housing units in Homewood in alignment with updated municipal housing legislation.",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "supportedBenefits": [],
+        "supportedRisks": [],
+        "affectedGroups": []
+      },
+      "sourceRefs": [
+        {
+          "title": "Implementing the Housing Needs Assessment",
+          "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+          "publisher": "EngagePgh",
+          "publishedAt": null
+        }
+      ],
+      "provenance": [
+        {
+          "signalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+          "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+          "source": {
+            "title": "Implementing the Housing Needs Assessment",
+            "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+            "publisher": "EngagePgh",
+            "publishedAt": null
+          },
+          "extraction": {
+            "retrievedAt": "2026-09-20T07:37:28.496Z",
+            "adapterVersion": "general-article-html-v1",
+            "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+            "extractedAt": "2026-09-20T07:37:38.423Z",
+            "model": "gemini-3.6-flash",
+            "promptVersion": "external-signals-v3-gemini"
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+          "evidenceIndex": 0,
+          "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+        }
+      ],
+      "generation": {
+        "model": "gemini-3.6-flash",
+        "promptVersion": "simulation-proposals-v1"
+      },
+      "executable": true,
+      "policyId": "99999999-9999-4999-8999-000000000001",
+      "bindingVersion": "authored-actions-v2",
+      "scale": "medium",
+      "resourceTier": 3,
+      "estimatedDurationDays": 1
+    },
+    {
+      "id": "18bdc9b1393b7b101594f83be8665de864e0e44427e672588ad682f0a50f1186",
+      "sourceSignalIds": [
+        "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc"
+      ],
+      "actionKey": "fund_city_land_bank",
+      "category": "development",
+      "title": "Disinvested Neighborhood Vacant Lot Conversion Project",
+      "description": "It was signed by the Mayor on May 7, 2025.",
+      "problem": "City Council approved these amendments on May 5, 2025.",
+      "proposedAction": "Provide municipal land bank funding to convert vacant lots into affordable housing units in Homewood, Hazelwood, and Larimer.",
+      "supportedBenefits": [],
+      "supportedRisks": [],
+      "affectedGroups": [],
+      "claims": {
+        "sourceSignalIds": [
+          "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc"
+        ],
+        "actionKey": "fund_city_land_bank",
+        "category": "development",
+        "title": {
+          "text": "Disinvested Neighborhood Vacant Lot Conversion Project",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "description": {
+          "text": "It was signed by the Mayor on May 7, 2025.",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "problem": {
+          "text": "City Council approved these amendments on May 5, 2025.",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "proposedAction": {
+          "text": "Provide municipal land bank funding to convert vacant lots into affordable housing units in Homewood, Hazelwood, and Larimer.",
+          "evidence": [
+            {
+              "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+              "evidenceIndex": 0,
+              "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+            }
+          ]
+        },
+        "supportedBenefits": [],
+        "supportedRisks": [],
+        "affectedGroups": []
+      },
+      "sourceRefs": [
+        {
+          "title": "Implementing the Housing Needs Assessment",
+          "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+          "publisher": "EngagePgh",
+          "publishedAt": null
+        }
+      ],
+      "provenance": [
+        {
+          "signalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+          "documentId": "0604577509c7dee414c62cc861d5b97bae2cecf9882eb662083cad09fde6d198",
+          "source": {
+            "title": "Implementing the Housing Needs Assessment",
+            "url": "https://engage.pittsburghpa.gov/implementing-housing-needs-assessment",
+            "publisher": "EngagePgh",
+            "publishedAt": null
+          },
+          "extraction": {
+            "retrievedAt": "2026-09-20T07:37:28.496Z",
+            "adapterVersion": "general-article-html-v1",
+            "contentHash": "122c8d798f17394c446426bcbbfbcc0f3930e454d5f112d223f3a96541ffc24c",
+            "extractedAt": "2026-09-20T07:37:38.423Z",
+            "model": "gemini-3.6-flash",
+            "promptVersion": "external-signals-v3-gemini"
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "sourceSignalId": "d281ac7d047454dc946bfbc0e03eba97b738016227f52c75ab97ce603187e0bc",
+          "evidenceIndex": 0,
+          "quote": "City Council approved these amendments on May 5, 2025. It was signed by the Mayor on May 7, 2025."
+        }
+      ],
+      "generation": {
+        "model": "gemini-3.6-flash",
+        "promptVersion": "simulation-proposals-v1"
+      },
+      "executable": true,
+      "policyId": "99999999-9999-4999-8999-000000000004",
+      "bindingVersion": "authored-actions-v2",
+      "scale": "medium",
+      "resourceTier": 3,
+      "estimatedDurationDays": 1
+    }
+  ]
+}

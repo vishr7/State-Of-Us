@@ -53,7 +53,7 @@ describe("feed ingestion", () => {
     const extract = vi.fn(async () => []);
     const ingest = vi.fn(async (item: FeedEntry) => document(item));
     const result = await ingestFeeds({ feeds, directory: await directory(), limit: 1 }, { discover: async () => [entry("old", "2025-01-01"), entry("new", "2026-01-01"), entry("new", "2026-01-01")], ingest, extract, log: vi.fn() });
-    expect(result).toMatchObject({ entriesFound: 3, processed: 1, duplicatesSkipped: 1, claudeCalls: 1 });
+    expect(result).toMatchObject({ entriesFound: 3, processed: 1, duplicatesSkipped: 1, extractionCalls: 1 });
     expect(ingest.mock.calls[0][0].title).toBe("new");
     expect(extract).toHaveBeenCalledTimes(1);
   });
@@ -66,7 +66,7 @@ describe("feed ingestion", () => {
     expect(result.duplicatesSkipped).toBe(2);
     expect(extract).toHaveBeenCalledTimes(1);
   });
-  it("does not retry failed Claude calls automatically or mark them successful", async () => {
+  it("does not retry failed Gemini extraction calls automatically or mark them successful", async () => {
     const dir = await directory();
     const extract = vi.fn(async () => { throw new Error("ambiguous timeout"); });
     const dependencies = { discover: async () => [entry("a")], ingest: async (item: FeedEntry) => document(item), extract, log: vi.fn() };
@@ -97,7 +97,7 @@ describe("feed ingestion", () => {
     const dependencies = { discover: async () => [entry("a")], ingest: async (item: FeedEntry) => document(item), extract, log: vi.fn() };
     expect(await ingestFeeds({ feeds, directory: dir }, dependencies)).toMatchObject({ processed: 1 });
     await unlink(join(dir, "processed.json"));
-    expect(await ingestFeeds({ feeds, directory: dir }, dependencies)).toMatchObject({ duplicatesSkipped: 1, claudeCalls: 0 });
+    expect(await ingestFeeds({ feeds, directory: dir }, dependencies)).toMatchObject({ duplicatesSkipped: 1, extractionCalls: 0 });
   });
   it("retains evidence validation", async () => {
     const result = await ingestFeeds({ feeds, directory: await directory() }, { discover: async () => [entry("a")], ingest: async (item) => document(item), extract: async () => [{ category: "policy", headline: "Unsupported", summary: "Unsupported", geography: { name: "Pittsburgh", scope: "city" }, eventDate: null, status: "announced", evidence: [{ quote: "Invented quotation" }] }], log: vi.fn() });

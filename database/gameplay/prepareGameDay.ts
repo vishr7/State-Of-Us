@@ -54,7 +54,10 @@ export async function prepareGameDay(cityId: string, turn: number, dependencies:
   try {
     let feedWarning: string | null = null;
     try {
-      const summary = await (dependencies.ingest ?? ingestFeeds)({ feeds: SIGNAL_FEEDS, directory, limit: 5 });
+      // Collection runs separately; game days consume the cached evidence.
+      const summary = dependencies.ingest
+        ? await dependencies.ingest({ feeds: SIGNAL_FEEDS, directory, limit: 5 })
+        : { feedsFailed: 0, failed: 0, attemptsBlocked: 0 };
       if (summary.feedsFailed || summary.failed || summary.attemptsBlocked) feedWarning = "Some feed/article attempts failed or are blocked; using available validated signals.";
     } catch { feedWarning = "Feed ingestion failed; using available validated signals."; }
     if (feedWarning) console.warn(feedWarning);

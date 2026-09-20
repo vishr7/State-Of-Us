@@ -1,9 +1,9 @@
 import type { GeneratedEventCandidate } from './generated-events';
 export interface PolicyInspiration { title: string; url: string; publisher: string; publishedAt: string | null; curated: boolean }
 const context: Record<string, Omit<PolicyInspiration, 'curated' | 'publishedAt'>> = {
-  housing: { title: 'Pittsburgh Housing Needs Assessment', url: 'https://www.pittsburghpa.gov/Business-Development/City-Planning/Planning-banner/Housing-Needs', publisher: 'City of Pittsburgh' },
+  housing: { title: 'Implementing the Housing Needs Assessment', url: 'https://engage.pittsburghpa.gov/implementing-housing-needs-assessment', publisher: 'City of Pittsburgh' },
   transit: { title: 'Transit surveys and reports', url: 'https://www.rideprt.org/inside-Pittsburgh-Regional-Transit/Transparency/surveys-and-reports/', publisher: 'Pittsburgh Regional Transit' },
-  environment: { title: 'Pittsburgh Climate Action Plan', url: 'https://www.pittsburghpa.gov/Business-Development/City-Planning/Sustainability/Climate-Action-Plan', publisher: 'City of Pittsburgh' },
+  environment: { title: 'Pittsburgh City Energy Strategy', url: 'https://engage.pittsburghpa.gov/city-energy-strategy', publisher: 'City of Pittsburgh' },
   budget: { title: 'City budget surveys and public engagement', url: 'https://engage.pittsburghpa.gov/city-pittsburgh-budget-engagements/past-city-budget-engagements', publisher: 'Engage Pittsburgh' },
 };
 export function policyInspiration(candidate: GeneratedEventCandidate, category?: string): PolicyInspiration[] {

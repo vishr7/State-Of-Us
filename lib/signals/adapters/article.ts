@@ -49,11 +49,14 @@ export function normalizeArticleHtml(html: string, entry: FeedEntry, retrievedAt
   $("script, style, noscript, nav, footer, aside, form, iframe, svg, button, [hidden], [aria-hidden='true'], [role='navigation'], [role='dialog'], [role='banner'], [role='contentinfo']").remove();
   // Match chrome tokens, not arbitrary substrings in article text.
   $("[id], [class]").each((_, element) => {
+    if ($(element).is("html, body, main, article, .main, .entry-content") || $(element).find("main, article, .entry-content").length) return;
     if (/(?:^|[\s_-])(?:cookie|consent|advertisement|advert|social|share|sharing|related|newsletter|comments|breadcrumb|sidebar|menu|paywall)(?:$|[\s_-])/i.test(`${$(element).attr("id") ?? ""} ${$(element).attr("class") ?? ""}`)) $(element).remove();
   });
   $("body > header").remove();
 
-  let root = $('[itemprop="articleBody"]');
+  const officialProject = ['engage.pittsburghpa.gov', 'engage.rideprt.org'].includes(new URL(fetchedUrl).hostname);
+  let root = officialProject ? $('main .main, main.main').first() : $('[itemprop="articleBody"]');
+  if (officialProject) root.find('.modal, .sidebar, .hive-block-survey, .hive-block-comments').remove();
   if (!root.length) root = $("article");
   if (!root.length) root = $("main, [role='main']");
   if (!root.length) root = $(".article-body, .article-content, .entry-content, .post-content");
