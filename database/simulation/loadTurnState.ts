@@ -5,7 +5,8 @@
  */
 import type { PoolClient } from 'pg';
 import type { City, Neighborhood, Resident, Policy, Decision } from '../types/database';
-import { CityNotFoundError, PolicyNotFoundError } from './errors';
+import { CityNotFoundError, PolicyNotFoundError, MalformedPolicyEffectsError } from './errors';
+import { policyFingerprint } from './bindExecutableActions';
 
 export interface TurnState {
   city: City;
@@ -57,7 +58,7 @@ export async function loadTurnState(client: PoolClient, cityId: string): Promise
   const policyByDecisionId = new Map<string, Policy>();
   if (decisions.length > 0) {
     const policyIds = [...new Set(decisions.map((d) => d.policy_id))];
-    const policiesResult = await client.query<Policy>('select * from policies where id = any($1::uuid[])', [
+    const policiesResult = await client.query<Policy>('select * from policies where id = any($1::uuid[]) for share', [
       policyIds,
     ]);
     const policyById = new Map(policiesResult.rows.map((p) => [p.id, p]));
@@ -70,6 +71,10 @@ export async function loadTurnState(client: PoolClient, cityId: string): Promise
         );
       }
       policyByDecisionId.set(decision.id, policy);
+      if (decision.game_day_id) {
+        const binding = (await client.query<{ policy_hashes: Record<string, string> }>('select policy_hashes from game_days where id=$1', [decision.game_day_id])).rows[0];
+        if (!binding || binding.policy_hashes[policy.id] !== policyFingerprint(policy)) throw new MalformedPolicyEffectsError('Authored policy changed after the game-day binding was saved.');
+      }
     }
   }
 

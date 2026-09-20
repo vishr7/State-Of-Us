@@ -11,6 +11,9 @@
     "db:status": "node scripts/local-pg.mjs status",
     "db:seed": "node scripts/local-pg.mjs seed",
     "ingest:signal": "node --env-file=.env.local --import tsx scripts/ingest-signal.ts",
+    "ingest:feed": "node --env-file=.env.local --import tsx scripts/ingest-feed.ts",
+    "build:decisions": "node --import tsx scripts/build-decisions.ts",
+    "build:daily-world": "node --env-file=.env.local --import tsx scripts/build-daily-world.ts",
     "test": "vitest run --exclude \"**/resolveTurn.integration.test.ts\"",
     "test:integration": "vitest run database/simulation/__tests__/resolveTurn.integration.test.ts"
   },

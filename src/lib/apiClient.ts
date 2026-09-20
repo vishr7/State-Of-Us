@@ -10,15 +10,17 @@
  * canonical state).
  */
 import type { AppliedDecision, City, Decision, Neighborhood, Policy, Resident } from '@database/types/database';
+import type { GameDayResponse, GameDayOutcome, GameDayDecision } from '@database/gameplay/contracts';
 
 /** What GET /api/city/:id returns — City minus its timestamps (see that route). */
 export type CitySummary = Omit<City, 'created_at' | 'updated_at'>;
 
 export interface ResolveTurnResponse {
-  city: City;
+  city: CitySummary;
   previous_turn: number;
   turn: number;
   applied_decisions: AppliedDecision[];
+  outcome?: GameDayOutcome;
 }
 
 /** Thrown for any non-2xx response. Carries the HTTP status for callers that want to branch on it (e.g. 409 on a duplicate decision). */
@@ -88,6 +90,11 @@ export function createDecision(cityId: string, policyId: string, playerReasoning
 }
 
 /** Applies all decisions queued for the current turn and advances to the next one. */
-export function resolveTurn(cityId: string): Promise<ResolveTurnResponse> {
-  return request<ResolveTurnResponse>(`/api/city/${cityId}/resolve-turn`, { method: 'POST' });
+export function resolveTurn(cityId: string, expectedTurn: number): Promise<ResolveTurnResponse> {
+  return request<ResolveTurnResponse>(`/api/city/${cityId}/resolve-turn`, { method: 'POST', body: JSON.stringify({ expected_turn: expectedTurn }) });
 }
+
+export const prepareGameDay = (cityId: string, turn: number) => request<GameDayResponse>(`/api/city/${cityId}/game-day`, { method: 'POST', body: JSON.stringify({ turn }) });
+export const getGameDay = (cityId: string, turn: number) => request<GameDayResponse>(`/api/city/${cityId}/game-day?turn=${turn}`);
+export const chooseGameDayCandidate = (cityId: string, turn: number, candidateId: string, playerReasoning?: string) => request<GameDayDecision>(`/api/city/${cityId}/decisions`, { method: 'POST', body: JSON.stringify({ candidate_id: candidateId, turn, player_reasoning: playerReasoning }) });
+export const getGameDayOutcome = (cityId: string, turn: number) => request<GameDayOutcome>(`/api/city/${cityId}/game-day/outcome?turn=${turn}`);

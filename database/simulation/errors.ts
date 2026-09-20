@@ -29,3 +29,5 @@ export class MalformedPolicyEffectsError extends SimulationError {}
 
 /** A `simulation_snapshots` row already exists for (city_id, turn). */
 export class SnapshotAlreadyExistsError extends SimulationError {}
+
+export class ExpectedTurnError extends SimulationError {}
