@@ -483,3 +483,8 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 @keyframes protest-reveal { 0% { opacity:0; } 15%,70% { opacity:1; } 100% { opacity:0; visibility:hidden; } }
 @keyframes protest-bars { from { height:0; } to { height:7%; } }
 @media(prefers-reduced-motion:reduce) { .protest-cinema::before,.protest-cinema::after { animation:none; } .protest-flash { animation:none; font-size:18px; top:18%; padding:8px 16px; } }
+
+.policy-inspiration { margin-top:8px; padding-top:8px; border-top:1px solid #8aa4b333; font-size:11px; line-height:1.4; color:#a6bacb; }
+.policy-inspiration > span { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+.policy-inspiration a { color:#a9d8ed; text-decoration:underline; text-underline-offset:3px; }
+.policy-inspiration small { display:block; margin:4px 0; }

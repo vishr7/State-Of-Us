@@ -8,6 +8,7 @@ import type { GeneratedEventCandidate } from '@/lib/signals/generated-events';
 import type { Policy } from '@/database/types/database';
 import { checkAffordability, insufficientFundsMessage } from '@/database/simulation/affordability';
 import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from '@/lib/dialogue/protest';
+import { policyInspiration } from '@/lib/signals/policyInspiration';
 import { SpeakText } from '../ui/InsightView';
 
 export const useAgenda = create<{ open: boolean; setOpen: (open: boolean) => void }>(set => ({ open: true, setOpen: open => set({ open }) }));
@@ -43,6 +44,18 @@ function loadOrPrepareDay(cityId: string, turn: number): Promise<GameDayResponse
   preparingDays.set(key, work);
   void work.finally(() => { preparingDays.delete(key); }).catch(() => {});
   return work;
+}
+function Inspiration({ candidate, category, expanded = false }: { candidate: GeneratedEventCandidate; category?: string; expanded?: boolean }) {
+  const sources = policyInspiration(candidate, category);
+  if (!sources.length) return <div className="policy-inspiration">Scripted simulation event</div>;
+  return <div className="policy-inspiration">
+    <span>{sources[0].curated ? 'Real-world context' : 'Inspired by'}</span>
+    {(expanded ? sources : sources.slice(0, 1)).map(source => <div key={source.url}>
+      <a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a>
+      {expanded && <small>{source.publisher}{source.publishedAt ? ` · ${source.publishedAt.slice(0, 10)}` : ''}</small>}
+    </div>)}
+    {expanded && <p>{sources[0].curated ? 'Curated background on this topic; this source was not used to generate this policy.' : 'This source inspired the proposal; it does not endorse the game policy.'} Costs and outcomes are simulated.</p>}
+  </div>;
 }
 function PlanDialog({ children, onClose }: { children: ReactNode; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -205,7 +218,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     {open && <>
       {selected && <PlanDialog onClose={() => setExpanded(null)}><div className="daily-expanded" id="daily-choice-details">
         <div><span className="daily-kicker">{selected.generation.model === 'authored-catalog' ? 'GAME POLICY' : 'FICTIONAL SIMULATION PROPOSAL'}</span><h3>{selected.title}</h3><p>{selected.proposedAction ?? selected.description}</p>
-          <h4>Where the money goes</h4><p>{costs(selected)?.description ?? 'Budget details are unavailable.'}</p>
+          <Inspiration candidate={selected} category={costs(selected)?.category} expanded /><h4>Where the money goes</h4><p>{costs(selected)?.description ?? 'Budget details are unavailable.'}</p>
           <p className="daily-money">{costs(selected) ? `${money(costs(selected)!.upfront_cost)} upfront · ${money(Math.abs(costs(selected)!.recurring_cost))} recurring ${costs(selected)!.recurring_cost < 0 ? 'revenue' : 'cost'}` : 'Loading budget…'}</p>
           <details><summary>Background, tradeoffs & sources</summary><p>{selected.description}</p>{selected.supportedBenefits.map((t,i)=><p key={`b${i}`}>Potential benefit: {t}</p>)}{selected.supportedRisks.map((t,i)=><p key={`r${i}`}>Tradeoff: {t}</p>)}{selected.sourceRefs.map((source,i)=><p key={i}>{/^https?:\/\//.test(source.url) ? <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> : source.title}</p>)}</details>
         </div><div className="daily-choice-action">{selectedShort && <p role="alert" className="daily-short-note"><span aria-hidden="true">🔒</span><span>Can’t afford this yet — you’re <strong>{money(selectedShort.result.shortfall)}</strong> short. {insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result).replace(/^Not enough cash for "[^"]*": /, '')}</span></p>}<button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable || !!selectedShortfall} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : selectedShortfall ? 'Not enough cash' : 'Choose this plan'}</button></div>
@@ -227,7 +240,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       <div className="daily-card-row">{day?.slate.decisions.map((candidate,index) => {
         const policy = costs(candidate); const isSelected=choice?.candidate_id === candidate.id;
         const short = isSelected ? null : affordabilityFor(candidate);
-        return <button key={candidate.id} className={`daily-choice-card ${expanded===candidate.id ? 'expanded' : ''} ${isSelected ? 'chosen' : ''} ${short ? 'unaffordable' : ''}`} aria-expanded={expanded===candidate.id} aria-controls="daily-choice-details" onClick={()=>setExpanded(expanded===candidate.id ? null : candidate.id)}>
+        return <button key={candidate.id} className={`daily-choice-card ${expanded===candidate.id ? 'expanded' : ''} ${isSelected ? 'chosen' : ''} ${short ? 'unaffordable' : ''}`}  aria-expanded={expanded===candidate.id} aria-controls="daily-choice-details" onClick={()=>setExpanded(expanded===candidate.id ? null : candidate.id)}>
           <span className="daily-card-top"><span className="daily-card-number">0{index+1}</span>{short ? <span className="daily-card-short" title={`You need ${money(short.result.shortfall)} more cash to afford this plan`}><span aria-hidden="true">🔒</span>{compactMoney(short.result.shortfall)} short</span> : <span>{isSelected ? '✓ SELECTED' : candidate.category.replaceAll('_',' ')}</span>}</span>
           <h3>{candidate.title}</h3><p>{policy?.description ?? candidate.proposedAction ?? candidate.description}</p>
           <div className="daily-card-budget"><strong>{policy ? money(policy.upfront_cost) : '—'}</strong><span>upfront</span></div>
