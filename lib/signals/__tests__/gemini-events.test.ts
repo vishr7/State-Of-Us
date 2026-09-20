@@ -31,11 +31,18 @@ describe("Gemini generation, binding and selection", () => {
     vi.stubEnv("GEMINI_MODEL", "fixture-model");
     const invalid = [
       { ...fixtureDraft, sourceSignalIds: ["unknown"] },
-      { ...fixtureDraft, title: { ...fixtureClaim, text: "Everyone gets rich" } },
+      { ...fixtureDraft, description: { ...fixtureClaim, text: "Everyone gets rich" } },
       { ...fixtureDraft, title: { ...fixtureClaim, evidence: [{ ...fixtureClaim.evidence[0], quote: "Invented" }] } },
       { ...fixtureDraft, provenance: {} }, { ...fixtureDraft, effects: { treasury: 200 } },
     ];
     for (const draft of invalid) await expect(generateEventCandidates(fixtureInput, outputClient({ candidates: [draft] }))).rejects.toThrow();
+  });
+  it("allows fictional proposals while preserving source-grounded problems", async () => {
+    vi.stubEnv("GEMINI_MODEL", "fixture-model");
+    const draft = { ...fixtureDraft, title: { ...fixtureClaim, text: "Pittsburgh Connections" }, proposedAction: { ...fixtureClaim, text: "Launch a new bus line with more frequent trains." } };
+    const candidates = await generateEventCandidates(fixtureInput, outputClient({ candidates: [draft] }));
+    expect(candidates[0].title).toBe("Pittsburgh Connections");
+    expect(bindExecutableActions(candidates, [policy])[0].executable).toBe(true);
   });
   it("selector only accepts exact eligible IDs and retries at most once", async () => {
     vi.stubEnv("GEMINI_MODEL", "fixture-model");
