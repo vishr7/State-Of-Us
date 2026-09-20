@@ -5,6 +5,7 @@ import { drawProtest } from '../animations/protest';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NextImage from 'next/image';
 import { createWalkers, drawWalker, walkerPosition, hitTestWalker } from './residentWalkers';
+import { createCars, carFrame, advanceCars } from './carRoutes';
 import { useCityPulseStore } from '@/lib/store';
 import { drawCar } from './carSprite';
 import { useAnimationStore, tileKey } from '../animations/store';
@@ -543,6 +544,7 @@ export default function CityCanvas() {
   const residents = useCityPulseStore(s => s.residents);
   const selectResident = useCityPulseStore(s => s.selectResident);
   const walkers = useMemo(() => createWalkers(residents), [residents]);
+  const cars = useMemo(() => createCars(45), []);
   const walkingTimeRef = useRef(0);
   const hoveredWalkerRef = useRef<string | null>(null);
   const clickStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
@@ -799,7 +801,6 @@ export default function CityCanvas() {
       }
     }
     const foregroundPixels = foregroundCtx.getImageData(0, 0, foreground.width, foreground.height).data;
-    const trafficTiles = tiles.filter(t => t.info.ground === 'road' && !t.info.bridge && (t.tx + t.ty) % 5 === 0).map(t => ({ ...t, alongX: classifyTile(t.tx + 1, t.ty).ground === 'road' || classifyTile(t.tx - 1, t.ty).ground === 'road' }));
     const openWater = tiles.filter(t => t.info.ground === 'water' && [[-1, 0], [1, 0], [0, -1], [0, 1]].every(([dx, dy]) => classifyTile(t.tx + dx, t.ty + dy).ground === 'water'));
     const badgeWorld = Object.fromEntries(MAP_AREAS.map(area => [area.id, { x: area.x, y: area.y }]));
     let previousTime = performance.now();
@@ -844,21 +845,19 @@ export default function CityCanvas() {
       }
       ctx.stroke(); ctx.globalAlpha = 1;
       drawRiverLife(ctx, ambientMotion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? time : 0);
-      for (const { tx, ty, cx, cy, info, alongX } of trafficTiles) {
-        if (info.ground === 'road' && !info.bridge && (tx + ty) % 5 === 0) {
-          const progress = ambientMotion ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
-          const vx = cx + (progress - 0.5) * TW * (alongX ? 1 : -1);
-          const vy = cy + (progress - 0.5) * TH;
-          drawCar(ctx, vx, vy, alongX, (tx + ty * 3) % 4);
-        }
-      }
       const walkingTime = walkingTimeRef.current;
       const positions = walkers.map(walker => ({ walker, position: walkerPosition(walker, walkingTime) })).sort((a,b) => a.position.y-b.position.y);
       walkerHitsRef.current = positions.filter(({position}) => {
         const x = Math.round(position.x + foreground.width/2), y = Math.round(position.y-7 + foreground.height/2);
         return x >= 0 && y >= 0 && x < foreground.width && y < foreground.height && foregroundPixels[(y*foreground.width+x)*4+3] < 128;
       }).map(({walker,position}) => ({id:walker.resident.id, x:cw/dpr/2 + camera.x + position.x*camera.zoom, y:ch/dpr/2 + camera.y + (position.y-7)*camera.zoom}));
-      const focusMark = focusMarkRef.current && now < focusMarkRef.current.until ? focusMarkRef.current : null;
+      // Cars brake for pedestrians ahead of them and for higher-priority cars,
+      // so they never overlap each other or a person crossing the street.
+      if (ambientMotion) advanceCars(cars, dt / 1000, positions.map(({ position }) => position));
+      const carPositions = cars.map(carFrame).sort((a, b) => a.y - b.y);
+      for (const car of carPositions) {
+        drawCar(ctx, car.x, car.y, car.alongX, car.variant);
+      }
       for (const {walker, position} of positions) {
         drawWalker(ctx, walker, walkingTime);
         if (hoveredWalkerRef.current === walker.resident.id) {
@@ -891,6 +890,7 @@ export default function CityCanvas() {
         if (downtown) drawProtest(ctx, downtown.x, downtown.y + 45, time, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       }
       // "Find on map" marker: drawn over the foreground so a resident who walks behind a building can still be found.
+      const focusMark = focusMarkRef.current && focusMarkRef.current.until > now ? focusMarkRef.current : null;
       const focused = focusMark ? positions.find(item => item.walker.resident.id === focusMark.id) : undefined;
       if (focused) {
         const { x, y } = focused.position;
@@ -933,7 +933,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, removedBuildings, replacements]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, removedBuildings]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -1006,7 +1006,8 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
-  const tour = useCityPulseStore(s => s.announcements[0]?.tour);
+  // A speaking map resident gets a camera lock on them (mapFocus); the district tour would fight it.
+  const tour = useCityPulseStore(s => { const a = s.announcements[0]; return a?.speaker === 'resident' && a.residentId ? undefined : a?.tour; });
   useEffect(() => {
     if (!tour) return;
     const container = containerRef.current;

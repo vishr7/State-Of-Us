@@ -202,4 +202,41 @@ describe("real database vertical slice with mocked providers", () => {
     await holder.db.query("update cities set treasury = 5000000 where id = $1", [cityId]);
     expect((await post(TRANSIT_POLICY_ID)).status).toBe(201);
   }, 30000);
+
+  it("interviews the people who walk the map, each answering from their own background", async () => {
+    vi.stubEnv("NVIDIA_API_KEY", ""); vi.stubEnv("NEMOTRON_API_KEY", ""); // offline path: answers are built from the persona profile
+    const { personaResidents } = await import("../../../lib/personas");
+    const { POST } = await import("../../../app/api/city/[id]/interviews/route");
+    await prepareGameDay(cityId, 0, providers()); // interviewees are reserved on the game day, so it must exist
+    await holder.db.query("insert into decisions (city_id, policy_id, turn) values ($1, $2, 0)", [cityId, TRANSIT_POLICY_ID]);
+
+    const ask = () => POST(
+      new Request(`http://localhost/api/city/${cityId}/interviews`, { method: "POST", body: JSON.stringify({ turn: 0 }) }),
+      { params: Promise.resolve({ id: cityId }) },
+    );
+    const response = await ask();
+    expect(response.status).toBe(200);
+    const { lines } = await response.json() as { lines: { speaker: string; text: string; label?: string; residentId?: string }[] };
+    expect(lines.map(l => l.speaker)).toEqual(["news", "resident", "news", "resident"]);
+
+    const speakers = lines.filter(l => l.speaker === "resident");
+    expect(new Set(speakers.map(l => l.residentId)).size).toBe(2);
+    for (const line of speakers) {
+      // A real person from the map, not an anonymous household.
+      const persona = personaResidents.find(p => p.id === line.residentId);
+      expect(persona).toBeDefined();
+      expect(line.label).toContain(persona!.name);
+      const profile = [...(persona!.persona?.skills ?? []), ...(persona!.persona?.interests ?? [])].map(x => x.charAt(0).toLowerCase() + x.slice(1));
+      expect(profile.some(item => line.text.includes(item)) || line.text.includes("ordinary people")).toBe(true);
+    }
+    // The reporter names them too.
+    for (const [i, line] of lines.entries()) if (line.speaker === "news") expect(line.text).toContain(speakers[i / 2 | 0].label!.split(" · ")[0]);
+
+    // The two people are reserved on the game day (so nobody is interviewed twice), and asking again returns the same two.
+    const ids = speakers.map(l => l.residentId);
+    const saved = (await holder.db.query("select generation_metadata->'interviewResidentIds' as ids from game_days where city_id = $1 and turn = 0", [cityId])).rows[0] as { ids: string[] };
+    expect(saved.ids).toEqual(ids);
+    const again = await (await ask()).json() as { lines: { speaker: string; residentId?: string }[] };
+    expect(again.lines.filter(l => l.speaker === "resident").map(l => l.residentId)).toEqual(ids);
+  }, 30000);
 });

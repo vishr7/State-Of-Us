@@ -1,13 +1,24 @@
 import { interviewDialogue } from '@/lib/dialogue/interviewDialogue';
-import { residentIdentity } from '@/lib/dialogue/residentIdentity';
 import { interviewImpact, selectInterviewees } from '@/lib/dialogue/interviewSelection';
+import { districtNameFor, fallbackInterview, jobLabel, personaBackground, personaToDbResident } from '@/lib/dialogue/personaInterviews';
+import { personaResidents } from '@/lib/personas';
 import { z } from 'zod';
 import { withTransaction } from '@database/lib/db';
 import { loadTurnState } from '@database/simulation/loadTurnState';
 import { applyPolicyEffects } from '@database/simulation/applyPolicyEffects';
 
 export const runtime = 'nodejs';
-/** Preview effects and reserve unique interviewees for this game day. */
+/**
+ * Preview effects and reserve unique interviewees for this game day.
+ *
+ * The interviewees are the people who walk the map (the persona residents), not anonymous
+ * database households. Each is expressed in the engine's resident shape so the SAME policy
+ * effects preview their own housing cost, commute and income; what they say is then written
+ * from their supplied background (biography, interests, skills).
+ *
+ * The two people chosen for a day are reserved in game_days.generation_metadata, so repeating
+ * the request returns the same people and nobody is interviewed twice on different days.
+ */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -19,13 +30,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const decision = state.decisions[0];
       const policy = decision && state.policyByDecisionId.get(decision.id);
       if (!policy) throw new Error('Choose a plan before starting interviews.');
-      const preview = applyPolicyEffects({ city: state.city, neighborhoods: state.neighborhoods, residents: state.residents, effects: policy.effects });
-      const candidates = state.residents.flatMap(resident => {
-        const district = state.neighborhoods.find(n => n.id === resident.neighborhood_id);
-        const next = preview.residents.find(r => r.id === resident.id);
-        const local = preview.neighborhoods.find(n => n.id === resident.neighborhood_id);
+
+      const districtIdByName = new Map(state.neighborhoods.map(n => [n.name, n.id]));
+      const residents = personaResidents.flatMap(persona => {
+        const neighborhoodId = districtIdByName.get(districtNameFor(persona));
+        return neighborhoodId ? [{ persona, row: personaToDbResident(persona, neighborhoodId) }] : [];
+      });
+      if (!residents.length) throw new Error('No residents are available to interview.');
+
+      const preview = applyPolicyEffects({ city: state.city, neighborhoods: state.neighborhoods, residents: residents.map(r => r.row), effects: policy.effects });
+      const candidates = residents.flatMap(({ persona, row }) => {
+        const district = state.neighborhoods.find(n => n.id === row.neighborhood_id);
+        const next = preview.residents.find(r => r.id === row.id);
+        const local = preview.neighborhoods.find(n => n.id === row.neighborhood_id);
         if (!district || !next || !local) return [];
-        return [{ resident, district, next, local, ...interviewImpact(resident, next, district, local) }];
+        return [{ persona, resident: row, district, next, local, ...interviewImpact(row, next, district, local) }];
       });
       const days = (await db.query<{ turn: number; generation_metadata: { interviewResidentIds?: string[] } }>(
         'select turn,generation_metadata from game_days where city_id=$1 order by turn', [id])).rows;
@@ -43,22 +62,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
       return { people, policy };
     });
-    const generated = await interviewDialogue(context.people, context.policy);
-    const lines = context.people.flatMap(({ resident, district, next, local, mood, reason }, index) => {
-        const identity = residentIdentity(resident.id);
-        const dialogue = generated?.find(d => d.residentId === resident.id);
-        const job = resident.occupation.replaceAll('_', ' ');
-        const impacts: string[] = [];
-        if (next.housing_cost !== resident.housing_cost) impacts.push(`my monthly housing costs would ${next.housing_cost < resident.housing_cost ? 'fall' : 'rise'} by $${Math.abs(next.housing_cost - resident.housing_cost).toFixed(0)}`);
-        if (next.commute_minutes !== resident.commute_minutes) impacts.push(`my commute would ${next.commute_minutes < resident.commute_minutes ? 'shorten' : 'lengthen'} by ${Math.abs(next.commute_minutes - resident.commute_minutes).toFixed(1)} minutes`);
-        if (next.income !== resident.income) impacts.push(`my annual income would ${next.income > resident.income ? 'rise' : 'fall'} by $${Math.abs(next.income - resident.income).toFixed(0)}`);
-        const neighborhood = local.transit_access !== district.transit_access ? 'The change to local transit access matters to this neighborhood.' : local.housing_supply !== district.housing_supply ? 'The change in local housing supply is something I’ll be watching.' : 'I’ll be watching whether our neighborhood benefits as the plan takes effect.';
-        const common = { tour: `district:${district.name}`, turn: turn + 1, kind: 'info' as const };
-        return [
-          { ...common, speaker: 'news', text: dialogue?.question ?? `We’re in ${district.name}. The city has chosen ${context.policy.name}. Before it takes effect, we’re asking a ${job} who is a ${resident.housing_status}: ${index === 0 ? 'what would this mean for your household?' : 'what matters most to you about this decision?'}` },
-          { ...common, speaker: 'resident', residentId: resident.id, residentAge: resident.age, label: `${identity.name} · ${job} · ${district.name}`, text: dialogue?.answer ?? (impacts.length ? `${reason} Under this plan, ${impacts.slice(0, 2).join(', and ')}.` : `${index === 0 ? 'My immediate concern is keeping everyday costs manageable.' : 'I’m looking beyond my own doorstep here.'} ${neighborhood} ${index === 0 ? 'I want to know whether this is worth the cost.' : 'Who gets the benefit matters as much as the overall price.'}`) },
-        ];
-      });
+
+    const generated = await interviewDialogue(
+      context.people.map(({ persona, resident, district, next, local, mood, reason }) => ({
+        resident, persona: personaBackground(persona), district: district.name, next, local, mood, reason,
+      })),
+      context.policy,
+    );
+    const lines = context.people.flatMap(({ persona, resident, district, next, local, mood, reason }, index) => {
+      const dialogue = generated?.find(d => d.residentId === resident.id);
+      const impacts: string[] = [];
+      if (next.housing_cost !== resident.housing_cost) impacts.push(`my monthly housing costs would ${next.housing_cost < resident.housing_cost ? 'fall' : 'rise'} by $${Math.abs(next.housing_cost - resident.housing_cost).toFixed(0)}`);
+      if (next.commute_minutes !== resident.commute_minutes) impacts.push(`my commute would ${next.commute_minutes < resident.commute_minutes ? 'shorten' : 'lengthen'} by ${Math.abs(next.commute_minutes - resident.commute_minutes).toFixed(1)} minutes`);
+      if (next.income !== resident.income) impacts.push(`my annual income would ${next.income > resident.income ? 'rise' : 'fall'} by $${Math.abs(next.income - resident.income).toFixed(0)}`);
+      const neighborhoodNote = local.transit_access !== district.transit_access ? 'The change to local transit access matters to this neighborhood.' : local.housing_supply !== district.housing_supply ? 'The change in local housing supply is something I’ll be watching.' : 'I’ll be watching whether our neighborhood benefits as the plan takes effect.';
+      const spoken = fallbackInterview({ persona, district: district.name, policyName: context.policy.name, mood, reason, impacts, neighborhoodNote, index });
+      const common = { tour: `district:${district.name}`, turn: turn + 1, kind: 'info' as const };
+      return [
+        // The reporter's introduction is always ours: it reliably names the person, the district and the policy.
+        { ...common, speaker: 'news', text: spoken.question },
+        // residentId is the map walker's id, so the client can show their figure and fly the camera to them.
+        { ...common, speaker: 'resident', residentId: persona.id, residentAge: persona.age, label: `${persona.name} · ${jobLabel(persona.occupation)} · ${district.name}`, text: dialogue?.answer ?? spoken.answer },
+      ];
+    });
     return Response.json({ lines });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : 'Interviews unavailable.' }, { status: 409 });

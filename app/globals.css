@@ -468,7 +468,7 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 
 /* Keep interview portraits compact and entirely beside their captions. */
 .city-gameplan .is-resident .mayor-character { left:-150px; width:135px; height:176px; }
-.city-gameplan .is-resident .mayor-character svg { display:block; width:100%; height:100%; }
+.city-gameplan .is-resident .mayor-character svg, .city-gameplan .is-resident .mayor-character canvas { display:block; width:100%; height:100%; }
 @media(max-width:1000px) { .city-gameplan .is-resident .mayor-character { left:-100px; width:90px; height:117px; } }
 
 /* A single restrained emergency reveal, with cinematic bars over gameplay only. */
