@@ -20,3 +20,36 @@ Persist authoritative cleared lots separately when building-level storage exists
 The map also recognizes active events whose title explicitly says demolition or
 demolish and selects an ordinary building near the affected neighborhood as a
 representative lot. This is a visual location, not a real street address.
+
+## Standalone wrecking-ball demolition
+
+Run `npm run dev` and visit `/demo/demolition` for the standalone preview.
+
+```tsx
+// Inside a client component:
+import WreckingBallDemolition from '@/components/animations/WreckingBallDemolition';
+
+<WreckingBallDemolition
+  width="100%"
+  height="auto"
+  autoPlay
+  loop={false}
+  showReplayButton
+  onImpact={() => console.log('Impact')}
+  onComplete={() => console.log('Complete')}
+/>
+```
+
+All props are optional. Defaults are shown above; `className` is also accepted. Width is capped by the container. Numeric dimensions use pixels; strings accept CSS sizes. SVG preserves its aspect ratio.
+
+The scene uses a compact 430×395 viewBox. The ball begins just above the scene, enters from the top and remains within the frame through impact and settling. It fits the 360px neighborhood-drawer width, including normal panel padding. Controls wrap and become more compact below 380px. Explicit height uses SVG containment without cropping; omit height for the natural aspect ratio. `/demo/demolition` includes both a large preview and a 360px result-panel example; the smaller example starts on button press.
+
+There is no crane or cable. A large faceted steel ball falls vertically with quadratic acceleration, briefly recoils at the roof and follows the collapsing structure down into the rubble. Strong damped shaking, spreading cracks, staggered falling sections, overlapping dust and a short settle share one timeline. Geometry tests cover acceleration, constant horizontal position, bounds after entry and continuity at phase boundaries.
+
+The 4.8-second Framer Motion timeline hits at about 1.68 seconds. A single progress value drives deterministic sprite bands, ball position and dust. Each callback fires once per play; replay starts a fresh play. Unmounting stops playback and pending loop restarts. `autoPlay={false}` initially holds the intact scene and shows a Start button. For an externally triggered event, mount the component when needed, or change its React `key` to restart it.
+
+Looping is explicit and pauses for one second between plays. Reduced motion skips to rubble with a short 150ms lifecycle, still fires both callbacks, and disables looping. The preference is read after hydration, once per mount; remount to pick up a changed OS preference. The server and initial browser render always contain the same intact scene and SVG attributes. The status is announced through a polite live region, and the button supports keyboard focus.
+
+Art uses the existing `public/sprites/city-atlas.png` directly, with the same 4×4 cell layout as CityCanvas: apartment (4), shop (6), trees (12) and garden (13). No new image assets are required. Warm ground, slate streets, green terrain, isometric rubble and flat shaded steel match the map palette. Collapse slices the apartment illustration while preserving its sidewalk base; this is a visual effect, not new building artwork.
+
+This is a decorative animation, not a physics simulation. It does not call APIs or change game state. The demo is intentionally separate from event UI. Browser visual regression tooling is not currently installed in this repository.
