@@ -4,6 +4,7 @@ import { useCityPulseStore, selectTurnDateLabel } from '@/lib/store';
 import CategoryNav from './CategoryNav';
 import MiniMap from './MiniMap';
 import { WeatherCondition } from '@/lib/types';
+import { formatTemperature } from '@/lib/weather';
 
 // ------ Weather icon mapping --------------------------------
 
@@ -63,7 +64,7 @@ export default function LeftSidebar() {
             {conditionLabel[weather.condition]}
           </span>
           <span className="text-xs font-bold ml-auto" style={{ color: '#F0F4FA' }}>
-            {weather.tempC}°C
+            {formatTemperature(weather.tempC)}
           </span>
         </div>
       </div>

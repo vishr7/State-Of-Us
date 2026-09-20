@@ -386,7 +386,6 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .daily-expanded h4 { margin-top:9px; font-weight:700; }
 .daily-money { color:#f2d79c; margin:8px 0; }
 .daily-details-close { position:absolute; right:12px; top:8px; font-size:23px; }
-.daily-choice-action textarea { display:block; width:100%; background:#0c1928; border:1px solid #40536d; border-radius:6px; padding:8px; margin:7px 0; height:55px; }
 .daily-status { font-size:12px; color:#c7b991; margin:6px 0; }
 @media(max-height:780px) { .daily-card-row { max-width:1000px; } .daily-choice-card { padding:10px; } }
 @media(max-width:900px) { .daily-dock-header small { display:none; } .daily-expanded { grid-template-columns:1fr; } .daily-dock { padding:8px 12px; } }
@@ -417,7 +416,6 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .gameplan-dialog .daily-expanded { position:static; margin:0; padding:12px 12px 0 0; max-height:none; border:0; box-shadow:none; background:transparent; grid-template-columns:1.6fr 1fr; gap:32px; font-size:14px; line-height:1.6; }
 .gameplan-dialog .daily-expanded h3 { font-size:25px; line-height:1.2; margin:10px 0 18px; }
 .gameplan-dialog .daily-choice-action { padding-top:32px; }
-.gameplan-dialog .daily-choice-action textarea { height:120px; }
 .gameplan-dialog .daily-details-close { right:14px; top:10px; padding:4px 10px; }
 .city-gameplan { left:50%; right:auto; transform:translateX(-50%); width:calc(100% - 48px); max-width:1080px; bottom:70px; }
 .city-gameplan .daily-card-row { grid-template-columns:repeat(5,minmax(0,1fr)); }

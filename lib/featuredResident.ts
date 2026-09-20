@@ -1,31 +1,25 @@
 /**
- * Which resident is featured on a given game day.
- *
- * Deterministic (same day -> same resident, across reloads and devices) and
- * fair: the pick steps through the roster with a stride that shares no factor
- * with its length, so every resident is featured exactly once before anyone
- * repeats, and back-to-back days land on people far apart in the list (i.e.
- * usually different neighborhoods) instead of neighbors.
- *
- * Day 1 is the first resident; `day` is the game's display turn (1, 2, 3, ...).
+ * Picks the featured resident for a new game day: random, but never someone
+ * featured recently, so it feels fresh instead of cycling through the same few
+ * people. Pure (the random source is injectable) so it is easy to test.
  */
-const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
-/** A stride near the golden ratio of the roster length that is coprime with it. */
-export function featuredStride(length: number): number {
-  if (length <= 2) return 1;
-  let stride = Math.max(1, Math.round(length * 0.618));
-  while (gcd(stride, length) !== 1) stride++;
-  return stride;
-}
+/** How many previously featured residents are ruled out (capped by the roster size). */
+export const RECENT_MEMORY = 12;
 
-export function featuredResidentIndex(length: number, day: number): number {
-  if (length <= 0) return -1;
-  const daysElapsed = Math.max(0, Math.floor(day) - 1);
-  return (daysElapsed * featuredStride(length)) % length;
-}
+export function pickRandomResident<T extends { id: string }>(
+  residents: readonly T[],
+  recentIds: readonly string[] = [],
+  random: () => number = Math.random,
+): T | undefined {
+  if (residents.length === 0) return undefined;
 
-export function featuredResidentForDay<T>(residents: readonly T[], day: number): T | undefined {
-  const index = featuredResidentIndex(residents.length, day);
-  return index < 0 ? undefined : residents[index];
+  let pool = residents.filter(resident => !recentIds.includes(resident.id));
+  if (pool.length === 0) {
+    // Everyone was recent (tiny roster): only rule out the very latest, if we can.
+    const latest = recentIds[recentIds.length - 1];
+    pool = residents.filter(resident => resident.id !== latest);
+    if (pool.length === 0) pool = [...residents];
+  }
+  return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
 }
