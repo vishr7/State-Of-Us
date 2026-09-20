@@ -260,9 +260,9 @@ html, body {
 .start-eyebrow { display: flex; justify-content: center; align-items: center; gap: 14px; font-size: 10px; font-weight: 600; letter-spacing: 3.5px; color: #ead5ad; text-shadow: 0 2px 5px #071526; margin-bottom: 27px; }
 .start-eyebrow > span { width: 33px; height: 1px; background: #e9c18399; }
 .start-title { font-family: var(--font-press-start), monospace; font-size: clamp(30px, 6.4vw, 104px); line-height: 1.35; font-weight: 400; letter-spacing: -4px; white-space: nowrap; color: #fff3da; text-shadow: 0 6px 0 #102438, 5px 0 #102438, -5px 0 #102438, 0 -4px #102438, 0 12px 28px #07152699; }
-.start-title em { font-family: Georgia, serif; font-size: .85em; font-weight: bold; letter-spacing: -5px; }
+/* "of" uses the same pixel font, size, weight and spacing as the rest of the title (inherited); <em> is only semantic emphasis. */
+.start-title em { font-style: normal; }
 .start-title strong { font-weight: 400; color: #ffc45c; }
-.start-title strong > span { color: #f3aa42; }
 .start-description { font-size: clamp(12px, 1.25vw, 18px); font-weight: 500; letter-spacing: 1.1px; line-height: 1.6; color: #e2e8e9; margin: 18px auto 38px; text-shadow: 0 2px 6px #071526; }
 .start-play { display: flex; align-items: center; justify-content: center; gap: 23px; position: relative; width: min(330px, 80vw); min-height: 70px; margin: auto; border: 1px solid #ffe1a0; outline: 3px solid #102437; outline-offset: 3px; border-radius: 5px; background: linear-gradient(180deg, #fbd28a, #eeb555); color: #14283c; box-shadow: 0 5px 0 #96642d, 0 12px 36px #06152280, inset 0 1px 0 #fff5d6; font-family: var(--font-press-start), monospace; font-size: 22px; cursor: pointer; transition: transform 160ms, filter 160ms, box-shadow 160ms; }
 .start-play:hover { transform: translateY(-3px); filter: brightness(1.08); box-shadow: 0 8px 0 #96642d, 0 17px 40px #06152290; }
@@ -274,7 +274,7 @@ html, body {
 .start-footer-dot { color: #e5b766; margin: 0 9px; }
 .start-mobile-break { display: none; }
 .start-loading { height: 100svh; display: grid; place-items: center; background: #102337; color: #f0cf90; font-size: 16px; }
-@media (max-width: 640px) { .start-title { letter-spacing: -2px; font-size: clamp(25px, 6.8vw, 43px); } .start-title em { letter-spacing: -2px; } .start-motto { display: none; } .start-location { left: 20px; top: 20px; font-size: 8px; } .start-eyebrow { font-size: 8px; letter-spacing: 1.5px; gap: 8px; } .start-eyebrow > span { width: 18px; } .start-description { margin-top: 22px; margin-bottom: 34px; } .start-mobile-break { display: block; } .start-footer { left: 20px; right: 20px; font-size: 8px; } .start-footer > span:last-child { display: none; } .start-art { object-position: 48% center; } }
+@media (max-width: 640px) { .start-title { letter-spacing: -2px; font-size: clamp(25px, 6.8vw, 43px); } .start-motto { display: none; } .start-location { left: 20px; top: 20px; font-size: 8px; } .start-eyebrow { font-size: 8px; letter-spacing: 1.5px; gap: 8px; } .start-eyebrow > span { width: 18px; } .start-description { margin-top: 22px; margin-bottom: 34px; } .start-mobile-break { display: block; } .start-footer { left: 20px; right: 20px; font-size: 8px; } .start-footer > span:last-child { display: none; } .start-art { object-position: 48% center; } }
 @media (max-height: 600px) and (min-width: 641px) { .start-content { padding: 65px 20px 40px; } .start-title { font-size: 58px; } .start-eyebrow { margin-bottom: 14px; } .start-description { margin: 10px auto 23px; } .start-play { min-height: 55px; } .start-invitation { margin-top: 16px; } }
 @media (prefers-reduced-motion: reduce) { .start-play { transition: none; } }
 
@@ -386,7 +386,6 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .daily-expanded h4 { margin-top:9px; font-weight:700; }
 .daily-money { color:#f2d79c; margin:8px 0; }
 .daily-details-close { position:absolute; right:12px; top:8px; font-size:23px; }
-.daily-choice-action textarea { display:block; width:100%; background:#0c1928; border:1px solid #40536d; border-radius:6px; padding:8px; margin:7px 0; height:55px; }
 .daily-status { font-size:12px; color:#c7b991; margin:6px 0; }
 @media(max-height:780px) { .daily-card-row { max-width:1000px; } .daily-choice-card { padding:10px; } }
 @media(max-width:900px) { .daily-dock-header small { display:none; } .daily-expanded { grid-template-columns:1fr; } .daily-dock { padding:8px 12px; } }
@@ -417,7 +416,6 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .gameplan-dialog .daily-expanded { position:static; margin:0; padding:12px 12px 0 0; max-height:none; border:0; box-shadow:none; background:transparent; grid-template-columns:1.6fr 1fr; gap:32px; font-size:14px; line-height:1.6; }
 .gameplan-dialog .daily-expanded h3 { font-size:25px; line-height:1.2; margin:10px 0 18px; }
 .gameplan-dialog .daily-choice-action { padding-top:32px; }
-.gameplan-dialog .daily-choice-action textarea { height:120px; }
 .gameplan-dialog .daily-details-close { right:14px; top:10px; padding:4px 10px; }
 .city-gameplan { left:50%; right:auto; transform:translateX(-50%); width:calc(100% - 48px); max-width:1080px; bottom:70px; }
 .city-gameplan .daily-card-row { grid-template-columns:repeat(5,minmax(0,1fr)); }
@@ -461,3 +459,27 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 
 .resident-interview-avatar { background:#193447; border:2px solid #c2a574; border-radius:24px; text-align:center; padding:30px 12px; font-size:64px; color:#fff; }
 .resident-interview-avatar small { display:block; font-size:13px; }
+
+.map-rain { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:15; background:linear-gradient(#213e6555,#30506622); }
+.map-rain i { position:absolute; top:-80px; height:65px; width:1px; background:linear-gradient(transparent,#d5ecff); animation:map-rainfall 1s linear infinite; }
+@keyframes map-rainfall { from { transform:translate(0,-80px) rotate(14deg); } to { transform:translate(-160px,110vh) rotate(14deg); } }
+.map-weather { position:absolute; top:12px; left:212px; z-index:21; padding:7px 12px; border:1px solid #48627b; border-radius:10px; color:#e4edf5; background:#102237ed; font-size:12px; pointer-events:none; }
+@media(prefers-reduced-motion:reduce) { .map-rain i { animation:none; top:30%; height:18px; } }
+
+/* Keep interview portraits compact and entirely beside their captions. */
+.city-gameplan .is-resident .mayor-character { left:-150px; width:135px; height:176px; }
+.city-gameplan .is-resident .mayor-character svg, .city-gameplan .is-resident .mayor-character canvas { display:block; width:100%; height:100%; }
+@media(max-width:1000px) { .city-gameplan .is-resident .mayor-character { left:-100px; width:90px; height:117px; } }
+
+/* A single restrained emergency reveal, with cinematic bars over gameplay only. */
+.protest-cinema { position:absolute; inset:0; z-index:30; pointer-events:none; box-shadow:inset 0 0 150px #070d1b99; }
+.protest-cinema::before,.protest-cinema::after { content:''; position:absolute; left:0; right:0; height:7%; background:#070d18; animation:protest-bars 1s ease both; }
+.protest-cinema::before { top:0; } .protest-cinema::after { bottom:0; }
+.protest-flash { position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); padding:24px 50px; background:#801e25ed; border-block:1px solid #ffa27d; color:#fff3d5; text-transform:uppercase; letter-spacing:.15em; font-size:clamp(20px,3vw,38px); font-weight:800; text-align:center; animation:protest-reveal 4s both; }
+.protest-flash small { display:block; margin-top:12px; font-size:11px; letter-spacing:.2em; }
+.protest-location { position:absolute; top:10%; left:24px; color:#fff4df; background:#871f2bdd; padding:8px 14px; font-size:11px; letter-spacing:.12em; }
+.city-gameplan .protest-agenda .daily-card-row { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:740px; margin:auto; }
+.protest-agenda .daily-choice-card { border-color:#bb7855; }
+@keyframes protest-reveal { 0% { opacity:0; } 15%,70% { opacity:1; } 100% { opacity:0; visibility:hidden; } }
+@keyframes protest-bars { from { height:0; } to { height:7%; } }
+@media(prefers-reduced-motion:reduce) { .protest-cinema::before,.protest-cinema::after { animation:none; } .protest-flash { animation:none; font-size:18px; top:18%; padding:8px 16px; } }

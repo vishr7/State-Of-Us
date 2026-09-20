@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import ResidentPortrait from './ResidentPortrait';
+import PersonaPortrait from './PersonaPortrait';
 import { useAgenda } from '../gameplay/DailyAgenda';
 import { useCityPulseStore, selectPolicyLock } from '@/lib/store';
 
@@ -24,6 +26,9 @@ export default function ResidentNarrator() {
   const speakerName = announcement?.label ?? (speaker === 'mayor' ? 'Mayor' : speaker === 'news' ? 'News anchor' : speaker === 'resident' ? 'Resident' : 'City assistant');
   const portrait = speaker === 'mayor' ? 'mayor-professional' : speaker === 'news' ? 'news-anchor' : 'assistant';
   const day = useCityPulseStore(s => s.city.turn);
+  // A viewpoint from someone who walks the map: show THEIR figure and take the camera to them.
+  const mapResident = useCityPulseStore(s => speaker === 'resident' && announcement?.residentId ? s.residents.find(r => r.id === announcement.residentId) : undefined);
+  const focusResidentOnMap = useCityPulseStore(s => s.focusResidentOnMap);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'speaking' | 'ready' | 'error'>('ready');
   const [error, setError] = useState('');
@@ -75,6 +80,10 @@ export default function ResidentNarrator() {
     return () => window.removeEventListener('keydown', onKey);
   }, [announcement?.id, dismiss, otherDialogue]);
 
+  useEffect(() => {
+    if (announcement && !otherDialogue && mapResident) focusResidentOnMap(mapResident.id);
+  }, [announcement?.id, otherDialogue, mapResident?.id, focusResidentOnMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const toggleMute = () => {
     const next = !muted; setMuted(next); localStorage.setItem('resident-voice-muted', String(next));
   };
@@ -82,17 +91,18 @@ export default function ResidentNarrator() {
     setMuted(false); localStorage.setItem('resident-voice-muted', 'false'); setReplay(v => v + 1);
   };
   if (!announcement || otherDialogue) return null;
-  return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
+  return <aside className={`mayor-scene ${speaker === 'resident' ? 'is-resident' : ''} ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet || (speaker === 'resident' && announcement.tour?.startsWith('district:')) ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {speaker === 'resident' ? <div className="resident-interview-avatar">👤<small>Resident interview</small></div> : <img src={`/avatars/${portrait}.png`} alt="" />}
+      {speaker === 'resident' ? (mapResident ? <PersonaPortrait resident={mapResident} /> : <ResidentPortrait id={announcement.residentId ?? announcement.label ?? "resident"} age={announcement.residentAge} />) : <img src={`/avatars/${portrait}.png`} alt="" />}
     </div>
+    {speaker === 'resident' && announcement.tour?.startsWith('district:') && <div className="dialogue-partner" aria-hidden="true"><img src="/avatars/news-anchor.png" alt="" /></div>}
     {announcement.duet && <div className="dialogue-partner" aria-hidden="true"><img src={`/avatars/${speaker === 'mayor' ? 'assistant' : 'mayor-professional'}.png`} alt="" /></div>}
     <div className="mayor-dialogue">
       <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>{speakerName}</h3><span>CITY OF PITTSBURGH · DAY {day}</span></div></div>
 
-      <div className="mayor-dialogue-heading">{announcement?.kind === 'warning' ? 'CITY UPDATE' : announcement?.kind === 'success' ? 'POLICY BRIEFING' : announcement?.kind === 'error' ? 'ACTION NEEDED' : speaker === 'news' ? 'BREAKING CITY NEWS' : speaker === 'assistant' ? 'YOUR DAILY GAMEPLAN' : 'MAYOR’S ASSESSMENT'}</div>
+      <div className="mayor-dialogue-heading">{announcement?.kind === 'warning' ? 'CITY UPDATE' : announcement?.kind === 'success' ? 'POLICY BRIEFING' : announcement?.kind === 'error' ? 'ACTION NEEDED' : speaker === 'resident' ? 'RESIDENT VIEWPOINT' : speaker === 'news' ? 'CITY INTERVIEW' : speaker === 'assistant' ? 'YOUR DAILY GAMEPLAN' : 'MAYOR’S ASSESSMENT'}</div>
       <p className="mayor-caption" aria-live="polite">{announcement?.text ?? (generating ? 'I’m reviewing the decision and listening to how residents feel…' : 'Let’s plan our next move. Explore the five proposals below, review where the money goes, and choose a plan for Pittsburgh.')}</p>
       {error && !muted && <div className="mayor-voice-error" role="status">{error}</div>}
       <div className="mayor-controls">

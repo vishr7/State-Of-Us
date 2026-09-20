@@ -1,3 +1,4 @@
+import { drawProtest } from '../animations/protest';
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -554,6 +555,7 @@ export default function CityCanvas() {
   const [pncParkSprite, setPncParkSprite] = useState<HTMLImageElement | null>(null);
   const [pncTowerSprite, setPncTowerSprite] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
+  const replacements = useAnimationStore(s => s.replacements);
   const removedBuildings = useAnimationStore(s => s.removed);
   const demolition = useAnimationStore(s => s.queue[0]);
   const demolitionClock = useRef<{ id: string; start: number } | null>(null);
@@ -753,6 +755,7 @@ export default function CityCanvas() {
               policy.category === 'environment' ? 13 : policy.category === 'transit' ? 15 : 4;
           }
         }
+        if (replacements[tileKey(tx, ty)] !== undefined) sprite = replacements[tileKey(tx, ty)];
         if (sprite !== null) {
           const setback = lotSetback(tx, ty);
           drawSprite(ctx, atlas, sprite, cx + setback.x, cy + setback.y);
@@ -843,6 +846,38 @@ export default function CityCanvas() {
       // Transparent building/tree silhouettes occlude pedestrians behind them.
       ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
       ctx.drawImage(labels, -labels.width / 2, -labels.height / 2);
+      const protestState = useCityPulseStore.getState();
+      if (protestState.city.turn === 4) {
+        const district = NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === 'homewood');
+        if (district) {
+          ctx.save();
+          const shade = ctx.createRadialGradient(district.wx, district.wy, 20, district.wx, district.wy, 145);
+          shade.addColorStop(0, '#020917dd'); shade.addColorStop(.65, '#020917aa'); shade.addColorStop(1, '#02091700');
+          ctx.fillStyle = shade; ctx.fillRect(district.wx-145,district.wy-145,290,290);
+          ctx.fillStyle = '#ffcd71'; ctx.textAlign = 'center'; ctx.font = 'bold 12px sans-serif';
+          ctx.fillText('⚡ LOCAL POWER FAILURE', district.wx, district.wy-70);
+          ctx.font = '9px sans-serif'; ctx.fillText('Affected lower-income households', district.wx, district.wy-55);
+          ctx.strokeStyle = '#ffcd7188'; ctx.setLineDash([5,6]); ctx.lineWidth=2;
+          ctx.beginPath();ctx.ellipse(district.wx,district.wy,110,55,0,0,Math.PI*2);ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      if (protestState.city.turn === 2) {
+        const downtown = tileToScreen(CATHEDRAL_TX + 1, CATHEDRAL_TY + 1);
+        if (downtown) drawProtest(ctx, downtown.x, downtown.y + 45, time, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      }
+      // "Find on map" marker: drawn over the foreground so a resident who walks behind a building can still be found.
+      const focused = focusMark ? positions.find(item => item.walker.resident.id === focusMark.id) : undefined;
+      if (focused) {
+        const { x, y } = focused.position;
+        const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+        ctx.strokeStyle = `rgba(255,214,120,${0.6 + pulse * 0.4})`; ctx.lineWidth = 1.8 / camera.zoom;
+        ctx.beginPath(); ctx.ellipse(x, y + 1, 8 + pulse * 2.5, 3.4 + pulse, 0, 0, Math.PI * 2); ctx.stroke();
+        const bob = Math.sin(time * 5) * 1.5;
+        ctx.fillStyle = '#ffd678'; ctx.strokeStyle = '#3b2a10'; ctx.lineWidth = 0.8 / camera.zoom;
+        ctx.beginPath(); ctx.moveTo(x, y - 20 + bob); ctx.lineTo(x - 3.4, y - 25.5 + bob); ctx.lineTo(x + 3.4, y - 25.5 + bob); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
       const segment = useAnimationStore.getState().queue[0];
       if (segment) {
         if (demolitionClock.current?.id !== segment.id) demolitionClock.current = { id: segment.id, start: performance.now() };
@@ -948,15 +983,25 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
-  const tour = useCityPulseStore(s => s.announcements[0]?.tour);
+  // A speaking map resident gets a camera lock on them (mapFocus); the district tour would fight it.
+  const tour = useCityPulseStore(s => { const a = s.announcements[0]; return a?.speaker === 'resident' && a.residentId ? undefined : a?.tour; });
   useEffect(() => {
     if (!tour) return;
     const container = containerRef.current;
     if (!container) return;
-    const marker = tour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === tour.slice(9).toLowerCase()) : undefined;
-    const area = marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === tour);
+    const demo = tour === 'demo-house' || tour === 'demo-result';
+    let demoLot: { tx: number; ty: number } | undefined;
+    if (demo) {
+      for (let ty = 3; ty < 12 && !demoLot; ty++) for (let tx = 3; tx < 12 && !demoLot; tx++) {
+        const tile = classifyTile(tx, ty);
+        if (tile.building === 'middle' && !tile.tree && !tile.landmarkSprite && !tile.cathedral) demoLot = { tx, ty };
+      }
+    }
+    const focusTour = tour === 'outage' ? 'district:Homewood' : tour;
+    const marker = focusTour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === focusTour.slice(9).toLowerCase() || n.id === focusTour.slice(9).toLowerCase().replaceAll(' ', '_')) : undefined;
+    const area = tour === 'protest' ? tileToScreen(CATHEDRAL_TX + 1, CATHEDRAL_TY + 1) : demoLot ? tileToScreen(demoLot.tx, demoLot.ty) : marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === (tour === 'protest' ? 'downtown' : tour));
     const fit = Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * .96;
-    const z = area ? Math.min(1.05, fit * 2) : fit;
+    const z = area ? (tour === 'protest' || tour === 'outage') ? 1.8 : demo ? 1.65 : Math.min(1.05, fit * 2) : fit;
     const target = area ? { x: -area.x * z, y: -area.y * z - container.clientHeight * .12, zoom: z } : { x: 0, y: 30, zoom: z };
     const start = { ...cameraRef.current };
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -969,8 +1014,52 @@ export default function CityCanvas() {
       if (t < 1) frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+    const timer = tour === 'demo-house' && demoLot ? setTimeout(() => {
+      useAnimationStore.getState().demolish({ id: 'intro-house-replacement', ...demoLot!, replacement: 1 });
+    }, 2200) : undefined;
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, [tour, setMapViewport]);
+
+  // "Find on map" (e.g. from the Featured Resident card): fly to the resident and mark them for a few seconds.
+  const mapFocus = useCityPulseStore(s => s.mapFocus);
+  const walkersRef = useRef(walkers);
+  walkersRef.current = walkers;
+  const focusMarkRef = useRef<{ id: string; until: number } | null>(null);
+  useEffect(() => {
+    if (!mapFocus) return;
+    const container = containerRef.current;
+    const walker = walkersRef.current.find(w => w.resident.id === mapFocus.residentId);
+    if (!container || !walker) return;
+    const start = { ...cameraRef.current };
+    const targetZoom = Math.max(1.3, start.zoom);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const began = performance.now();
+    const until = began + 6000;
+    focusMarkRef.current = { id: walker.resident.id, until };
+    // Fly there, then stay locked on (they keep walking) until the marker fades or the user takes the camera.
+    let following = true;
+    const release = () => { following = false; };
+    container.addEventListener('pointerdown', release, { capture: true, once: true });
+    container.addEventListener('wheel', release, { passive: true, once: true });
+    let frame = 0;
+    const animate = (now: number) => {
+      if (!following) return;
+      const t = reduced ? 1 : Math.min(1, (now - began) / 1300);
+      const ease = t * t * (3 - 2 * t);
+      const zoom = start.zoom + (targetZoom - start.zoom) * ease;
+      // Aim at where they are NOW, not where they were when clicked: residents keep walking during the flight.
+      const p = walkerPosition(walker, walkingTimeRef.current);
+      const target = { x: -p.x * zoom, y: -(p.y - 7) * zoom - container.clientHeight * 0.08 };
+      setMapViewport({ x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease, zoom });
+      if (now < until) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(frame);
+      container.removeEventListener('pointerdown', release, { capture: true });
+      container.removeEventListener('wheel', release);
+    };
+  }, [mapFocus, setMapViewport]);
 
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
   const handleZoomOut = () => setZoom(z => Math.max(0.25, z * 0.8));

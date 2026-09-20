@@ -1,13 +1,13 @@
 'use client';
-import { outcomeNews } from '@/lib/dialogue/outcomeNews';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { create } from 'zustand';
 import { createPortal } from 'react-dom';
-import { useCityPulseStore } from '@/lib/store';
+import { useCityPulseStore, type ResidentAnnouncement } from '@/lib/store';
 import type { GameDayResponse, GameDayOutcome, GameDayDecision } from '@/database/gameplay/contracts';
 import type { GeneratedEventCandidate } from '@/lib/signals/generated-events';
 import type { Policy } from '@/database/types/database';
 import { checkAffordability, insufficientFundsMessage } from '@/database/simulation/affordability';
+import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from '@/lib/dialogue/protest';
 import { SpeakText } from '../ui/InsightView';
 
 export const useAgenda = create<{ open: boolean; setOpen: (open: boolean) => void }>(set => ({ open: true, setOpen: open => set({ open }) }));
@@ -63,6 +63,8 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const cityId = useCityPulseStore(s => s.backendLink?.cityId);
   const turn = useCityPulseStore(s => s.city.turn - 1);
   const introHidden = useCityPulseStore(s => s.announcements[0]?.tour !== 'choices' && (s.announcements.length > 0 || s.insightsPending > 0 || s.resolvingTurn));
+  const outageTour = useCityPulseStore(s => s.announcements[0]?.tour === 'outage');
+  const protestTour = useCityPulseStore(s => s.announcements[0]?.tour === 'protest');
   const resolving = useCityPulseStore(s => s.resolvingTurn);
   const pending = useCityPulseStore(s => s.pendingPolicy);
   const treasury = useCityPulseStore(s => s.city.treasury);
@@ -75,16 +77,15 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const [error, setError] = useState('');
   const [loadFailed, setLoadFailed] = useState(false);
   const [reload, setReload] = useState(0);
-  const [reason, setReason] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<Policy[]>([]);
-  useEffect(() => { api<Policy[]>('/api/policies').then(setCatalog).catch(() => {}); }, []);
+  useEffect(() => { api<Policy[]>('/api/policies').then(setCatalog).catch(() => {}); }, [day?.gameDayId]);
   useEffect(() => { if (cityId) setOpen(true); }, [cityId, turn, setOpen]);
   useEffect(() => {
     if (!cityId) return;
     useCityPulseStore.getState().stopPlaying();
     let cancelled = false;
-    setDay(null); setChoice(null); setExpanded(null); setReason(''); setError(''); setLoadFailed(false); setBusy(true);
+    setDay(null); setChoice(null); setExpanded(null); setError(''); setLoadFailed(false); setBusy(true);
     Promise.allSettled([
       loadOrPrepareDay(cityId, turn),
       api<GameDayDecision[]>(`/api/city/${cityId}/decisions`),
@@ -112,16 +113,6 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     }, 4000);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [cityId, outcome]);
-  const reported = useRef(new Set<string>());
-  useEffect(() => {
-    if (!outcome || outcome.reactionStatus !== 'completed' || outcome.turn + 1 !== turn) return;
-    const key = `news:${outcome.cityId}:${outcome.decision.id}`;
-    if (reported.current.has(key) || sessionStorage.getItem(key)) return;
-    const lines = outcomeNews(outcome);
-    if (!lines.length) return;
-    reported.current.add(key); sessionStorage.setItem(key, '1');
-    useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...lines.map((line, index) => ({ ...line, id: -(Date.now() + index) }))] }));
-  }, [outcome, turn]);
   const prepare = async () => {
     const retry = /failed/i.test(error);
     setBusy(true); setError('');
@@ -132,7 +123,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const choose = async (candidate: GeneratedEventCandidate) => {
     setBusy(true); setError(''); useCityPulseStore.setState({ submittingPolicy: true });
     try {
-      const saved = await api<GameDayDecision>(`/api/city/${cityId}/decisions`, { candidate_id: candidate.id, turn, player_reasoning: reason.trim() || undefined });
+      const saved = await api<GameDayDecision>(`/api/city/${cityId}/decisions`, { candidate_id: candidate.id, turn });
       setChoice(saved);
       useCityPulseStore.setState({ pendingPolicy: { name: candidate.title, turn: turn + 1 } });
       setExpanded(null);
@@ -144,9 +135,22 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const resolve = async () => {
     if (advancing.current) return;
     advancing.current = true;
-    setBusy(true); setError(''); setExpanded(null); setTransition('sunset');
+    setBusy(true); setError(''); setExpanded(null);
     const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     try {
+      if (choice || pending || useCityPulseStore.getState().pendingPolicy) {
+        const { lines } = await api<{ lines: Omit<ResidentAnnouncement, 'id'>[] }>(`/api/city/${cityId}/interviews`, { turn });
+        const tourLines = [...lines, { speaker: 'news' as const, kind: 'info' as const, tour: 'overview', text: 'Different households, different priorities. We’ll return after the plan takes effect. For now, back to the city as evening approaches.' }];
+        const queued = tourLines.map((line, index) => ({ ...line, id: -(Date.now() + index) }));
+        const ids = new Set(queued.map(line => line.id));
+        await new Promise<void>(done => {
+          const unsubscribe = useCityPulseStore.subscribe(state => {
+            if (!state.announcements.some(line => ids.has(line.id))) { unsubscribe(); done(); }
+          });
+          useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...queued] }));
+        });
+      }
+      setTransition('sunset');
       await pause(1400);
       setTransition('night');
       await Promise.all([useCityPulseStore.getState().advanceTurn(), pause(1400)]);
@@ -157,6 +161,24 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     } catch(e) { setError(e instanceof Error ? e.message : 'Could not load outcome.'); }
     finally { setBusy(false); setTransition(null); advancing.current = false; }
   };
+  const outage = day?.slate.decisions.some(c => c.policyId === 'ae000004-0000-4000-8000-000000000001');
+  const protest = day?.slate.decisions.some(c => c.policyId === 'ae000002-0000-4000-8000-000000000001');
+  const protestSeen = useRef('');
+  useEffect(() => {
+    const key = `${cityId}:${turn}`;
+    if (protestTour || outageTour) { protestSeen.current = key; return; }
+    if ((!protest && !outage) || choice || pending || busy || resolving || introHidden || protestSeen.current === key) return;
+    const state = useCityPulseStore.getState();
+    if (state.insightsPending || state.announcements.some(a => (a.tour === 'protest' || a.tour === 'outage'))) return;
+    protestSeen.current = key;
+    // Also cover reloads and unavailable AI narration, without repeating a live bulletin.
+    const id = -Date.now();
+    useCityPulseStore.setState({ announcements: [
+      { id, speaker: 'news', kind: 'warning', turn: turn + 1, tour: outage ? 'outage' : 'protest', text: outage ? OUTAGE_BRIEFING : PROTEST_BRIEFING },
+      ...state.announcements,
+      ...(state.announcements.some(a => a.tour === 'choices') ? [] : [{ id: id-1, speaker: 'assistant' as const, kind: 'info' as const, tour: 'choices', text: 'Here are the two responses. Review the costs and effects, then make your emergency decision.' }]),
+    ] });
+  }, [protest, outage, outageTour, protestTour, cityId, turn, choice, pending, busy, resolving, introHidden]);
   const selected = day?.slate.decisions.find(c => c.id === expanded);
   const money = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
   const costs = (candidate: GeneratedEventCandidate) => catalog.find(p => p.id === candidate.policyId);
@@ -170,9 +192,10 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const selectedShort = selected ? affordabilityFor(selected) : null;
   const selectedShortfall = selectedShort ? insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result) : null;
   const canEnd = !!cityId && !!(day || choice || pending) && !busy && !resolving && !loadFailed && (!day?.slate.decisions.length || !!choice || !!pending);
-  return <section hidden={introHidden} className="daily-dock" aria-label="Daily agenda">
+  return <section hidden={introHidden} className={`daily-dock ${protest || outage ? 'protest-agenda' : ''}`} aria-label="Daily agenda">
+    {(protestTour || outageTour) && transitionContainer && createPortal(<div className="protest-cinema" aria-live="polite"><div className="protest-flash">Emergency decision<small>{outageTour ? 'DAY 4 · POWER OUTAGE' : 'DAY 2 · CITYWIDE AI PROTEST'}</small></div><span className="protest-location">{outageTour ? 'LIVE · HOMEWOOD / POWER FAILURE' : 'LIVE · OAKLAND / CATHEDRAL OF LEARNING'}</span></div>, transitionContainer)}
     {transition && transitionContainer && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, transitionContainer)}
-    <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>City gameplan</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
+    <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>{outage ? 'Emergency · Homewood power outage' : protest ? 'Emergency · Citywide AI protest' : 'City gameplan'}</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : outage ? 'Emergency repairs or wait for the utility' : protest ? 'Fund safeguards or cancel the rollout' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
       {outcome && <button onClick={() => setExpanded(expanded === 'outcome' ? null : 'outcome')}>Last results</button>}
       <button className="daily-end" hidden={!choice && !pending && !!day?.slate.decisions.length} disabled={!canEnd || !!transition} onClick={resolve}>{resolving || transition ? 'Advancing…' : choice || pending ? 'Resume next day →' : 'Skip day →'}</button>
       <button aria-label={open ? 'Collapse daily choices' : 'Show daily choices'} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? '⌄' : '⌃'}</button>
@@ -185,7 +208,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
           <h4>Where the money goes</h4><p>{costs(selected)?.description ?? 'Budget details are unavailable.'}</p>
           <p className="daily-money">{costs(selected) ? `${money(costs(selected)!.upfront_cost)} upfront · ${money(Math.abs(costs(selected)!.recurring_cost))} recurring ${costs(selected)!.recurring_cost < 0 ? 'revenue' : 'cost'}` : 'Loading budget…'}</p>
           <details><summary>Background, tradeoffs & sources</summary><p>{selected.description}</p>{selected.supportedBenefits.map((t,i)=><p key={`b${i}`}>Potential benefit: {t}</p>)}{selected.supportedRisks.map((t,i)=><p key={`r${i}`}>Tradeoff: {t}</p>)}{selected.sourceRefs.map((source,i)=><p key={i}>{/^https?:\/\//.test(source.url) ? <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> : source.title}</p>)}</details>
-        </div><div className="daily-choice-action"><label>Your reasoning (optional)<textarea maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label>{selectedShort && <p role="alert" className="daily-short-note"><span aria-hidden="true">🔒</span><span>Can’t afford this yet — you’re <strong>{money(selectedShort.result.shortfall)}</strong> short. {insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result).replace(/^Not enough cash for "[^"]*": /, '')}</span></p>}<button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable || !!selectedShortfall} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : selectedShortfall ? 'Not enough cash' : 'Choose this plan'}</button></div>
+        </div><div className="daily-choice-action">{selectedShort && <p role="alert" className="daily-short-note"><span aria-hidden="true">🔒</span><span>Can’t afford this yet — you’re <strong>{money(selectedShort.result.shortfall)}</strong> short. {insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result).replace(/^Not enough cash for "[^"]*": /, '')}</span></p>}<button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable || !!selectedShortfall} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : selectedShortfall ? 'Not enough cash' : 'Choose this plan'}</button></div>
       </div></PlanDialog>}
       {expanded === 'outcome' && outcome && <PlanDialog onClose={() => setExpanded(null)}><div className="daily-expanded"><div><h3>Day {outcome.turn+1} · {outcome.candidate.title}</h3><p>Happiness {outcome.before.city.happiness} → {outcome.after.city.happiness} · Treasury {money(outcome.before.city.treasury)} → {money(outcome.after.city.treasury)}</p><p>Resident reactions: {outcome.reactionStatus}</p>{outcome.reactions.map(r => {
         const resident = outcome.after.residents.find(p => p.id === r.residentId);

@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { classifyTile, GW, GH } from '../map/cityMapData';
 
-export interface DemolitionSegment { id: string; tx: number; ty: number }
+export interface DemolitionSegment { id: string; tx: number; ty: number; replacement?: number }
 interface AnimationState {
   queue: DemolitionSegment[];
+  replacements: Record<string, number>;
   removed: Record<string, boolean>;
   seen: Record<string, boolean>;
   demolish: (segment: DemolitionSegment) => void;
@@ -12,7 +13,7 @@ interface AnimationState {
 }
 export const tileKey = (tx: number, ty: number) => `${tx},${ty}`;
 export const useAnimationStore = create<AnimationState>((set) => ({
-  queue: [], removed: {}, seen: {},
+  queue: [], replacements: {}, removed: {}, seen: {},
   demolish: segment => set(state => {
     if (!Number.isInteger(segment.tx) || !Number.isInteger(segment.ty) || segment.tx < 0 || segment.ty < 0 || segment.tx >= GW || segment.ty >= GH) return state;
     const tile = classifyTile(segment.tx, segment.ty);
@@ -20,5 +21,10 @@ export const useAnimationStore = create<AnimationState>((set) => ({
     return { queue: [...state.queue, segment], seen: { ...state.seen, [segment.id]: true } };
   }),
   impact: segment => set(state => ({ removed: { ...state.removed, [tileKey(segment.tx, segment.ty)]: true } })),
-  finish: id => set(state => ({ queue: state.queue.filter(item => item.id !== id) })),
+  finish: id => set(state => {
+    const segment = state.queue.find(item => item.id === id);
+    if (segment?.replacement === undefined) return { queue: state.queue.filter(item => item.id !== id) };
+    const key = tileKey(segment.tx, segment.ty);
+    return { queue: state.queue.filter(item => item.id !== id), removed: { ...state.removed, [key]: false }, replacements: { ...state.replacements, [key]: segment.replacement } };
+  }),
 }));
