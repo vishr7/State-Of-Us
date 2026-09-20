@@ -508,3 +508,19 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .policy-inspiration > span { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
 .policy-inspiration a { color:#a9d8ed; text-decoration:underline; text-underline-offset:3px; }
 .policy-inspiration small { display:block; margin:4px 0; }
+
+.trial-report-dialog { margin: auto; padding: 0; border: 1px solid #cfae68; border-radius: 24px; background: #0d1c2e; color: #e4eaf2; width: min(960px, 94vw); max-height: 90dvh; }
+.trial-report-dialog::backdrop { background: #040d1bd9; backdrop-filter: blur(8px); }
+.trial-report-dialog .week-recap { width: 100%; max-height: 88dvh; border: 0; }
+.trial-report-note { color: #a6bad0; font-size: 13px; line-height: 1.6; }
+.trial-report-highlights, .trial-testimonies { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 14px; margin: 16px 0; }
+.trial-report-highlights p, .trial-testimonies blockquote { padding: 18px; margin: 0; border: 1px solid #41546a; border-radius: 16px; background: linear-gradient(135deg,#24364d,#132338); line-height: 1.6; }
+.trial-testimonies footer { color: #d8bc81; font-size: 12px; margin-top: 12px; }
+.trial-report-footer { padding: 16px 26px; border-top: 1px solid #41546a; display: flex; justify-content: flex-end; }
+.trial-grade { display: flex; align-items: center; gap: 24px; padding: 24px; margin: 12px 0 24px; border: 1px solid #cfae68; border-radius: 18px; background: linear-gradient(120deg,#304458,#17293b); }
+.trial-grade-letter { font-size: 76px; font-weight: 800; line-height: 1; color: #f4d38a; min-width: 100px; text-align: center; }
+.trial-grade-letter small { display: block; font-size: 16px; margin-top: 10px; }
+.trial-grade h3 { font-size: 23px; margin: 8px 0; }
+.trial-grade p, .trial-grade details { font-size: 13px; line-height: 1.6; color: #c2d2e3; }
+.trial-grade summary { cursor: pointer; color: #f4d38a; }
+@media (max-width: 540px) { .trial-grade { flex-direction: column; align-items: flex-start; } }
