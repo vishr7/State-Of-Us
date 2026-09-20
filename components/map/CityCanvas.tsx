@@ -359,22 +359,47 @@ function drawWaterfallEdges(ctx: CanvasRenderingContext2D, edges: FrontEdge[], t
   }
 }
 
-function drawLandEdgeFog(ctx: CanvasRenderingContext2D, edges: FrontEdge[]) {
-  ctx.save();
-  for (const edge of edges) {
+function drawRockyEdges(ctx: CanvasRenderingContext2D, edges: FrontEdge[]) {
+  for (const [index, edge] of edges.entries()) {
     if (edge.water) continue;
-    const x = (edge.ax + edge.bx) / 2;
-    const y = (edge.ay + edge.by) / 2 + 14;
-    const mist = ctx.createRadialGradient(x, y, 2, x, y, 42);
-    mist.addColorStop(0, 'rgba(191,207,201,0.24)');
-    mist.addColorStop(0.65, 'rgba(191,207,201,0.10)');
-    mist.addColorStop(1, 'rgba(191,207,201,0)');
-    ctx.fillStyle = mist;
-    ctx.beginPath();
-    ctx.ellipse(x, y, 46, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.save();
+    const depth = 88;
+    const point = (t: number, z: number): [number, number] =>
+      [edge.ax + (edge.bx-edge.ax)*t, edge.ay + (edge.by-edge.ay)*t + z];
+    const outline = [point(0,0), point(1,0), point(1,depth), point(.72,depth-7), point(.44,depth+4), point(.2,depth-5), point(0,depth)];
+    fillPoly(ctx, outline, edge.side === 'left' ? '#737b79' : '#566773');
+    ctx.beginPath(); outline.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); ctx.closePath(); ctx.clip();
+    // Staggered, fractured strata: short uneven slabs instead of vertical stripes.
+    const palette = edge.side === 'left'
+      ? ['#8b9087','#737e7d','#a0a294','#637477','#858e88']
+      : ['#607783','#758791','#536b79','#88969a','#647c87'];
+    for (let row = 0; row < 6; row++) {
+      const z = 7 + row * 14;
+      for (let col = -1; col < 4; col++) {
+        const seed = index * 43 + col * 7;
+        const noise = rng(seed,row+11);
+        const t = col / 3 + (row % 2) * .16;
+        const end = t + .28 + noise * .12;
+        const top = z + noise * 5;
+        const slab = [point(t,top),point(end,top-2),point(end-.04,top+9),point(t+.08,top+14),point(t-.02,top+8)];
+        fillPoly(ctx, slab, palette[Math.floor(noise * palette.length)]);
+        const [x,y] = point(t,top); const [x2,y2] = point(end,top-2);
+        ctx.strokeStyle = '#d4cbb24a'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x2,y2); ctx.stroke();
+        ctx.strokeStyle = '#293e4d85'; ctx.lineWidth = .9;
+        const crack = [point(end,top),point(end-.04,top+6),point(end-.01,top+12),point(end-.1,top+15)];
+        ctx.beginPath(); crack.forEach(([cx,cy],i) => i ? ctx.lineTo(cx,cy) : ctx.moveTo(cx,cy)); ctx.stroke();
+      }
+    }
+    // Soil cap, broken moss patches and trailing vegetation.
+    fillPoly(ctx,[point(0,0),point(1,0),point(1,4),point(.6,6),point(0,4)],'#525b43');
+    for (let j = 0; j < 9; j++) {
+      const t=j/9, random=rng(index+80,j);
+      if(random < .3) continue;
+      fillPoly(ctx,[point(t,0),point(t+.12,0),point(t+.09,4+random*10),point(t+.04,3+random*15)],random>.7?'#71834c':'#506947');
+    }
+    ctx.restore();
   }
-  ctx.restore();
 }
 
 function mapDiamond() {
@@ -395,7 +420,7 @@ type CloudPlacement = { x: number; y: number; width: number; asset: CloudAsset; 
 
 const CLOUD_ASSETS: Record<CloudAsset, { src: string; width: number; height: number }> = {
   tall: { src: '/sprites/cloud-bank-tall.png', width: 1774, height: 887 },
-  wide: { src: '/sprites/cloud-bank-wide.png', width: 1774, height: 887 },
+  wide: { src: '/sprites/cloud-sunlit.png', width: 1774, height: 887 },
   puff: { src: '/sprites/cloud-puff.png', width: 1536, height: 1024 },
 };
 
@@ -414,38 +439,23 @@ function edgeCloud(side: number, t: number, offset: number, width: number,
   };
 }
 
-// Hand placed clusters leave irregular openings in the sky and keep the
-// river's waterfall at the south tip clear.
-const BACK_CLOUDS: CloudPlacement[] = [
-  edgeCloud(0, 0.08, 360, 190, 'puff', false, 0.68),
-  edgeCloud(0, 0.28, 255, 220, 'wide', true, 0.76),
-  edgeCloud(0, 0.48, 410, 155, 'puff', true, 0.58),
-  edgeCloud(0, 0.71, 290, 255, 'tall', false, 0.72),
-  edgeCloud(0, 0.93, 425, 175, 'puff', false, 0.6),
-  edgeCloud(3, 0.1, 380, 180, 'puff', true, 0.65),
-  edgeCloud(3, 0.32, 260, 235, 'tall', true, 0.72),
-  edgeCloud(3, 0.55, 420, 160, 'puff', false, 0.55),
-  edgeCloud(3, 0.77, 305, 215, 'wide', false, 0.72),
-  edgeCloud(3, 0.94, 445, 170, 'puff', true, 0.6),
-  edgeCloud(1, 0.17, 355, 185, 'puff', false, 0.58),
-  edgeCloud(1, 0.51, 335, 235, 'wide', true, 0.7),
-  edgeCloud(1, 0.79, 445, 160, 'puff', false, 0.55),
-  edgeCloud(2, 0.16, 420, 175, 'puff', true, 0.58),
-  edgeCloud(2, 0.46, 335, 240, 'tall', false, 0.7),
-  edgeCloud(2, 0.83, 390, 190, 'puff', false, 0.62),
-];
+// Draw the outer bank first, then tuck a dense inner bank under the terrain.
+// Overlap the opaque cloud cores, not just their transparent sprite bounds.
+const BACK_CLOUDS: CloudPlacement[] = [3, 2, 1, 0].flatMap(layer =>
+  [0,1,2,3].flatMap(side =>
+    Array.from({ length: 15 }, (_, i) => {
+      const variation = rng(side * 31 + i, layer + 90);
+      return edgeCloud(side, (i - 0.5) / 13,
+        layer === 0 ? 15 + variation * 25 : layer * 205 + variation * 40,
+        640 + layer * 100 + variation * 140, 'wide', i % 2 === 0, 1);
+    })));
 
-const FRONT_CLOUDS: CloudPlacement[] = [
-  edgeCloud(0, 0.9, 145, 365, 'wide', true),
-  edgeCloud(1, 0.08, 170, 430, 'tall'),
-  edgeCloud(1, 0.43, 190, 470, 'tall', true),
-  edgeCloud(1, 0.64, 155, 340, 'wide'),
-  edgeCloud(2, 0.36, 165, 390, 'tall', true),
-  edgeCloud(2, 0.55, 180, 455, 'wide'),
-  edgeCloud(2, 0.75, 155, 350, 'tall'),
-  edgeCloud(2, 0.94, 165, 410, 'wide', true),
-  edgeCloud(3, 0.09, 140, 345, 'tall', true),
-];
+const FRONT_CLOUDS: CloudPlacement[] = [1,2].flatMap(side =>
+  Array.from({ length: 10 }, (_, i) => {
+    const cloud = edgeCloud(side, i / 9, 55 + (i % 3) * 20,
+      540 + (i % 3) * 65, 'wide', i % 2 === 0);
+    return { ...cloud, y: cloud.y + 65 };
+  }));
 
 function CloudSprites({ placements }: { placements: CloudPlacement[] }) {
   return placements.map((cloud, index) => {
@@ -672,7 +682,7 @@ export default function CityCanvas() {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       // Keep the fog beneath the land so only a narrow exterior bank shows.
-      drawLandEdgeFog(ctx, mapEdges);
+      drawRockyEdges(ctx, mapEdges);
       // ── Pass 1: Ground tiles ────────────────────────────────
       for (const { tx, ty, cx, cy, info } of tiles) {
         switch (info.ground) {
@@ -950,7 +960,7 @@ export default function CityCanvas() {
     <div
       ref={containerRef}
       className="w-full h-full relative isolate overflow-hidden select-none cursor-grab active:cursor-grabbing"
-      style={{ touchAction: 'none', background: `linear-gradient(180deg, #91afc5 0%, ${SKY_COLOR} 56%, #d6e1df 100%)` }}
+      style={{ touchAction: 'none', background: `linear-gradient(180deg, #75b6df 0%, ${SKY_COLOR} 56%, #b7d3e5 100%)` }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
