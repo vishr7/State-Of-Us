@@ -4,6 +4,9 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import NextImage from 'next/image';
 import { createWalkers, drawWalker, walkerPosition, hitTestWalker } from './residentWalkers';
 import { useCityPulseStore } from '@/lib/store';
+import { drawCar } from './carSprite';
+import { useAnimationStore, tileKey } from '../animations/store';
+import { drawDemolition, DEMOLITION_IMPACT_MS, DEMOLITION_DURATION_MS } from '../animations/demolition';
 
 // ============================================================
 // CityCanvas — Procedural Isometric Pittsburgh City Renderer
@@ -539,6 +542,29 @@ export default function CityCanvas() {
   const [pncParkSprite, setPncParkSprite] = useState<HTMLImageElement | null>(null);
   const [pncTowerSprite, setPncTowerSprite] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
+  const removedBuildings = useAnimationStore(s => s.removed);
+  const demolition = useAnimationStore(s => s.queue[0]);
+  const demolitionClock = useRef<{ id: string; start: number } | null>(null);
+  const activeEvents = useCityPulseStore(s => s.activeEvents);
+  useEffect(() => {
+    for (const event of activeEvents) {
+      if (event.resolved || !/\bdemoli(?:tion|sh|shed)\b/i.test(event.title)) continue;
+      const center = NEIGHBORHOOD_MARKERS.find(marker => event.affectedNeighborhoods.includes(marker.id));
+      const candidates: { tx: number; ty: number; distance: number }[] = [];
+      for (let ty = 0; ty < GH; ty++) for (let tx = 0; tx < GW; tx++) {
+        const info = classifyTile(tx, ty);
+        if (info.building && !info.tree && !info.cathedral && !info.landmarkSprite && !useAnimationStore.getState().removed[tileKey(tx, ty)])
+          candidates.push({ tx, ty, distance: Math.hypot(tx - (center?.tx ?? 12), ty - (center?.ty ?? 16)) });
+      }
+      const target = candidates.sort((a, b) => a.distance - b.distance)[0];
+      if (target) useAnimationStore.getState().demolish({ id: event.id, tx: target.tx, ty: target.ty });
+    }
+  }, [activeEvents]);
+  useEffect(() => {
+    if (!demolition) return;
+    const target = tileToScreen(demolition.tx, demolition.ty);
+    setMapViewport({ x: -target.x * cameraRef.current.zoom, y: -target.y * cameraRef.current.zoom });
+  }, [demolition?.id, setMapViewport]);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
   const isPlaying = useCityPulseStore(s => s.ui.isPlaying);
@@ -683,6 +709,7 @@ export default function CityCanvas() {
         if (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
         else if (info.bridge === 'truss') drawTrussBridge(ctx, cx, cy);
         let sprite: number | null = null;
+        if (removedBuildings[tileKey(tx, ty)]) continue;
         if (info.landmarkSprite) {
           drawLandmarkSprite(ctx, landmarkAtlas, info.landmarkSprite, cx, cy);
           drawLandmarkSprite(foregroundCtx, landmarkAtlas, info.landmarkSprite, cx, cy);
@@ -778,9 +805,7 @@ export default function CityCanvas() {
           const progress = isPlaying ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
           const vx = cx + (progress - 0.5) * TW * (alongX ? 1 : -1);
           const vy = cy + (progress - 0.5) * TH;
-          ctx.fillStyle = ['#f2ca69', '#cf6654', '#d9e9e9'][tx % 3];
-          fillPoly(ctx, [[vx-7,vy-3],[vx,vy-6],[vx+9,vy],[vx+2,vy+4]], ctx.fillStyle);
-          ctx.fillStyle = '#263e50'; ctx.fillRect(vx-2, vy-3, 5, 3);
+          drawCar(ctx, vx, vy, alongX, (tx + ty * 3) % 4);
         }
       }
       const walkingTime = walkingTimeRef.current;
@@ -799,6 +824,16 @@ export default function CityCanvas() {
       // Transparent building/tree silhouettes occlude pedestrians behind them.
       ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
       ctx.drawImage(labels, -labels.width / 2, -labels.height / 2);
+      const segment = useAnimationStore.getState().queue[0];
+      if (segment) {
+        if (demolitionClock.current?.id !== segment.id) demolitionClock.current = { id: segment.id, start: performance.now() };
+        const elapsed = performance.now() - demolitionClock.current.start;
+        const target = tileToScreen(segment.tx, segment.ty);
+        drawDemolition(ctx, target.x, target.y, elapsed, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        if (elapsed >= DEMOLITION_IMPACT_MS && !useAnimationStore.getState().removed[tileKey(segment.tx, segment.ty)]) useAnimationStore.getState().impact(segment);
+        if (elapsed >= DEMOLITION_DURATION_MS) useAnimationStore.getState().finish(segment.id);
+      }
+
       const hovered = walkerHitsRef.current.some(hit => hit.id === hoveredWalkerRef.current) ? positions.find(item => item.walker.resident.id === hoveredWalkerRef.current) : undefined;
       if (hovered) {
         ctx.save(); ctx.translate(hovered.position.x,hovered.position.y-18); ctx.scale(1/camera.zoom,1/camera.zoom);
@@ -821,7 +856,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, isPlaying, setMapViewport, walkers]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, isPlaying, setMapViewport, walkers, removedBuildings]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
