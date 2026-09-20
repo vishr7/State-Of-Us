@@ -159,7 +159,16 @@ export default function DailyAgenda() {
           <details><summary>Background, tradeoffs & sources</summary><p>{selected.description}</p>{selected.supportedBenefits.map((t,i)=><p key={`b${i}`}>Potential benefit: {t}</p>)}{selected.supportedRisks.map((t,i)=><p key={`r${i}`}>Tradeoff: {t}</p>)}{selected.sourceRefs.map((source,i)=><p key={i}>{/^https?:\/\//.test(source.url) ? <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> : source.title}</p>)}</details>
         </div><div className="daily-choice-action"><label>Your reasoning (optional)<textarea maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label><button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : 'Choose this plan'}</button></div>
       </div></PlanDialog>}
-      {expanded === 'outcome' && outcome && <PlanDialog onClose={() => setExpanded(null)}><div className="daily-expanded"><div><h3>Day {outcome.turn+1} · {outcome.candidate.title}</h3><p>Happiness {outcome.before.city.happiness} → {outcome.after.city.happiness} · Treasury {money(outcome.before.city.treasury)} → {money(outcome.after.city.treasury)}</p><p>Resident reactions: {outcome.reactionStatus}</p>{outcome.reactions.map(r=><p key={r.residentId}>{r.reaction} <SpeakText text={r.reaction} /></p>)}</div></div></PlanDialog>}
+      {expanded === 'outcome' && outcome && <PlanDialog onClose={() => setExpanded(null)}><div className="daily-expanded"><div><h3>Day {outcome.turn+1} · {outcome.candidate.title}</h3><p>Happiness {outcome.before.city.happiness} → {outcome.after.city.happiness} · Treasury {money(outcome.before.city.treasury)} → {money(outcome.after.city.treasury)}</p><p>Resident reactions: {outcome.reactionStatus}</p>{outcome.reactions.map(r => {
+        const resident = outcome.after.residents.find(p => p.id === r.residentId);
+        const district = outcome.after.neighborhoods.find(n => n.id === resident?.neighborhood_id)?.name;
+        const peer = outcome.after.residents.find(p => p.id === r.socialResponse?.toResidentId);
+        const peerDistrict = outcome.after.neighborhoods.find(n => n.id === peer?.neighborhood_id)?.name;
+        return <article key={r.residentId} className="emotion-reaction"><h4>{district} · {resident?.occupation} · Support {r.supportScore}/100</h4><p>{r.reaction} <SpeakText text={r.reaction} /></p>
+          {r.emotions && <div className="emotion-scores">{Object.entries(r.emotions).map(([name,value]) => <span key={name}>{name} <strong>{value}</strong></span>)}</div>}
+          {r.socialResponse && <blockquote>Reply to {peer?.occupation} in {peerDistrict}: “{r.socialResponse.text}” <small>Peer influence {r.socialResponse.influence > 0 ? '+' : ''}{r.socialResponse.influence}</small></blockquote>}
+        </article>;
+      })}</div></div></PlanDialog>}
       {!cityId && <p className="daily-status">Connect to the database to see today’s choices.</p>}
       {loadFailed && <button className="daily-end" disabled={busy} onClick={() => setReload(value => value + 1)}>Reload gameplan</button>}
       {cityId && !day && !loadFailed && <button className="daily-end m-3" disabled={busy || /day is preparing/i.test(error)} onClick={prepare}>{/failed/i.test(error) ? 'Retry preparation' : 'Prepare today’s choices'}</button>}

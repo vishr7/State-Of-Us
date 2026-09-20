@@ -80,7 +80,7 @@ describe("real database vertical slice with mocked providers", () => {
     const react = vi.fn(async (input: Parameters<typeof import("../../../lib/agents/nemotron").generateResidentReactions>[0]) => {
       expect((await holder.db.query<{ current_turn: number }>("select current_turn from cities where id=$1", [cityId])).rows[0].current_turn).toBe(1);
       expect(input.before.turn).toBe(0); expect(input.after.turn).toBe(1);
-      expect(input.residents).toHaveLength(5);
+      expect(new Set(input.residents.map(r => r.neighborhood_id)).size).toBe(input.before.neighborhoods.length);
       expect(input.residents.every((resident) => input.before.residents.some((before) => before.id === resident.id))).toBe(true);
       return input.residents.map((resident) => ({ residentId: resident.id, supportScore: 80, sentiment: "positive" as const, satisfaction: "happy" as const, reaction: "I feel better about local services.", mainReason: "Transit access improved in my neighborhood.", personalImpact: "positive" as const, neighborhoodImpact: "positive" as const, financialImpact: "neutral" as const, executionAssessment: "unknown" as const, keyFactors: [{ factor: "neighborhood.transit_access", effect: "positive" as const, reason: "Local transit access improved." }] }));
     });
@@ -93,7 +93,7 @@ describe("real database vertical slice with mocked providers", () => {
     expect(outcome.after.city).toEqual({ ...canonical, current_turn: 1 });
     expect(outcome.after.residents).toEqual(expected.residents);
     expect(outcome.after.neighborhoods).toEqual(expected.neighborhoods.map((n) => recalculateNeighborhoodAggregates(n, expected.residents)));
-    expect(outcome.reactions).toHaveLength(5); expect(outcome.reactionStatus).toBe("completed");
+    expect(outcome.reactions.length).toBeGreaterThanOrEqual(outcome.before.neighborhoods.length); expect(outcome.reactionStatus).toBe("completed");
     expect(await resolveGameDay(cityId, 0, react)).toEqual(outcome);
     expect(react).toHaveBeenCalledTimes(1);
     const savedReactions = (await holder.db.query<{ evaluation: unknown; support: number; provenance: { promptVersion: string } }>("select * from resident_reactions order by resident_id")).rows;

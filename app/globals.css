@@ -425,3 +425,9 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .city-gameplan .daily-choice-card { background:linear-gradient(145deg,#20344b,#102237); }
 .city-gameplan .mayor-dialogue { max-width:760px; }
 @media(max-width:900px) { .city-gameplan { width:calc(100% - 24px); } .city-gameplan .daily-card-row { grid-template-columns:repeat(5,minmax(145px,1fr)); } .gameplan-dialog .daily-expanded { grid-template-columns:1fr; } .gameplan-dialog-content { padding:24px; } }
+
+.emotion-reaction { margin-top:18px; padding-top:14px; border-top:1px solid #34485e; }
+.emotion-scores { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.emotion-scores span { padding:4px 8px; border-radius:6px; background:#20364c; text-transform:capitalize; font-size:12px; }
+.emotion-reaction blockquote { padding:10px 14px; border-left:2px solid #e6c887; color:#c5d4df; }
+.emotion-reaction small { display:block; color:#e6c887; }

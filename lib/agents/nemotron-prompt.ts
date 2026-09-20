@@ -1,7 +1,8 @@
+import type { EmotionalMemory, SocialVoice } from './emotion-context';
 import type { GeneratedEventCandidate } from "../signals/generated-events";
 import type { Policy, Resident, SimulationState } from "../../database/types/database";
 
-export const REACTION_PROMPT_VERSION = "resident-outcome-v2";
+export const REACTION_PROMPT_VERSION = "resident-emotion-v3";
 export interface ExecutionMeasurements {
   /** Trusted application/ledger data only; never accept from model or choice request. */
   actualCost?: number;
@@ -11,6 +12,8 @@ export interface ExecutionMeasurements {
 }
 export interface NemotronInput {
   candidate: GeneratedEventCandidate; policy: Policy; residents: Resident[];
+  memories?: Record<string, EmotionalMemory[]>;
+  socialVoices?: SocialVoice[];
   before: SimulationState; after: SimulationState; execution?: ExecutionMeasurements;
 }
 export interface ValueChange { before: number; after: number; delta: number }
@@ -65,6 +68,14 @@ export function buildResidentOutcomePrompt(input: NemotronInput, residentId: str
       selectedAction: candidate.proposedAction ?? null, category: candidate.category, affectedGroups: [...candidate.affectedGroups],
       supportedBenefits: [...candidate.supportedBenefits], supportedRisks: [...candidate.supportedRisks], evidence: candidate.evidence.map((ref) => ({ ...ref })), authoredPolicy: { id: policy.id, name: policy.name } },
     outcome,
+    memory: input.memories?.[residentId] ?? [],
+    socialVoices: (input.socialVoices ?? []).filter(v => v.residentId !== residentId),
+    exposure: {
+      monthlyHousingRelief: resident.housing_cost - updated.housing_cost,
+      housingReliefShareOfMonthlyIncome: (resident.housing_cost - updated.housing_cost) / Math.max(resident.income / 12, 1),
+      commuteMinutesSaved: resident.commute_minutes - updated.commute_minutes,
+      districtComparison: before.neighborhoods.map(n => ({ name: n.name, happinessDelta: (after.neighborhoods.find(a => a.id === n.id)?.happiness ?? n.happiness) - n.happiness })),
+    },
     execution: { plannedCost, actualCost, costBasis, budgetStatus, goalStatus, goals, plannedDurationDays: candidate.estimatedDurationDays,
       actualDurationDays: nonnegative(input.execution?.actualDurationDays), status: input.execution?.status ?? "resolved" },
     snapshotRefs: { cityId: before.city.id, beforeTurn: before.turn, afterTurn: after.turn },
@@ -79,6 +90,8 @@ Consider personal and household impact, neighborhood effects, financial/tax/cost
 Residents differ. Rent reductions can matter greatly to a low-income renter even when a project is over budget. A wealthy homeowner can value property gains while worrying about city finances. A worker can value a shorter commute; do not assume transit mode from transit_sensitivity. Someone receiving little direct benefit can question a costly project. Under budget does not mean successful when goals underperform. Over budget does not automatically mean opposition when benefits are substantial. Personal benefit with neighborhood harm should produce mixed feelings.
 Use computed deltas, budgetStatus and goalStatus. NEVER invent effects/costs, resident traits/history, before/after values or consequences. Unknown budgetStatus forbids over/under/on-budget claims. Unknown goalStatus forbids claiming goals were met, exceeded or failed. Remain neutral on missing dimensions. A resolved game turn does not mean a completed real-world project; actual duration can be unknown.
 Ground personal impact in resident/neighborhood changes; without such changes personalImpact must be neutral. Conflicting personal and neighborhood impacts require mixed sentiment. No generic politics or hidden simulator knowledge. Speak naturally as the resident in 1-3 first-person sentences, not as a database analyst. Do not recite sensitivity weights or hidden indices.
-Output: residentId; supportScore (integer 0..100); sentiment (very_negative,negative,mixed,positive,very_positive); satisfaction (unhappy,mixed,happy); mainReason; reaction; personalImpact,neighborhoodImpact,financialImpact (negative,neutral,positive); executionAssessment (poor,mixed,good,unknown); keyFactors (1-6 objects with factor,effect,reason).
+Act as an emotional agent with memory. Evaluate magnitude relative to this household's income, housing burden and sensitivities; do not give everyone the same response. Strong direct relief can create intense hope; small spillovers may barely matter. Unequal district outcomes can create fairness concerns, but never fabricate direct losses for an unaffected resident. Prior reactions inform continuity, not immutable opinions. Emotions are subjective scores, not measured finances or city happiness.
+When socialVoices are present, respond to one actual supplied speaker: acknowledge their specific concern or benefit, then explain agreement, disagreement or empathy. Their opinion is not evidence of a new material effect. Return socialResponse with toResidentId, text, and influence (integer -10..10 representing persuasion direction). Without socialVoices omit socialResponse. Return emotions with hope, anxiety, anger, trust, fairness, each integer 0..100. Fairness means perceived fairness; trust means emotional confidence in city leadership. Let conflicting feelings coexist. These are fictional interactions between simulated residents.
+Output: emotions; optional socialResponse; residentId; supportScore (integer 0..100); sentiment (very_negative,negative,mixed,positive,very_positive); satisfaction (unhappy,mixed,happy); mainReason; reaction; personalImpact,neighborhoodImpact,financialImpact (negative,neutral,positive); executionAssessment (poor,mixed,good,unknown); keyFactors (1-6 objects with factor,effect,reason).
 Choose supportScore holistically, not with an arithmetic formula. Keep labels consistent: very_negative <=25, negative <=50, positive >=50, very_positive >=75. Mixed may express support with reservations. Satisfaction is a separate personal assessment.
 factor identifies a supplied numeric change: resident.FIELD, neighborhood.FIELD, city.FIELD, or execution.budgetStatus/execution.goalStatus. effect is negative,neutral,positive; reason explains the resident's perspective. Unknown execution factors must be neutral. If both execution statuses are unknown, executionAssessment must be unknown. Never invent numbers in prose: repeat supplied numeric values exactly or omit them. No extra fields, markdown, state mutations, trust deltas or simulation effects.`;

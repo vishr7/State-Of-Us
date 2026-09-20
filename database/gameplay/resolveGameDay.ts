@@ -1,4 +1,4 @@
-import { isDeepStrictEqual } from "node:util";
+import { selectEmotionResidents, type EmotionalMemory } from '../../lib/agents/emotion-context';
 import { getPool, withTransaction } from "../lib/db";
 import type { Policy, SimulationState } from "../types/database";
 import { resolveTurn } from "../simulation/resolveTurn";
@@ -38,10 +38,19 @@ export async function generateGameDayReactions(cityId: string, turn: number, rea
     const policy = (await getPool().query<Policy>("select * from policies where id=$1", [decision.policy_id])).rows[0];
     const day = (await getPool().query<GameDayRow>("select * from game_days where id=$1", [decision.game_day_id])).rows[0];
     if (day.policy_hashes[policy.id] !== policyFingerprint(policy)) throw new Error("Policy changed after resolution.");
-    // Bounded, deterministic sample of changed canonical households.
-    const residents = outcome.before.residents.filter((resident) => !isDeepStrictEqual(resident, outcome.after.residents.find((after) => after.id === resident.id))).sort((a, b) => a.id.localeCompare(b.id)).slice(0, 5);
-    const input: NemotronInput = { candidate: outcome.candidate, policy, residents, before: outcome.before, after: outcome.after };
-    const reactions = validateReactions({ reactions: await react(input) }, residents, input);
+    const residents = selectEmotionResidents(outcome.before, outcome.after);
+    const history = (await getPool().query<{ resident_id: string; turn: number; evaluation: unknown }>(
+      'select resident_id,turn,evaluation from resident_reactions where city_id=$1 and turn<$2 and evaluation is not null order by turn desc', [cityId, turn])).rows;
+    const memories: Record<string, EmotionalMemory[]> = {};
+    for (const row of history) {
+      const previous = residentReactionSchema.safeParse(row.evaluation);
+      if (!previous.success || (memories[row.resident_id]?.length ?? 0) >= 3) continue;
+      (memories[row.resident_id] ??= []).push({ turn: row.turn, supportScore: previous.data.supportScore, reaction: previous.data.reaction, emotions: previous.data.emotions });
+    }
+    const input: NemotronInput = { candidate: outcome.candidate, policy, residents, before: outcome.before, after: outcome.after, memories };
+    const generated = await react(input);
+    input.socialVoices = generated.map(r => ({ residentId: r.residentId, neighborhood: '', supportScore: r.supportScore, reaction: r.reaction }));
+    const reactions = validateReactions({ reactions: generated }, residents, input);
     await withTransaction(async (db) => {
       for (const reaction of reactions) await db.query("insert into resident_reactions(city_id,turn,decision_id,game_day_id,candidate_id,resident_id,support,sentiment,reaction,main_reason,provenance,evaluation) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb) on conflict(decision_id,resident_id) do update set support=excluded.support,sentiment=excluded.sentiment,reaction=excluded.reaction,main_reason=excluded.main_reason,provenance=excluded.provenance,evaluation=excluded.evaluation", [cityId, turn, decision.id, decision.game_day_id, decision.candidate_id, reaction.residentId, reaction.supportScore / 100, reaction.sentiment, reaction.reaction, reaction.mainReason, JSON.stringify({ model: process.env.NEMOTRON_MODEL ?? null, promptVersion: REACTION_PROMPT_VERSION, beforeTurn: turn, afterTurn: turn + 1, execution: buildResidentOutcomePrompt(input, reaction.residentId).execution }), JSON.stringify(reaction)]);
       await db.query("update reaction_runs set status='completed',completed_at=now() where decision_id=$1", [decision.id]);

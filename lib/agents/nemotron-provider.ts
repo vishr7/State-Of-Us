@@ -10,8 +10,8 @@ export const nemotronJson: NemotronProvider = async (input) => {
   if (!base || !key || !model) throw new NemotronUnconfiguredError("Nemotron is not configured.");
   let response: Response;
   try {
-    response = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, { method: "POST", signal: AbortSignal.timeout(90_000), headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, temperature: 0, max_tokens: 2000, response_format: { type: "json_object" }, messages: [
+    response = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, { method: "POST", signal: AbortSignal.timeout(15_000), headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, temperature: 0.4, reasoning_budget: 0, max_tokens: 2000, response_format: { type: "json_object" }, messages: [
         { role: "system", content: NEMOTRON_SYSTEM_PROMPT }, { role: "user", content: JSON.stringify(input) },
       ] }),
     });

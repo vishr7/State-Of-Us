@@ -1,3 +1,4 @@
+import { selectEmotionResidents } from '../emotion-context';
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildResidentOutcomePrompt, generateResidentReactions, validateResidentReaction, residentReactionSchema, type NemotronInput, type ResidentReaction } from "../nemotron";
 import { nemotronJson } from "../nemotron-provider";
@@ -115,5 +116,33 @@ describe("isolated Nemotron provider", () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("secret"); }));
     await expect(nemotronJson(buildResidentOutcomePrompt(input, residentId))).rejects.toThrow("failed or timed out");
     expect(input).toEqual(before);
+  });
+});
+
+
+describe('emotional memory and peer conversations', () => {
+  it('includes unchanged residents and preserves prior emotions as context', () => {
+    const input = fixture();
+    input.memories = { [residentId]: [{ turn: 0, supportScore: 30, reaction: 'I am concerned.' }] };
+    expect(selectEmotionResidents(input.before, input.after)).toHaveLength(1);
+    expect(buildResidentOutcomePrompt(input, residentId).memory[0].supportScore).toBe(30);
+    expect(buildResidentOutcomePrompt(input, residentId).exposure.monthlyHousingRelief).toBe(0);
+  });
+  it('rejects a reply to someone outside the supplied conversation', () => {
+    const input = fixture();
+    expect(() => validateResidentReaction(reaction({ socialResponse: { toResidentId: neighborhoodId, text: 'I agree.', influence: 4 } }), buildResidentOutcomePrompt(input, residentId))).toThrow('unknown speaker');
+  });
+  it('persists a grounded peer response without changing material outcomes', async () => {
+    const input = fixture();
+    const otherId = '88888888-8888-4888-8888-000000000003';
+    const other = { ...input.before.residents[0], id: otherId };
+    input.before.residents.push(other); input.after.residents.push({ ...other }); input.residents.push({ ...other });
+    const provider = vi.fn(async (prompt: ReturnType<typeof buildResidentOutcomePrompt>) => reaction({ residentId: prompt.resident.id,
+      ...(prompt.socialVoices.length ? { socialResponse: { toResidentId: prompt.socialVoices[0].residentId, text: 'I share your concern about the city finances.', influence: -3 }, emotions: { hope: 40, anger: 20, anxiety: 60, trust: 45, fairness: 50 } } : {}) }));
+    const original = structuredClone(input);
+    const results = await generateResidentReactions(input, provider);
+    expect(provider).toHaveBeenCalledTimes(4);
+    expect(results.every(r => r.socialResponse?.influence === -3)).toBe(true);
+    expect(input).toEqual(original);
   });
 });
