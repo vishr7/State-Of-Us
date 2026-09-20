@@ -131,7 +131,7 @@ export interface TileInfo {
 
 // A deliberately compressed geographic model: west is decreasing tx, north decreasing ty.
 // The Strip is on the south/east bank of the Allegheny, alongside Downtown.
-export function classifyTile(tx: number, ty: number): TileInfo {
+function classifyTileRaw(tx: number, ty: number): TileInfo {
   if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return { ground: 'grass' };
   if (isPointPark(tx, ty)) return { ground: 'park' };
   if (isWater(tx, ty)) {
@@ -199,6 +199,100 @@ export function classifyTile(tx: number, ty: number): TileInfo {
   if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) return { ground: 'park', tree: r < 0.3 };
   if (r < 0.26) return { ground: hillside ? 'hillside' : 'park', tree: r < 0.12 };
   return { ground: hillside ? 'hillside' : 'grass', building: r < 0.6 ? 'wealthy' : 'middle' };
+}
+
+/**
+ * `classifyTileRaw`'s hand-tuned rules leave a few short dead-end road stubs
+ * (e.g. a bridge landing with a gap before the next through street) that
+ * aren't reachable from the rest of the network. Cars/pedestrians build
+ * their routes by walking the road graph, so a disconnected stub traps
+ * anything spawned on it. This computes, once, the shortest non-water detour
+ * from every disconnected stub back to the main network and force-classifies
+ * that detour as road, so the whole map is one connected component.
+ */
+let roadOverrides: Set<string> | null = null;
+
+function tileKeyXY(x: number, y: number) {
+  return `${x},${y}`;
+}
+
+function computeRoadOverrides(): Set<string> {
+  const isRoad = (x: number, y: number) => x >= 0 && y >= 0 && x < GW && y < GH && classifyTileRaw(x, y).ground === 'road';
+
+  const visited = new Set<string>();
+  const components: Array<Array<{ x: number; y: number }>> = [];
+  for (let y = 0; y < GH; y++) {
+    for (let x = 0; x < GW; x++) {
+      const key = tileKeyXY(x, y);
+      if (!isRoad(x, y) || visited.has(key)) continue;
+      const tiles: Array<{ x: number; y: number }> = [];
+      const stack = [{ x, y }];
+      visited.add(key);
+      while (stack.length) {
+        const cur = stack.pop()!;
+        tiles.push(cur);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = cur.x + dx, ny = cur.y + dy;
+          const nk = tileKeyXY(nx, ny);
+          if (isRoad(nx, ny) && !visited.has(nk)) { visited.add(nk); stack.push({ x: nx, y: ny }); }
+        }
+      }
+      components.push(tiles);
+    }
+  }
+  if (components.length <= 1) return new Set();
+
+  components.sort((a, b) => b.length - a.length);
+  const main = new Set(components[0].map(t => tileKeyXY(t.x, t.y)));
+  const overrides = new Set<string>();
+
+  for (let i = 1; i < components.length; i++) {
+    const island = new Set(components[i].map(t => tileKeyXY(t.x, t.y)));
+    // 0/1 BFS (Dijkstra with only edge weights 0 or 1): weight 0 to step onto
+    // an existing road tile, weight 1 to carve a new one. Landmarks/water
+    // (without a bridge) are never touched.
+    const dist = new Map<string, number>();
+    const prev = new Map<string, string>();
+    const deque: string[] = [];
+    for (const t of components[i]) { const k = tileKeyXY(t.x, t.y); dist.set(k, 0); deque.push(k); }
+
+    let reached: string | null = null;
+    while (deque.length) {
+      const cur = deque.shift()!;
+      if (main.has(cur) || overrides.has(cur)) { reached = cur; break; }
+      const [cx, cy] = cur.split(',').map(Number);
+      const curDist = dist.get(cur)!;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = cx + dx, ny = cy + dy;
+        if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue;
+        const nk = tileKeyXY(nx, ny);
+        const info = classifyTileRaw(nx, ny);
+        if (info.ground === 'water' && !info.bridge) continue;
+        if (info.landmarkSprite || info.cathedral) continue;
+        const stepCost = info.ground === 'road' ? 0 : 1;
+        const nextDist = curDist + stepCost;
+        if (dist.has(nk) && dist.get(nk)! <= nextDist) continue;
+        dist.set(nk, nextDist);
+        prev.set(nk, cur);
+        if (stepCost === 0) deque.unshift(nk); else deque.push(nk);
+      }
+    }
+
+    if (!reached) continue; // no reachable detour (fully boxed in by water) — leave as-is
+    let node: string | undefined = reached;
+    while (node && !island.has(node)) {
+      if (!main.has(node)) overrides.add(node);
+      node = prev.get(node);
+    }
+  }
+  return overrides;
+}
+
+export function classifyTile(tx: number, ty: number): TileInfo {
+  const raw = classifyTileRaw(tx, ty);
+  if (raw.ground === 'road') return raw;
+  if (!roadOverrides) roadOverrides = computeRoadOverrides();
+  return roadOverrides.has(tileKeyXY(tx, ty)) ? { ground: 'road' } : raw;
 }
 
 // These are navigation areas, not renamed simulation neighborhoods.
