@@ -46,7 +46,7 @@ export default function GameDashboard() {
         <div ref={setMapContainer} className="flex-1 min-w-0 overflow-hidden relative isolate">
           <CityCanvas />
           <WeatherOverlay />
-          <div className="absolute top-3 left-4 z-20 w-[184px]" aria-label="City minimap">
+          <div className="absolute top-3 left-4 z-20 w-[130px] md:w-[184px]" aria-label="City minimap">
             <MiniMap />
           </div>
           <div className="city-gameplan">

@@ -543,8 +543,18 @@ export default function CityCanvas() {
   const frontCloudRef = useRef<HTMLDivElement>(null);
   const residents = useCityPulseStore(s => s.residents);
   const selectResident = useCityPulseStore(s => s.selectResident);
-  const walkers = useMemo(() => createWalkers(residents), [residents]);
-  const cars = useMemo(() => createCars(45), []);
+  const population = useCityPulseStore(s => s.city.population);
+  // Street traffic should read as a real proxy for city size: scale pedestrian
+  // and car counts by how far population has moved from wherever it started,
+  // so a policy/event that grows or shrinks the city visibly thins or fills
+  // the streets instead of always showing the same fixed crowd.
+  const basePopulationRef = useRef<number | null>(null);
+  if (basePopulationRef.current === null && population > 0) basePopulationRef.current = population;
+  const populationRatio = basePopulationRef.current ? Math.min(1.5, Math.max(0.15, population / basePopulationRef.current)) : 1;
+  const walkerLimit = Math.max(3, Math.round(100 * populationRatio));
+  const carCount = Math.max(5, Math.round(45 * populationRatio));
+  const walkers = useMemo(() => createWalkers(residents, walkerLimit), [residents, walkerLimit]);
+  const cars = useMemo(() => createCars(carCount), [carCount]);
   const walkingTimeRef = useRef(0);
   const hoveredWalkerRef = useRef<string | null>(null);
   const clickStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
@@ -602,6 +612,17 @@ export default function CityCanvas() {
   }, [demolition?.id, setMapViewport]);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
+  // Send every pedestrian and car back to the start of its own route each
+  // time a turn advances. `turn` only changes mid-way through the daily
+  // agenda's sunset/night/morning transition (see DailyAgenda's `resolve`),
+  // while the night overlay is nearly opaque, so the snap-back is hidden.
+  const firstTurnRef = useRef(true);
+  useEffect(() => {
+    if (firstTurnRef.current) { firstTurnRef.current = false; return; }
+    walkingTimeRef.current = 0;
+    for (const walker of walkers) walker.phase = 0;
+    for (const car of cars) { car.progress = 0; car.throttle = 1; car.stuckTime = 0; }
+  }, [turn, walkers, cars]);
   // Street life (people, cars) is ambient. It used to follow `ui.isPlaying`, but the daily-agenda
   // flow retired turn autoplay (nothing sets it any more), which froze everyone in place.
   const [ambientMotion, setAmbientMotion] = useState(true);

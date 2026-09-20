@@ -48,7 +48,12 @@
       "Bash(node scripts/_shot.mjs)",
       "Bash(DEBUG_ROAD_OVERRIDES=1 npx tsx scripts/_overrides.ts)",
       "Bash(rm -f scripts/_overrides.ts scripts/_intersections.ts)",
-      "Bash(rm -rf .next)"
+      "Bash(rm -rf .next)",
+      "Read(//c/Program Files/PostgreSQL/18/bin/**)",
+      "PowerShell(net stop postgresql-x64-18)",
+      "PowerShell(Stop-Service -Name postgresql-x64-18 -ErrorAction Stop)",
+      "Bash(node scripts/_mobile.mjs)",
+      "Bash(node scripts/_desktop.mjs)"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -33,10 +33,10 @@ export function isWalkable(x: number, y: number) {
   const tile = classifyTile(x, y);
   return tile.ground === 'road' && !tile.bridge;
 }
-export function createWalkers(residents: Resident[]): Walker[] {
+export function createWalkers(residents: Resident[], limit = 100): Walker[] {
   const streets: Tile[] = [];
   for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (isWalkable(x, y)) streets.push({ x, y });
-  return residents.slice(0, 100).map((resident, index) => {
+  return residents.slice(0, limit).map((resident, index) => {
     let seed = index + 1;
     for (const char of resident.id) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619) >>> 0;
     const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
