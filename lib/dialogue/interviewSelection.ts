@@ -1,7 +1,9 @@
 import type { Resident, Neighborhood } from '../../database/types/database';
 export function interviewImpact(before: Resident, after: Resident, district: Neighborhood, nextDistrict: Neighborhood) {
   const factors = [
-    { score: after.happiness - before.happiness, benefit: 'this response addresses the disruption our household is facing', harm: 'our household is left dealing with the disruption for longer' },
+    // General wellbeing. Weighted low so a concrete effect of the chosen option (commute, housing cost, transit access...)
+    // is the reason a person gives when there is one; it leads only when little else moved (e.g. an emergency response).
+    { score: (after.happiness - before.happiness) * 0.3, benefit: 'the city’s response would make things easier for households like mine', harm: 'the city’s response would leave households like mine worse off' },
     { score: (after.government_trust - before.government_trust) * 20, benefit: 'the city is responding to people in our situation', harm: 'the response makes me feel that people in our situation are being overlooked' },
     { score: (before.housing_cost - after.housing_cost) / Math.max(before.income / 12, 1) * 100, benefit: 'lower housing costs would leave more room in my household budget', harm: 'higher housing costs would squeeze my household budget' },
     { score: (after.income - before.income) / Math.max(before.income, 1) * 100, benefit: 'higher income would give my household more breathing room', harm: 'losing income would make it harder to cover our bills' },
@@ -30,4 +32,24 @@ export function selectInterviewees<T extends { resident: Resident; score: number
     || diversity(b) - diversity(a) || Math.abs(b.score - first.score) - Math.abs(a.score - first.score)
     || a.resident.id.localeCompare(b.resident.id));
   return [first, pool[0]];
+}
+
+/**
+ * The anchor's pick for the day: two residents chosen AT RANDOM, from different districts when possible,
+ * never anyone already interviewed on another day. (Unlike selectInterviewees, this does not favour the most
+ * affected people: the anchor is talking to ordinary residents, some barely touched by today's option.)
+ * `random` is injectable so the pick is testable.
+ */
+export function pickRandomInterviewees<T extends { resident: Pick<Resident, 'id' | 'neighborhood_id'> }>(
+  people: T[],
+  excluded: ReadonlySet<string> = new Set(),
+  random: () => number = Math.random,
+): T[] {
+  const pool = [...new Map(people.filter(p => !excluded.has(p.resident.id)).map(p => [p.resident.id, p])).values()];
+  if (pool.length < 2) return pool;
+  const choose = (from: T[]) => from[Math.min(from.length - 1, Math.floor(random() * from.length))];
+  const first = choose(pool);
+  const others = pool.filter(p => p !== first);
+  const otherDistricts = others.filter(p => p.resident.neighborhood_id !== first.resident.neighborhood_id);
+  return [first, choose(otherDistricts.length ? otherDistricts : others)];
 }

@@ -83,7 +83,16 @@ describe('offline interview answers use the person’s own background', () => {
 
   it('handles an unaffected, uncertain person without inventing an effect', () => {
     const { answer } = fallbackInterview(input({ mood: 'uncertain', impacts: [] }));
-    expect(answer).toContain('still making up my mind');
+    expect(answer).toMatch(/making up my mind|direct household benefit|practical effects are still limited/);
     expect(answer).not.toMatch(/would (fall|rise|shorten|lengthen)/);
+  });
+
+  it('varies complete fallback responses across the map residents and avoids stock closing lines', () => {
+    const answers = personaResidents.map(persona => fallbackInterview(input({ persona, mood: 'uncertain', impacts: [] })).answer);
+    expect(new Set(answers).size).toBe(personaResidents.length);
+    for (const answer of answers) {
+      expect(answer).not.toContain('I want to know this is worth the cost.');
+      expect(answer.length).toBeLessThanOrEqual(900);
+    }
   });
 });

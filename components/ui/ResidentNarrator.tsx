@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ResidentPortrait from './ResidentPortrait';
 import PersonaPortrait from './PersonaPortrait';
+import ResidentFacts from './ResidentFacts';
 import { useAgenda } from '../gameplay/DailyAgenda';
 import { useCityPulseStore, selectPolicyLock } from '@/lib/store';
 
@@ -103,6 +104,7 @@ export default function ResidentNarrator() {
       <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>{speakerName}</h3><span>CITY OF PITTSBURGH · DAY {day}</span></div></div>
 
       <div className="mayor-dialogue-heading">{announcement?.kind === 'warning' ? 'CITY UPDATE' : announcement?.kind === 'success' ? 'POLICY BRIEFING' : announcement?.kind === 'error' ? 'ACTION NEEDED' : speaker === 'resident' ? 'RESIDENT VIEWPOINT' : speaker === 'news' ? 'CITY INTERVIEW' : speaker === 'assistant' ? 'YOUR DAILY GAMEPLAN' : 'MAYOR’S ASSESSMENT'}</div>
+      {mapResident && <ResidentFacts resident={mapResident} />}
       <p className="mayor-caption" aria-live="polite">{announcement?.text ?? (generating ? 'I’m reviewing the decision and listening to how residents feel…' : 'Let’s plan our next move. Explore the five proposals below, review where the money goes, and choose a plan for Pittsburgh.')}</p>
       {error && !muted && <div className="mayor-voice-error" role="status">{error}</div>}
       <div className="mayor-controls">

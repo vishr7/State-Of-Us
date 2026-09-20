@@ -1,7 +1,7 @@
-import { drawRiverLife } from '../animations/riverLife';
-import { drawProtest } from '../animations/protest';
 'use client';
 
+import { drawRiverLife } from '../animations/riverLife';
+import { drawProtest } from '../animations/protest';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NextImage from 'next/image';
 import { createWalkers, drawWalker, walkerPosition, hitTestWalker } from './residentWalkers';

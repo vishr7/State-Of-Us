@@ -239,4 +239,51 @@ describe("real database vertical slice with mocked providers", () => {
     const again = await (await ask()).json() as { lines: { speaker: string; residentId?: string }[] };
     expect(again.lines.filter(l => l.speaker === "resident").map(l => l.residentId)).toEqual(ids);
   }, 30000);
+
+  it("has Gemini write each interviewee's answer from their persona and the selected option", async () => {
+    vi.stubEnv("NVIDIA_API_KEY", ""); vi.stubEnv("NEMOTRON_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "test-key"); vi.stubEnv("GEMINI_MODEL", "test-model");
+    const { personaResidents } = await import("../../../lib/personas");
+    const { POST } = await import("../../../app/api/city/[id]/interviews/route");
+    await prepareGameDay(cityId, 0, providers());
+    await holder.db.query("insert into decisions (city_id, policy_id, turn) values ($1, $2, 0)", [cityId, TRANSIT_POLICY_ID]);
+
+    // A stand-in for Google's Interactions API that writes each answer from what the request actually contains.
+    const seen: { selectedOption: { title: string; policy: { name: string } }; people: { residentId: string; biography: string; interests: string[]; whatChangesForThem: string[] }[] }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: { body: string }) => {
+      const input = JSON.parse(JSON.parse(init.body).input) as (typeof seen)[number];
+      seen.push(input);
+      const answers = input.people.map(person => ({
+        residentId: person.residentId,
+        answer: `I think about this choice from my own corner of the city, and with ${person.interests[0].toLowerCase()} filling my spare time I will be watching how it lands here.`,
+      }));
+      return { ok: true, json: async () => ({ status: "completed", steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({ answers }) }] }] }) };
+    }));
+
+    const response = await POST(
+      new Request(`http://localhost/api/city/${cityId}/interviews`, { method: "POST", body: JSON.stringify({ turn: 0 }) }),
+      { params: Promise.resolve({ id: cityId }) },
+    );
+    expect(response.status).toBe(200);
+    const { lines } = await response.json() as { lines: { speaker: string; text: string; residentId?: string; source?: string }[] };
+
+    // The model was shown the selected option and each person's real Nemotron background.
+    expect(seen).toHaveLength(1);
+    expect(seen[0].selectedOption.policy.name).toBe("Expand Transit");
+    const speakers = lines.filter(l => l.speaker === "resident");
+    expect(seen[0].people.map(p => p.residentId)).toEqual(speakers.map(l => l.residentId));
+    for (const shown of seen[0].people) {
+      const persona = personaResidents.find(p => p.id === shown.residentId)!;
+      expect(shown.biography).toBe(persona.persona!.biography);
+      expect(shown.interests).toEqual(persona.persona!.interests);
+    }
+    // What Gemini wrote is what the resident says, and it is labelled as Gemini's.
+    for (const line of speakers) {
+      const interest = personaResidents.find(p => p.id === line.residentId)!.persona!.interests[0].toLowerCase();
+      expect(line.text).toContain(interest);
+      expect(line.source).toBe("gemini");
+    }
+    // The reporter's introduction still names the person.
+    expect(lines[0].text).toContain(personaResidents.find(p => p.id === speakers[0].residentId)!.name);
+  }, 30000);
 });

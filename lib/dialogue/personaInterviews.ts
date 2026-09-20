@@ -9,7 +9,7 @@
  *
  * Pure: no I/O. Used by app/api/city/[id]/interviews/route.ts.
  */
-import type { Resident as DbResident, ResidentArchetype } from '../../database/types/database';
+import type { Neighborhood, Resident as DbResident, ResidentArchetype } from '../../database/types/database';
 import type { Resident as Persona } from '../types';
 
 /** Persona neighborhood id ('golden_triangle') -> database neighborhood name ('Golden Triangle'). */
@@ -67,6 +67,25 @@ export function personaBackground(persona: Persona) {
   };
 }
 
+export type PersonaBackground = ReturnType<typeof personaBackground>;
+
+/**
+ * What the chosen option would concretely change for this person and their neighborhood, in
+ * first-person words. Shared by the AI prompt and the offline fallback so both say the same true things.
+ */
+export function describeChanges(before: DbResident, after: DbResident, district: Neighborhood, nextDistrict: Neighborhood) {
+  const impacts: string[] = [];
+  if (after.housing_cost !== before.housing_cost) impacts.push(`my monthly housing costs would ${after.housing_cost < before.housing_cost ? 'fall' : 'rise'} by $${Math.abs(after.housing_cost - before.housing_cost).toFixed(0)}`);
+  if (after.commute_minutes !== before.commute_minutes) impacts.push(`my commute would ${after.commute_minutes < before.commute_minutes ? 'shorten' : 'lengthen'} by ${Math.abs(after.commute_minutes - before.commute_minutes).toFixed(1)} minutes`);
+  if (after.income !== before.income) impacts.push(`my annual income would ${after.income > before.income ? 'rise' : 'fall'} by $${Math.abs(after.income - before.income).toFixed(0)}`);
+  const neighborhoodNote = nextDistrict.transit_access !== district.transit_access
+    ? 'The change to local transit access matters to this neighborhood.'
+    : nextDistrict.housing_supply !== district.housing_supply
+      ? 'The change in local housing supply is something I’ll be watching.'
+      : 'I’ll be watching whether our neighborhood benefits as the plan takes effect.';
+  return { impacts, neighborhoodNote };
+}
+
 /* ------------------------------------------------------------------ */
 /* Offline fallback: an in-character answer built from the same background */
 /* ------------------------------------------------------------------ */
@@ -108,13 +127,22 @@ export function backgroundSentence(persona: Persona, policyName: string, index: 
 
   if (useSkill) {
     const skill = lowerFirst(pick(skills, 'skill'));
-    return working
-      ? `Day to day my job comes down to ${skill}, so I tend to look hard at what things really cost.`
-      : `I’ve built up skills like ${skill}, so I look closely at whether public money is well spent.`;
+    return pick(working ? [
+      `My work involves ${skill}. I want the practical details of this plan, not just the headline.`,
+      `I spend a lot of my working day on ${skill}. That’s the experience I bring to this decision.`,
+      `With my background in ${skill}, I pay attention to how a plan would work day to day.`,
+    ] : [
+      `I’ve built up skills like ${skill}. I’d like to understand how this plan would be carried out.`,
+      `My experience with ${skill} shapes the questions I have about this decision.`,
+    ], 'skill-wording');
   }
   if (interests.length) {
     const interest = lowerFirst(pick(interests, 'interest'));
-    return `When I’m off the clock it’s mostly ${interest}, so I notice how a decision like this changes everyday life around here.`;
+    return pick([
+      `I’m interested in ${interest}. I look at city decisions through the everyday life I want here.`,
+      `Outside my responsibilities, I make room for ${interest}. There’s more to a neighborhood than its budget.`,
+      `For me, ${interest} is part of what makes life enjoyable. I want that everyday side of the city considered too.`,
+    ], 'interest-wording');
   }
   return working
     ? `Working as a ${jobLabel(persona.occupation)}, I see how these decisions land on ordinary people.`
@@ -126,18 +154,26 @@ export function fallbackInterview(input: InterviewInput): { question: string; an
   const first = persona.name.split(' ')[0];
   const question = `We’re in ${district} with ${persona.name}. The city has chosen ${policyName}, which hasn’t taken effect yet. ${first}, ${index === 0 ? 'what would this mean for you?' : 'what matters most to you about this decision?'}`;
 
-  const lead = mood === 'uncertain'
-    ? 'I’m still making up my mind. I can’t see a direct change to my own bills or commute yet, so I want to know what we’re getting for the city’s spending.'
-    : reason;
+  const variant = hash(`${persona.id}:${policyName}:${index}`);
+  const priorities = [
+    `I ${persona.isHomeowner ? 'own my home' : 'rent my home'} in ${district}, and housing takes $${Math.round(persona.housingCost).toLocaleString('en-US')} out of my monthly budget.`,
+    `My usual commute is ${persona.commuteMins} minutes ${persona.commuteMode === 'walk' ? 'on foot' : `by ${persona.commuteMode}`}. That’s one part of my daily routine I weigh when I hear a plan like this.`,
+    `There ${persona.familySize === 1 ? 'is one person' : `are ${persona.familySize} people`} in my household. I’m thinking about how this fits into our everyday costs.`,
+  ];
+  const lead = mood === 'uncertain' ? [
+    'I’m still making up my mind; this option doesn’t directly change my bills or commute.',
+    'I don’t see a direct household benefit yet. I’d like to hear why this should be the priority.',
+    'For my own situation, the practical effects are still limited. I’m interested in what it would do for the neighborhood.',
+  ][variant % 3] : reason;
   const personal = impacts.length ? `If it goes ahead, ${impacts.slice(0, 2).join(', and ')}.` : '';
   // The lead sentence often already says what the neighborhood note would (e.g. better local transit access).
   const noteRepeatsLead = /local transit access|local housing|homes locally/.test(lead) && /transit access|housing supply/.test(neighborhoodNote);
   const answer = [
+    priorities[variant % priorities.length],
+    backgroundSentence(persona, policyName, index),
     lead,
     personal,
-    backgroundSentence(persona, policyName, index),
     noteRepeatsLead ? '' : neighborhoodNote,
-    index === 0 ? 'I want to know this is worth the cost.' : 'Who gets the benefit matters as much as the overall price.',
   ].filter(Boolean).join(' ');
   return { question, answer };
 }

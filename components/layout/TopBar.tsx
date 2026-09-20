@@ -198,7 +198,7 @@ export default function TopBar() {
         <div className="state-brand" aria-label="State of US — Your city. Our tomorrow.">
           <div className="state-brand-emblem" aria-hidden="true"><CityPixelIcon /></div>
           <div className="state-brand-copy">
-            <div className="state-brand-wordmark"><span>State</span><span className="state-brand-of">of</span><span className="state-brand-us">US<span className="state-brand-period">.</span></span></div>
+            <div className="state-brand-wordmark"><span>State</span><span className="state-brand-of">of</span><span className="state-brand-us">US</span></div>
             <div className="state-brand-tagline"><span className="state-brand-line" aria-hidden="true" />Your city. Our tomorrow.</div>
           </div>
         </div>

@@ -53,7 +53,7 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { residentId?: string; residentAge?: number; tour?: string; label?: string; speaker?: 'mayor' | 'assistant' | 'news' | 'resident'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
+export interface ResidentAnnouncement { residentId?: string; residentAge?: number; tour?: string; label?: string; speaker?: 'mayor' | 'assistant' | 'news' | 'resident'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'gemini' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
   insights: CityInsight[];
@@ -79,7 +79,7 @@ interface CityPulseStore extends GameState {
   backend: { status: 'idle' | 'connecting' | 'connected' | 'offline'; error: string | null };
   backendLink: BackendLink | null;
   resolvingTurn: boolean;
-  connectBackend: () => Promise<void>;
+  connectBackend: (refresh?: boolean) => Promise<void>;
 
   // Turn control
   turnIntervalId: ReturnType<typeof setInterval> | null;
@@ -200,9 +200,9 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
 
   // ------ Backend connection --------------------------------
 
-  connectBackend: async () => {
+  connectBackend: async (refresh = false) => {
     const status = get().backend.status;
-    if (status === 'connecting' || status === 'connected') return;
+    if (status === 'connecting' || (status === 'connected' && !refresh)) return;
     set({ backend: { status: 'connecting', error: null } });
     try {
       const { city, neighborhoods, policies } = get();
