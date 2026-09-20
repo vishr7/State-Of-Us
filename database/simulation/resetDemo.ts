@@ -7,11 +7,12 @@ export class DemoResetError extends Error {
 }
 
 /** Restore the seeded world atomically, retaining its original Day 1 snapshot. */
-export async function resetDemo(cityId: string, expectedTurn: number) {
+export async function resetDemo(cityId: string) {
   return withTransaction(async client => {
     const city = (await client.query<City>('select * from cities where id=$1 for update', [cityId])).rows[0];
     if (!city) throw new DemoResetError('City not found.', 404);
-    if (city.current_turn !== expectedTurn) throw new DemoResetError('The day changed. Refresh and try resetting again.');
+    // Reset always restores the baseline, even when the browser's day is stale.
+    // The row lock serializes this with any turn currently being resolved.
     const baseline = (await client.query<{ state: SimulationState }>(
       'select state from simulation_snapshots where city_id=$1 and turn=0', [cityId],
     )).rows[0]?.state;

@@ -12,11 +12,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     z.uuid().parse(id);
-    const body = z.object({ expected_turn: z.number().int().nonnegative() }).strict().parse(await request.json());
-    return NextResponse.json(await resetDemo(id, body.expected_turn));
+    // Accept the old client's turn field during hot reloads, but a full reset
+    // applies to the latest locked state rather than a particular day.
+    z.object({ expected_turn: z.number().int().nonnegative().optional() }).strict().parse(await request.json());
+    return NextResponse.json(await resetDemo(id));
   } catch (error) {
     if (error instanceof z.ZodError || error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'A valid city and current turn are required.' }, { status: 400 });
+      return NextResponse.json({ error: 'A valid city and reset request are required.' }, { status: 400 });
     }
     if (error instanceof DemoResetError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('Demo reset failed', error);

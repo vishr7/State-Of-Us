@@ -20,10 +20,11 @@ export default function ResetDemoButton() {
       if (state.backendLink) {
         const response = await fetch(`/api/city/${state.backendLink.cityId}/reset`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ expected_turn: state.city.turn - 1 }),
+          body: JSON.stringify({}),
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Could not reset the demo.');
+        try { localStorage.removeItem(`week-recap-shown:${state.backendLink.cityId}`); } catch { /* Storage may be disabled. */ }
       }
       // Recreate every client store, timer, animation, agenda cache, and chart.
       // The Play screen then reconnects to the restored city.

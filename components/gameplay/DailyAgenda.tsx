@@ -16,6 +16,7 @@ import { useAnimationStore } from '../animations/store';
 import { useTransitAnimation } from '../animations/transit';
 import { playTransit } from '../animations/transit';
 import { playRedevelopment } from '../animations/redevelopment';
+import { waitForAnnouncements } from '@/lib/dialogue/waitForAnnouncements';
 
 const FINAL_DEMO_DAY = 6; // Six-day trial, followed by continued sandbox play.
 
@@ -157,7 +158,8 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     try {
       const saved = await api<GameDayDecision>(`/api/city/${cityId}/decisions`, { candidate_id: candidate.id, turn });
       setChoice(saved);
-      useCityPulseStore.setState({ pendingPolicy: { name: candidate.title, turn: turn + 1 } });
+      // Selecting a plan ends the old briefing; narrator cleanup stops its audio.
+      useCityPulseStore.setState({ pendingPolicy: { name: candidate.title, turn: turn + 1 }, announcements: [] });
       setExpanded(null);
       useCityPulseStore.setState({ submittingPolicy: false });
       await resolve(candidate);
@@ -183,11 +185,9 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
         const tourLines = [...lines, { speaker: 'news' as const, kind: 'info' as const, tour: 'overview', text: 'Different households, different priorities. We’ll return after the plan takes effect. For now, back to the city as evening approaches.' }];
         const queued = tourLines.map((line, index) => ({ ...line, id: -(Date.now() + index) }));
         const ids = new Set(queued.map(line => line.id));
-        await new Promise<void>(done => {
-          const unsubscribe = useCityPulseStore.subscribe(state => {
-            if (!state.announcements.some(line => ids.has(line.id))) { unsubscribe(); done(); }
-          });
-          useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...queued] }));
+        useCityPulseStore.setState({ announcements: queued });
+        await waitForAnnouncements(useCityPulseStore, ids, () => {
+          useCityPulseStore.setState(state => ({ announcements: state.announcements.filter(line => !ids.has(line.id)) }));
         });
       }
       const project = chosen ?? day?.slate.decisions.find(c => c.id === choice?.candidate_id);
