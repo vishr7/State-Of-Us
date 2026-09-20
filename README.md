@@ -1,415 +1,1179 @@
 # State of Us
 
-Minimal Next.js + TypeScript API-only backend for retrieving Pittsburgh population and median household income from the U.S. Census Bureau.
+**State of Us** is a data-grounded city simulation game where the player acts as mayor of Pittsburgh and makes policy decisions under real financial, social, and infrastructure constraints.
 
-## Run locally
+The project combines real public data, live external signals, deterministic simulation, and AI resident agents:
 
-Install Node.js 22 LTS or a newer supported LTS release (including npm), then run from this directory:
+```text
 
-```sh
-npm install
-npm run dev
+Public data + news
+
+        ↓
+
+Xtract ingestion / grounding
+
+        ↓
+
+Gemini Agent 1 — generate grounded event candidates
+
+        ↓
+
+Gemini Agent 2 — choose the daily slate
+
+        ↓
+
+Deterministic simulation — apply canonical effects
+
+        ↓
+
+Nemotron — resident reasoning and reactions
+
+        ↓
+
+PostgreSQL
+
+        ↓
+
+Frontend / city map / town hall / analytics
+
 ```
 
-The first install generates `package-lock.json`; commit it to share dependency versions with the team.
+The core architecture rule is simple:
 
-Open http://localhost:3000/api/city-data or check it in PowerShell:
+> **LLMs may interpret, select, explain, and react. They do not directly mutate canonical city state.**
 
-```powershell
-Invoke-RestMethod http://localhost:3000/api/city-data | ConvertTo-Json -Depth 5
+The deterministic simulation engine and database remain the source of truth for treasury, rent, unemployment, transit, happiness, approval, and other gameplay values.
+
+**---**
+
+## Current Status
+
+The backend vertical slice is connected and tested.
+
+Current capabilities include:
+
+- Pittsburgh baseline data from the U.S. Census Bureau ACS
+
+- Pittsburgh municipal-finance baseline data
+
+- RSS/Atom feed discovery
+
+- General article ingestion and normalization
+
+- Claude-powered Xtract signal extraction
+
+- Evidence-grounding validation
+
+- Persistent URL/content deduplication
+
+- Decision-candidate generation
+
+- Daily-world orchestration
+
+- Gemini event-generation and event-selection boundaries
+
+- Server-owned binding from generated events to authored simulation policies
+
+- Deterministic turn resolution
+
+- Before/after simulation snapshots
+
+- Nemotron-compatible resident-reaction service
+
+- Reaction persistence and retry safety
+
+- API routes for game-day preparation, decisions, turn resolution, and outcomes
+
+- PostgreSQL-backed city, neighborhood, resident, policy, decision, snapshot, game-day, and reaction state
+
+Latest verification:
+
+```text
+
+Test Files: 10 passed
+
+Tests:      107 passed
+
+TypeScript: passed (npx tsc --noEmit)
+
 ```
 
-## Endpoint and data source
+The vertical-slice tests verify that:
 
-`GET /api/city-data` always retrieves Pittsburgh city, Pennsylvania (state FIPS `42`, place FIPS `61000`). No parameters are required.
+1\. a saved Gemini-selected event can resolve through an authored policy,
 
-On success, HTTP 200 JSON contains:
+2\. canonical state is updated by the deterministic simulation,
 
-- `city`: the Census geographic name.
-- `population`: a numeric population estimate in people (`B01003_001E`).
-- `medianHouseholdIncome`: a numeric income estimate in 2024 inflation-adjusted U.S. dollars (`B19013_001E`).
-- `source`: the Census Bureau name, dataset, year, observation period, request URL, geographic identifiers, variable codes, and units.
+3\. committed before/after snapshots are passed to the reaction service,
 
-Both metrics come from the **2024 American Community Survey (ACS) 5-Year Estimates**, covering **2020–2024**. These are survey estimates for the city proper, not the Pittsburgh metro area or live counts.
+4\. retries do not advance the turn twice or duplicate reactions,
 
-[Census dataset documentation](https://www.census.gov/data/developers/data-sets/acs-5year.html)
+5\. Nemotron failure does not roll back the simulation, and
 
-[Direct Census API request](https://api.census.gov/data/2024/acs/acs5?get=NAME,B01003_001E,B19013_001E&for=place:61000&in=state:42)
+6\. a later retry retries only reaction generation.
 
-Each request fetches real Census data without caching and has a 10-second upstream timeout. Network failures, non-success Census responses, malformed data, and missing or suppressed estimates return HTTP 502:
+### Still in progress
 
-```json
-{"error":"Unable to retrieve city data from the Census API. Please try again later."}
+- Real feed URLs still need to be configured in `lib/signals/feeds.ts`.
+
+- The live Gemini + Nemotron provider path still needs a full smoke test with real credentials.
+
+- Generated events are only playable when they can be safely bound to an authored deterministic policy.
+
+- Frontend consumption of the new game-day/reaction APIs is not yet complete.
+
+- Multi-day policy execution is not yet fully implemented; duration is currently planning metadata.
+
+**---**
+
+# Core Gameplay Loop
+
+Each new game day is intended to run this pipeline:
+
+```text
+
+Player advances to a new day
+
+        ↓
+
+Check configured RSS/Atom feeds
+
+        ↓
+
+Process only unseen articles
+
+        ↓
+
+Extract source-grounded external signals
+
+        ↓
+
+Gemini Agent 1 produces up to 10 grounded event candidates
+
+        ↓
+
+Server validates evidence + executable policy bindings
+
+        ↓
+
+Gemini Agent 2 selects up to 5 decisions for the day
+
+        ↓
+
+Player chooses one
+
+        ↓
+
+Deterministic simulation resolves the authored policy
+
+        ↓
+
+Canonical state + snapshots are committed
+
+        ↓
+
+Nemotron receives the real before/after state
+
+        ↓
+
+Resident reactions are generated and persisted
+
+        ↓
+
+UI displays the result
+
 ```
 
-No mock values are substituted on failure. Error details are logged on the server.
+There are no mandatory "required events." The daily slate is designed to contain up to five decisions of different scale and resource demand.
 
-## Project structure
+**---**
 
-- `app/api/city-data/route.ts`: HTTP response and error handling.
-- `lib/data/census.ts`: Census request, response validation, numeric conversion, and source metadata.
-- `package.json`, `tsconfig.json`, and `next-env.d.ts`: Next.js and TypeScript setup.
+# Architecture
 
-There is no frontend or homepage; `/` returns 404. The placeholder `/api/health` route has been removed.
-The Census request uses public access without an API key; no environment variables are required for this initial version. Internet access to `api.census.gov` is required.
+## 1. External Data / Xtract
 
-## Production build
+External data has two jobs:
 
-```sh
-npm run build
-npm start
+1\. establish the city's baseline state;
+
+2\. continuously ground new gameplay events in real public information.
+
+### Structured baseline data
+
+The Census API layer currently includes:
+
+- population
+
+- median household income
+
+- unemployment rate
+
+- median gross rent
+
+- median home value
+
+- poverty rate
+
+- rent-burden rate
+
+- per-capita income
+
+- labor-force participation rate
+
+- homeownership rate
+
+- vacancy rate
+
+- mean commute time
+
+- public-transit share
+
+- average household size
+
+Pittsburgh defaults:
+
+```text
+
+State FIPS: 42
+
+Place FIPS: 61000
+
 ```
 
-Dependencies have not been installed and the application has not been run in the authoring environment because Node.js/npm are unavailable. Run the commands above locally to verify the build and endpoint.
-
----
-
-# State of Us — Simulation Engine
-
-Backend for the financial city simulator: a deterministic policy interpreter,
-turn resolver, and the minimum API the frontend needs. Database schema lives
-in [database/supabase/](database/supabase/README.md) — this README covers what was built on top
-of it.
-
-> Database and simulation engine are the source of truth. Nothing here calls
-> an LLM or lets one touch canonical state — see
-> [database/supabase/README.md "The architecture rule"](database/supabase/README.md#the-architecture-rule-expressed-in-the-schema).
-
-## What's here
-
-| Path | What |
-| --- | --- |
-| [database/simulation/applyPolicyEffects.ts](database/simulation/applyPolicyEffects.ts) | Pure interpreter for `policies.effects` — set/multiply/add, city/neighborhood/resident selectors |
-| [database/simulation/recalculateAggregates.ts](database/simulation/recalculateAggregates.ts) | Pure recompute of derived neighborhood/city fields from residents |
-| [database/simulation/loadTurnState.ts](database/simulation/loadTurnState.ts) | DB reads for one turn (city, neighborhoods, residents, decisions, policies) |
-| [database/simulation/persistTurnState.ts](database/simulation/persistTurnState.ts) | DB writes for one turn |
-| [database/simulation/resolveTurn.ts](database/simulation/resolveTurn.ts) | Orchestrates the above in one transaction |
-| [database/simulation/errors.ts](database/simulation/errors.ts) | Typed errors (`CityNotFoundError`, etc.) |
-| [database/lib/db.ts](database/lib/db.ts) | `pg` pool + transaction helper |
-| [app/api/city/[id]/route.ts](app/api/city/%5Bid%5D/route.ts) | `GET /api/city/:id` |
-| [app/api/city/[id]/decisions/route.ts](app/api/city/%5Bid%5D/decisions/route.ts) | `POST /api/city/:id/decisions` — queue a policy decision |
-| [app/api/city/[id]/resolve-turn/route.ts](app/api/city/%5Bid%5D/resolve-turn/route.ts) | `POST /api/city/:id/resolve-turn` |
-| [app/api/city/[id]/neighborhoods](app/api/city/%5Bid%5D/neighborhoods/route.ts), [/residents](app/api/city/%5Bid%5D/residents/route.ts), [app/api/policies](app/api/policies/route.ts) | Optional read-only endpoints |
-| [src/lib/apiClient.ts](src/lib/apiClient.ts) | Frontend fetch wrappers: `getCity`, `getNeighborhoods`, `getResidents`, `getPolicies`, `createDecision`, `resolveTurn` |
-| `database/simulation/__tests__/` | Unit tests (pure functions) + one integration test (real DB) |
-| `src/lib/__tests__/apiClient.test.ts` | Unit tests for the client, with `fetch` mocked |
-
-No UI was added — `app/` exists only to host the API route handlers.
-
-## Connecting the frontend (CityPulse UI)
-
-The game UI (`components/`, state in `lib/store.ts`) runs on this backend when it
-can reach it, and on its built-in mock engine when it can't. The TopBar badge
-shows which one is active (**Live · database** / **Offline · mock engine**).
+Example:
 
 ```bash
-# Local Postgres (see "Local database" below), then:
-npm run db:start            # also: db:stop, db:status, db:seed
-npm run dev                 # DATABASE_URL comes from .env.local
-```
 
-### Local database
+GET /api/city-data
 
-The repo has no bundled database. On Windows, the simplest no-admin setup is a portable PostgreSQL
-kept **outside the project folder** — this repo may live in OneDrive, and syncing a live Postgres
-data directory can corrupt it. Once, in PowerShell:
-
-```powershell
-$root = "$env:LOCALAPPDATA\citypulse-pg"; New-Item -ItemType Directory -Force $root | Out-Null
-curl.exe -L -o "$root\pg.zip" https://get.enterprisedb.com/postgresql/postgresql-17.5-1-windows-x64-binaries.zip
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-[IO.Compression.ZipFile]::ExtractToDirectory("$root\pg.zip", $root)   # ~30s; Expand-Archive is far slower
-Set-Content "$root\pw.txt" "postgres" -NoNewline
-& "$root\pgsql\bin\initdb.exe" -D "$root\data" -U postgres -E UTF8 --auth=scram-sha-256 --pwfile="$root\pw.txt"
-Remove-Item "$root\pw.txt", "$root\pg.zip"
-```
-
-Then `npm run db:start` and `npm run db:seed` (loads both migrations and both seeds). Put
-`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres` in `.env.local`. The password is
-`postgres` and the server only listens on localhost. Any other Postgres or a Supabase project works
-too — just point `DATABASE_URL` at it and apply the SQL in `database/supabase/`.
-
-`db:seed` applies migrations, so it only works on an empty database; to start over, stop Postgres,
-delete `%LOCALAPPDATA%\citypulse-pg\data`, and re-run `initdb` and `db:seed`. To put just the
-Pittsburgh game back to turn 0, re-run `seed_pittsburgh.sql` (it is safe to repeat).
-
-| Concern | Where it lives when connected |
-| --- | --- |
-| City finances, happiness, approval, unemployment, rent, turn number | Database — recomputed by `resolveTurn` |
-| Neighborhood population / income / rent / happiness / property value / jobs / transit | Database |
-| Policy effects | Database (`policies.effects`); costs are debited by those effects |
-| Map layout, descriptions, bridges, events, weather, calendar, Town Hall personas | Client only (`lib/mockData.ts`) |
-
-- **Enacting a policy** calls `POST /api/city/:id/decisions`; the effects land when the turn
-  resolves (the Play button, or each autoplay tick, calls `POST /api/city/:id/resolve-turn`).
-- **Joined by name, not id.** Frontend ids are slugs, database ids are UUIDs, so neighborhoods and
-  policies are matched by `name`. `database/supabase/seed_pittsburgh.sql` is **generated** from
-  `lib/mockData.ts` by `npx tsx scripts/generate-pittsburgh-seed.ts` — re-run it after editing
-  policies or neighborhoods there. Adapter: `lib/backend.ts`.
-- **Population is rescaled.** The seed is a ~160-household sample; `lib/backend.ts` multiplies
-  population counts so they match the frontend's opening figures. Rates and scores are unscaled.
-- **Reloads** restore in-force policies from `GET /api/city/:id/decisions`. Decision *history*
-  (the reaction cards) is not persisted and starts empty after a reload.
-- **Engine clamping.** Policy effects are clamped to the schema's CHECK ranges
-  (`FIELD_BOUNDS` in `applyPolicyEffects.ts`); previously stacking policies could push a value out
-  of range and make every later turn fail to persist.
-- Set `NEXT_PUBLIC_CITY_NAME` to play a different seeded city (default `Pittsburgh`).
-
-## The turn resolution flow
+GET /api/city-data?state=42&place=61000
 
 ```
+
+The Census response includes source metadata, variable IDs, units, formulas, geography, and dataset period.
+
+### Municipal finance baseline
+
+The project also includes a Pittsburgh 2026 municipal-finance snapshot used as a stable scenario baseline.
+
+Relevant code:
+
+```text
+
+lib/data/pittsburghFinance.ts
+
+lib/data/snapshots/pittsburgh-finance-2026.json
+
+```
+
+### Feed/article ingestion
+
+The automated external-signal path is:
+
+```text
+
+RSS / Atom
+
+    ↓
+
+lib/signals/adapters/rss.ts
+
+    ↓
+
+lib/signals/adapters/article.ts
+
+    ↓
+
+lib/signals/pipeline.ts
+
+    ↓
+
+lib/signals/extract.ts
+
+    ↓
+
+validated ExternalSignal
+
+```
+
+The feed layer:
+
+- discovers article URLs,
+
+- normalizes RSS/Atom entries,
+
+- skips already processed URLs,
+
+- parses article-like HTML,
+
+- preserves provenance,
+
+- isolates failures per article,
+
+- avoids unnecessary Claude calls.
+
+Deduplication uses normalized URLs, canonical URLs, content hashes, and a persistent attempt journal.
+
+Run manually:
+
+```bash
+
+npm run ingest:feed
+
+npm run ingest:feed -- --limit 3
+
+```
+
+Configure real feeds in:
+
+```text
+
+lib/signals/feeds.ts
+
+```
+
+**---**
+
+## 2. Grounded Signal Extraction
+
+Claude is currently used as the Xtract extraction model.
+
+It converts cleaned public-source text into structured external signals such as:
+
+- public-finance problems
+
+- housing issues
+
+- infrastructure problems
+
+- employment changes
+
+- policy proposals
+
+- other city-relevant developments
+
+Evidence validation remains strict:
+
+- evidence quotes must match the normalized source text,
+
+- source metadata is attached by code,
+
+- unsupported evidence is rejected,
+
+- malformed extraction output fails cleanly.
+
+The model does **not** directly alter simulation numbers.
+
+Relevant files:
+
+```text
+
+lib/signals/extract.ts
+
+lib/signals/pipeline.ts
+
+lib/signals/types.ts
+
+```
+
+**---**
+
+## 3. Decision Candidates
+
+Validated signals can be converted into decision candidates.
+
+```text
+
+ExternalSignal
+
+    ↓
+
+lib/signals/decisions.ts
+
+    ↓
+
+DecisionCandidate
+
+```
+
+Current deterministic candidate shape includes:
+
+- source signal/document identity
+
+- category
+
+- title/problem
+
+- optional proposed action
+
+- supported benefits/risks
+
+- affected groups
+
+- urgency
+
+- original source/evidence/provenance
+
+- geography/event date/status
+
+Build from existing extracted signals:
+
+```bash
+
+npm run build:decisions
+
+```
+
+Output:
+
+```text
+
+data/signals/decisions/
+
+```
+
+This deterministic layer remains useful for debugging and development even as the live game moves toward Gemini-generated playable events.
+
+**---**
+
+## 4. Gemini Agent 1 — Event Generator
+
+Gemini Agent 1 is the game-facing interpretation layer.
+
+Its job is to convert validated Xtract signals into up to **10 grounded playable event candidates**.
+
+It may:
+
+- combine related grounded signals,
+
+- turn a real-world issue into a playable city decision,
+
+- identify a problem,
+
+- identify a proposed action,
+
+- identify supported benefits and risks,
+
+- identify affected groups,
+
+- attach source/evidence lineage.
+
+It may **not**:
+
+- invent unsupported facts,
+
+- invent canonical city-state changes,
+
+- assign arbitrary treasury/rent/unemployment/happiness effects,
+
+- bypass source validation.
+
+Relevant files:
+
+```text
+
+lib/agents/gemini.ts
+
+lib/signals/generated-events.ts
+
+lib/signals/generate-event-candidates.ts
+
+```
+
+**---**
+
+## 5. Gemini Agent 2 — Daily Selector
+
+Gemini Agent 2 receives only the validated candidate pool produced by Agent 1.
+
+It selects up to **5** decision IDs for the player to see that day.
+
+Selection can consider:
+
+- category diversity
+
+- scale/resource diversity
+
+- source diversity
+
+- novelty
+
+- current city context
+
+- previously shown events
+
+It does **not** rewrite candidates or invent new events.
+
+Relevant file:
+
+```text
+
+lib/signals/select-events-with-gemini.ts
+
+```
+
+**---**
+
+## 6. Executable Action Binding
+
+Generated prose is not automatically executable.
+
+A generated event must be bound server-side to an existing authored policy before it can affect the simulation.
+
+```text
+
+GeneratedEventCandidate
+
+        ↓
+
+database/simulation/bindExecutableActions.ts
+
+        ↓
+
+authored policy_id
+
+        ↓
+
+existing deterministic PolicyEffects
+
+```
+
+This prevents Gemini from inventing simulation effects.
+
+For the current vertical slice, the tested executable path uses an authored transit policy.
+
+Candidates that cannot be safely bound remain non-executable.
+
+**---**
+
+## 7. Deterministic Simulation Engine
+
+The simulation engine is the sole authority for canonical numerical state.
+
+It controls fields such as:
+
+- treasury
+
+- revenue
+
+- expenses
+
+- debt
+
+- rent/housing
+
+- unemployment
+
+- transit
+
+- happiness
+
+- approval
+
+- neighborhood state
+
+- resident state
+
+Core flow:
+
+```text
+
 snapshot N
-  → load decisions recorded at turn N, and the policies they reference
-  → apply each policy's effects, in memory, in a fixed deterministic order
-  → recompute neighborhood aggregates from residents
-  → recompute city aggregates from residents
-  → persist residents, neighborhoods, city
-  → write snapshot N+1 (the resulting canonical state)
-  → set cities.current_turn = N+1
-```
 
-All of it — every read and write — happens inside one Postgres transaction
-(`database/lib/db.ts`'s `withTransaction`). If anything throws partway through,
-everything rolls back; a turn is never half-resolved.
+→ load decisions for turn N
 
-**Determinism across multiple policies in one turn:** decisions are loaded
-ordered by `(created_at, id)`, and policies are applied in exactly that order.
-Within a single policy, ops apply `set` → `multiply` → `add` per field (see
-the comment on `applyPolicyEffects`), which is the ordering already implied by
-the `PolicyEffects` contract in `database/types/database.ts`.
+→ load authored policies
 
-**Derived fields are recomputed, not policy targets.** `population`,
-`average_income`, city/neighborhood `average_rent`, and `happiness` are always
-rewritten from residents after effects are applied — the same convention
-`database/supabase/seed.sql` uses. A policy's `effects` cannot set these directly: the
-interpreter validates every target field against the exact `CityEffectTarget`
-/ `NeighborhoodEffectTarget` / `ResidentEffectTarget` unions and throws
-`MalformedPolicyEffectsError` on anything else (including a hypothetical
-`{"population": {...}}`).
+→ apply policy effects
 
-## Running it
+→ recalculate neighborhood aggregates
 
-```bash
-npm install
-cp .env.example .env.local   # point DATABASE_URL at a migrated + seeded Postgres
-npm run dev                  # http://localhost:3000
-```
+→ recalculate city aggregates
 
-`DATABASE_URL` must be a **direct Postgres connection**, not the Supabase
-PostgREST URL — the engine needs a real multi-statement transaction. See
-`.env.example`.
+→ persist residents/neighborhoods/city
 
-## Tests
+→ write snapshot N+1
 
-```bash
-npm test                # unit tests only (no database needed)
-npm run test:integration  # requires DATABASE_URL against a migrated+seeded DB
-```
-
-The integration test (`resolveTurn.integration.test.ts`) runs the seeded
-Marrow Bay city through a real turn: it adds one extra decision for
-**Crosstown Bus Rapid Transit** (a transit-category policy, as asked) next to
-the seed's own turn-0 decision, calls `resolveTurn`, then asserts against the
-database that:
-
-- `current_turn` advanced and a `simulation_snapshots` row exists for the new turn
-- treasury/revenue are unchanged (BRT's effects have no `city` block — verifies the *conditional*, not just the changed case)
-- neighborhoods below the transit threshold gained exactly the effect's `+18`
-- residents under the income threshold got `commute_minutes * 0.82`, rounded
-- neighborhood population/aggregates match a fresh calculation over the persisted residents
-- city happiness matches an independent recomputation from all residents
-
-A second assertion resolves another turn with zero queued decisions and
-confirms it still advances and snapshots cleanly.
-
-> ⚠️ This test is **not idempotent against a shared database**: it really
-> calls `resolveTurn()` twice, advancing Marrow Bay's `current_turn` for real
-> (there's no "undo" — turn resolution is a one-way ledger by design). It only
-> cleans up the one `decisions` row it inserts. Point `DATABASE_URL` at a
-> disposable/scratch database for this, not your shared dev database, unless
-> you're fine with its turn counter moving.
-
-I ran the full suite — unit tests, the apiClient tests, and this integration
-test — against a real PostgreSQL 18 instance (migration + seed applied fresh)
-before writing this up: 20 tests, all green. I then started `next dev` and
-exercised every endpoint below by hand with `curl`, including the decision
-endpoint's validation, 404s, and duplicate-rejection paths, and the full
-fetch → decide → resolve → fetch flow end to end.
-
-## Submitting a decision
-
-`POST /api/city/:id/decisions` queues a policy against the city's **current**
-(not-yet-resolved) turn — it only inserts the row. Nothing about canonical
-state changes until `resolve-turn` is called; this route never touches the
-simulation engine.
+→ advance current_turn
 
 ```
-Body:  { "policy_id": string, "player_reasoning"?: string }
-200:   never used by this route
-201:   the created decision row
-400:   missing/invalid policy_id, or invalid JSON
-404:   city or policy not found
-409:   this exact (city, turn, policy) combination was already decided
-       (decisions_city_turn_policy_key)
+
+Relevant files:
+
+```text
+
+database/simulation/applyPolicyEffects.ts
+
+database/simulation/recalculateAggregates.ts
+
+database/simulation/loadTurnState.ts
+
+database/simulation/persistTurnState.ts
+
+database/simulation/resolveTurn.ts
+
 ```
 
-## Example requests
+Turn resolution is transactional. If deterministic resolution fails, canonical state is rolled back.
 
-```bash
-CITY=11111111-1111-4111-8111-111111111111
-POLICY=33333333-3333-4333-8333-000000000004  # Rental Assistance Program
+**---**
 
-# 1. Current state
-curl http://localhost:3000/api/city/$CITY
-# {"id":"...","name":"Marrow Bay","current_turn":0,"population":226,
-#  "treasury":1240000,"revenue":1690000,"expenses":1604000,"debt":4350000,
-#  "happiness":56.38,"approval":53.4,"unemployment":11.49,"average_rent":2269.01}
+## 8. Nemotron Resident Agents
 
-# 2. See what's available
-curl http://localhost:3000/api/policies
+Nemotron runs **after** deterministic simulation commits.
 
-# 3. Queue a decision for the current turn
-curl -X POST http://localhost:3000/api/city/$CITY/decisions \
-  -H "Content-Type: application/json" \
-  -d "{\"policy_id\":\"$POLICY\",\"player_reasoning\":\"Renters are past 60% rent burden.\"}"
-# 201 {"id":"...","city_id":"...","policy_id":"...","turn":0,
-#      "player_reasoning":"Renters are past 60% rent burden.","created_at":"..."}
+It receives:
 
-# 4. Resolve the turn — applies every decision queued for it
-curl -X POST http://localhost:3000/api/city/$CITY/resolve-turn
-# {"city":{...updated...},"previous_turn":0,"turn":1,
-#  "applied_decisions":[{"decision_id":"...","policy_id":"...","policy_name":"Rental Assistance Program"}]}
+- the selected grounded event,
 
-# 5. Confirm it stuck
-curl http://localhost:3000/api/city/$CITY
-# current_turn: 1, average_rent lower than step 1's — the policy's effect persisted
+- the authored policy,
 
-# Unknown city
-curl -i http://localhost:3000/api/city/00000000-0000-0000-0000-000000000000
-# HTTP/1.1 404
-# {"error":"City 00000000-0000-0000-0000-000000000000 not found"}
+- resident profile(s),
 
-# Duplicate decision (submit step 3 again for the same turn)
-# HTTP/1.1 409
-# {"error":"A decision for policy ... already exists for city ... at turn 0"}
-```
+- before-state snapshot,
 
-From the frontend, the same flow reads as:
+- after-state snapshot.
+
+It can generate structured resident reactions such as:
 
 ```ts
-import { getCity, getPolicies, createDecision, resolveTurn } from '@/lib/apiClient';
 
-const city = await getCity(cityId);
-const policies = await getPolicies();
-await createDecision(cityId, policies[0].id, 'Renters are past 60% rent burden.');
-const { city: updated, applied_decisions } = await resolveTurn(cityId);
+interface ResidentReaction {
+
+  residentId: string;
+
+  support: number;
+
+  sentiment: "positive" | "neutral" | "negative";
+
+  reaction: string;
+
+  mainReason: string;
+
+}
+
 ```
 
-Status codes overall: `200`/`201` success, `400` bad request body, `404` city
-or policy not found, `409` conflict (duplicate decision, or the turn's
-snapshot already exists), `500` unexpected or data-integrity errors (missing
-policy referenced by a decision, malformed effects, unsupported effects
-version) — logged server-side with the descriptive error, since these
-indicate corrupted catalogue data rather than a bad request.
+Nemotron is intended for:
 
-## Known limitations
+- resident reasoning
 
-- **`policies.upfront_cost` / `recurring_cost` are not auto-debited.** Only
-  explicit `effects.city` ops move `treasury`/`revenue`/`expenses`/`debt`
-  today. Wiring the cost columns into `resolveTurn` (charge `upfront_cost`
-  once, accrue `recurring_cost` into `expenses` every turn a policy stays
-  active) is a natural next step, but wasn't part of the specified flow and
-  would need a decision on how "active" is tracked across turns.
-- **`ramp_turns` in `PolicyEffects` is not interpreted.** Effects apply at
-  full magnitude in the turn the decision resolves, even though some seeded
-  policies specify a ramp. Phasing effects in over turns wasn't in scope here.
-- **A city-level `happiness`/`approval`/`unemployment` policy effect is
-  transient.** Because city aggregates are unconditionally recomputed from
-  residents *after* effects are applied (by design — see "Derived fields"
-  above), a policy that sets `city.unemployment` directly (the seeded "Small
-  Business Grant Fund" does) gets overwritten by the recompute in the same
-  turn. Only resident- and neighborhood-level effects durably move these
-  aggregates right now. Flagging this rather than quietly special-casing it,
-  since fixing it means either changing the specified step order or adding a
-  reconciliation rule that isn't in the current contract.
-- **No clamping to CHECK-constraint ranges.** If a policy's `add`/`multiply`
-  pushes a field outside its valid range (e.g. `transit_access` past 100), the
-  transaction fails with a Postgres constraint-violation error and rolls back
-  — intentional (the database enforces valid ranges), but worth knowing before
-  authoring new policies.
-- **Per-row UPDATEs, not bulk.** `persistTurnState.ts` issues one `UPDATE` per
-  resident/neighborhood inside the transaction. Fine at seed scale (100
-  residents); switch to a bulk `UPDATE ... FROM unnest(...)` if that grows.
-- **Next.js pinned to 14.2.x.** It's the latest 14.2 patch, but several recent
-  Next.js CVEs are fixed only in 15.x/16.x. This app is API-route-only (no
-  `next/image`, middleware, i18n rewrites, or Server Actions), which avoids
-  most of those vectors, but an upgrade is worth doing before this is
-  internet-facing — skipped here since Next 15 changes the route-handler
-  `params` signature (becomes a `Promise`), a wider change than this task's scope.
-- **No auth/rate limiting on the API routes** — fine for local hackathon use,
-  not for a deployed target.
+- support/sentiment
 
----
+- town-hall dialogue
 
-# Census data API
+- heterogeneous socioeconomic reactions
 
-Next.js + TypeScript Census endpoint for retrieving Pittsburgh population and median household income from the U.S. Census Bureau.
+Nemotron does **not** directly mutate canonical city state.
 
-## Run locally
+Relevant file:
 
-Install Node.js 22 LTS or a newer supported LTS release (including npm), then run from this directory:
+```text
 
-```sh
+lib/agents/nemotron.ts
+
+```
+
+A Nemotron failure does not undo a resolved turn. Reaction generation can be retried independently.
+
+**---**
+
+# Game-Day Persistence
+
+The game-day vertical slice adds persistent state for generated/selected events and resident reactions.
+
+Relevant migration:
+
+```text
+
+database/supabase/migrations/20260919200000_game_day_vertical_slice.sql
+
+```
+
+Relevant gameplay services:
+
+```text
+
+database/gameplay/contracts.ts
+
+database/gameplay/prepareGameDay.ts
+
+database/gameplay/chooseGameDayCandidate.ts
+
+database/gameplay/resolveGameDay.ts
+
+```
+
+The database remains the persistent source of truth for:
+
+- current city state
+
+- neighborhoods
+
+- residents
+
+- authored policies
+
+- decisions
+
+- simulation snapshots
+
+- game-day candidate pools/slates
+
+- player choice lineage
+
+- resident reactions
+
+**---**
+
+# API
+
+Important routes include:
+
+```text
+
+GET  /api/city-data
+
+GET  /api/city/:id
+
+GET  /api/city/:id/neighborhoods
+
+GET  /api/city/:id/residents
+
+GET  /api/policies
+
+POST /api/city/:id/game-day
+
+GET  /api/city/:id/game-day
+
+GET  /api/city/:id/game-day/outcome
+
+POST /api/city/:id/decisions
+
+POST /api/city/:id/resolve-turn
+
+```
+
+The game-day API is designed to be idempotent:
+
+```text
+
+first request for city + turn
+
+→ ingestion/model generation may run
+
+→ result is persisted
+
+same request again
+
+→ persisted result returned
+
+→ providers are not called again
+
+```
+
+**---**
+
+# Local Daily-World Debug Pipeline
+
+A deterministic local daily-world workflow also exists for development:
+
+```bash
+
+npm run build:daily-world
+
+npm run build:daily-world -- --day 2 --limit 3
+
+```
+
+For a new day it performs:
+
+```text
+
+ingest feeds
+
+→ build deterministic candidates
+
+→ select local slate
+
+→ persist local game-day JSON
+
+```
+
+Saved days are reused without rerunning ingestion.
+
+Local outputs live under:
+
+```text
+
+data/signals/
+
+├── documents/
+
+├── extracted/
+
+├── decisions/
+
+└── game-days/
+
+```
+
+The local deterministic slate should not be confused with Gemini-generated gameplay output.
+
+**---**
+
+# Setup
+
+## Requirements
+
+- Node.js 22 LTS or another supported modern LTS
+
+- npm
+
+- PostgreSQL / Supabase-compatible Postgres
+
+- internet access for external APIs
+
+Install:
+
+```bash
+
 npm install
-npm run dev
+
 ```
 
-The first install generates `package-lock.json`; commit it to share dependency versions with the team.
+Copy environment variables:
 
-Open http://localhost:3000/api/city-data or check it in PowerShell:
+```bash
+
+cp .env.example .env.local
+
+```
+
+On PowerShell:
 
 ```powershell
-Invoke-RestMethod http://localhost:3000/api/city-data | ConvertTo-Json -Depth 5
+
+Copy-Item .env.example .env.local
+
 ```
 
-## Endpoint and data source
+Typical environment configuration includes:
 
-`GET /api/city-data` always retrieves Pittsburgh city, Pennsylvania (state FIPS `42`, place FIPS `61000`). No parameters are required.
+```env
 
-On success, HTTP 200 JSON contains:
+DATABASE_URL=
 
-- `city`: the Census geographic name.
-- `population`: a numeric population estimate in people (`B01003_001E`).
-- `medianHouseholdIncome`: a numeric income estimate in 2024 inflation-adjusted U.S. dollars (`B19013_001E`).
-- `source`: the Census Bureau name, dataset, year, observation period, request URL, geographic identifiers, variable codes, and units.
+CENSUS_API_KEY=
 
-Both metrics come from the **2024 American Community Survey (ACS) 5-Year Estimates**, covering **2020–2024**. These are survey estimates for the city proper, not the Pittsburgh metro area or live counts.
+ANTHROPIC_API_KEY=
 
-[Census dataset documentation](https://www.census.gov/data/developers/data-sets/acs-5year.html)
+GEMINI_API_KEY=
 
-[Direct Census API request](https://api.census.gov/data/2024/acs/acs5?get=NAME,B01003_001E,B19013_001E&for=place:61000&in=state:42)
+GEMINI_MODEL=
 
-Each request fetches real Census data without caching and has a 10-second upstream timeout. Network failures, non-success Census responses, malformed data, and missing or suppressed estimates return HTTP 502:
+NEMOTRON_BASE_URL=
 
-```json
-{"error":"Unable to retrieve city data from the Census API. Please try again later."}
+NEMOTRON_API_KEY=
+
+NEMOTRON_MODEL=
+
 ```
 
-No mock values are substituted on failure. Error details are logged on the server.
+Never commit `.env.local` or API keys.
 
-## Project structure
+Run the application:
 
-- `app/api/city-data/route.ts`: HTTP response and error handling.
-- `lib/data/census.ts`: Census request, response validation, numeric conversion, and source metadata.
-- `package.json`, `tsconfig.json`, and `next-env.d.ts`: Next.js and TypeScript setup.
+```bash
 
-The Census request uses public access without an API key; no environment variables are required for this initial version. Internet access to `api.census.gov` is required.
+npm run dev
 
-## Production build
-
-```sh
-npm run build
-npm start
 ```
 
-Run the commands above locally to verify the build and endpoint.
+**---**
+
+# Database
+
+The simulation requires a direct PostgreSQL connection.
+
+```env
+
+DATABASE_URL=postgresql://...
+
+```
+
+Apply the migrations in:
+
+```text
+
+database/supabase/migrations/
+
+```
+
+and seed the game data using the existing database scripts.
+
+Useful commands already provided by the repo may include:
+
+```bash
+
+npm run db:start
+
+npm run db:status
+
+npm run db:seed
+
+npm run db:stop
+
+```
+
+The game-day vertical-slice migration must be applied before using the new persisted Gemini/Nemotron workflow.
+
+**---**
+
+# Tests
+
+Run the unit/full normal suite:
+
+```bash
+
+npm test
+
+```
+
+Current verified result:
+
+```text
+
+10 test files passed
+
+107 tests passed
+
+```
+
+Type-check:
+
+```bash
+
+npx tsc --noEmit
+
+```
+
+Core vertical-slice test:
+
+```bash
+
+npm test -- database/gameplay/__tests__/vertical-slice.test.ts
+
+```
+
+That test currently verifies:
+
+- persisted Gemini selection
+
+- executable policy binding
+
+- deterministic resolution
+
+- expected canonical state
+
+- committed before/after snapshots
+
+- post-commit resident reaction generation
+
+- retry idempotency
+
+- Nemotron failure isolation
+
+- failed grounding behavior
+
+**---**
+
+# Important Design Rules
+
+## The simulation owns numbers
+
+Do:
+
+```text
+
+Gemini: "Expand transit access"
+
+Simulation: authored deterministic effect
+
+Nemotron: "This helps my commute, so I support it"
+
+```
+
+Do not:
+
+```text
+
+Gemini: "Transit +18, happiness +7, treasury -$3M"
+
+```
+
+unless those numbers came from the deterministic authored simulation contract.
+
+## Ground everything
+
+Generated events must retain traceability to:
+
+```text
+
+source article
+
+→ validated Xtract signal
+
+→ evidence quote
+
+→ generated event
+
+→ selected game-day decision
+
+```
+
+## Fail safely
+
+- article failures do not stop the entire feed run
+
+- duplicate articles do not trigger repeat Claude calls
+
+- saved game days do not trigger repeat Gemini calls
+
+- simulation retries do not double-advance turns
+
+- Nemotron failures do not roll back canonical simulation state
+
+- reaction retries do not rerun simulation
+
+**---**
+
+# Project Structure
+
+High-level structure:
+
+```text
+
+app/
+
+└── api/
+
+    ├── city-data/
+
+    └── city/[id]/
+
+        ├── decisions/
+
+        ├── game-day/
+
+        └── resolve-turn/
+
+components/
+
+└── UI / map / resident / policy components
+
+database/
+
+├── gameplay/
+
+├── lib/
+
+├── simulation/
+
+├── supabase/
+
+└── types/
+
+lib/
+
+├── agents/
+
+│   ├── gemini.ts
+
+│   └── nemotron.ts
+
+├── data/
+
+│   ├── census.ts
+
+│   └── pittsburghFinance.ts
+
+└── signals/
+
+    ├── adapters/
+
+    │   ├── article.ts
+
+    │   ├── html.ts
+
+    │   └── rss.ts
+
+    ├── extract.ts
+
+    ├── pipeline.ts
+
+    ├── ingest-feed.ts
+
+    ├── generated-events.ts
+
+    ├── generate-event-candidates.ts
+
+    ├── select-events-with-gemini.ts
+
+    ├── decisions.ts
+
+    └── build-daily-world.ts
+
+scripts/
+
+├── ingest-signal.ts
+
+├── ingest-feed.ts
+
+├── build-decisions.ts
+
+└── build-daily-world.ts
+
+src/lib/
+
+└── apiClient.ts
+
+```
+
+**---**
+
+# Current Roadmap
+
+The highest-priority next steps are:
+
+1\. Configure several reliable Pittsburgh-relevant RSS/Atom feeds.
+
+2\. Run one live Xtract → Gemini 1 → Gemini 2 smoke test.
+
+3\. Complete a live Nemotron reaction smoke test through the Brev/NIM endpoint.
+
+4\. Apply the game-day migration in the shared development database.
+
+5\. Connect the frontend decision cards to the persisted game-day API.
+
+6\. Replace connected-mode scripted resident reactions with persisted Nemotron reactions.
+
+7\. Expand executable policy bindings beyond the initial tested transit action.
+
+8\. Implement true multi-day policy/resource effects.
+
+9\. Polish town hall, city map, source/evidence display, and analytics.
+
+**---**
+
+# Why State of Us?
+
+Most city simulators reduce public policy to static modifiers.
+
+State of Us is built around a different loop:
+
+> **real-world information → grounded policy choices → deterministic consequences → residents who can explain how those consequences affect them differently**
+
+The goal is not to let an LLM run the city.
+
+The goal is to make a deterministic city simulation feel alive, explainable, and connected to the world outside the game.
