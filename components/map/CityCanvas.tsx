@@ -579,6 +579,17 @@ export default function CityCanvas() {
   }, [demolition?.id, setMapViewport]);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
+  // Send every pedestrian and car back to the start of its own route each
+  // time a turn advances. `turn` only changes mid-way through the daily
+  // agenda's sunset/night/morning transition (see DailyAgenda's `resolve`),
+  // while the night overlay is nearly opaque, so the snap-back is hidden.
+  const firstTurnRef = useRef(true);
+  useEffect(() => {
+    if (firstTurnRef.current) { firstTurnRef.current = false; return; }
+    walkingTimeRef.current = 0;
+    for (const walker of walkers) walker.phase = 0;
+    for (const car of cars) { car.progress = 0; car.throttle = 1; car.stuckTime = 0; }
+  }, [turn, walkers, cars]);
   // Street life (people, cars) is ambient. It used to follow `ui.isPlaying`, but the daily-agenda
   // flow retired turn autoplay (nothing sets it any more), which froze everyone in place.
   const [ambientMotion, setAmbientMotion] = useState(true);
