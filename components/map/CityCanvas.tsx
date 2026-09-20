@@ -833,6 +833,7 @@ export default function CityCanvas() {
         const x = Math.round(position.x + foreground.width/2), y = Math.round(position.y-7 + foreground.height/2);
         return x >= 0 && y >= 0 && x < foreground.width && y < foreground.height && foregroundPixels[(y*foreground.width+x)*4+3] < 128;
       }).map(({walker,position}) => ({id:walker.resident.id, x:cw/dpr/2 + camera.x + position.x*camera.zoom, y:ch/dpr/2 + camera.y + (position.y-7)*camera.zoom}));
+      const focusMark = focusMarkRef.current && now < focusMarkRef.current.until ? focusMarkRef.current : null;
       for (const {walker, position} of positions) {
         drawWalker(ctx, walker, walkingTime);
         if (hoveredWalkerRef.current === walker.resident.id) {
@@ -843,6 +844,17 @@ export default function CityCanvas() {
       // Transparent building/tree silhouettes occlude pedestrians behind them.
       ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
       ctx.drawImage(labels, -labels.width / 2, -labels.height / 2);
+      // "Find on map" marker: drawn over the foreground so a resident who walks behind a building can still be found.
+      const focused = focusMark ? positions.find(item => item.walker.resident.id === focusMark.id) : undefined;
+      if (focused) {
+        const { x, y } = focused.position;
+        const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+        ctx.strokeStyle = `rgba(255,214,120,${0.6 + pulse * 0.4})`; ctx.lineWidth = 1.8 / camera.zoom;
+        ctx.beginPath(); ctx.ellipse(x, y + 1, 8 + pulse * 2.5, 3.4 + pulse, 0, 0, Math.PI * 2); ctx.stroke();
+        const bob = Math.sin(time * 5) * 1.5;
+        ctx.fillStyle = '#ffd678'; ctx.strokeStyle = '#3b2a10'; ctx.lineWidth = 0.8 / camera.zoom;
+        ctx.beginPath(); ctx.moveTo(x, y - 20 + bob); ctx.lineTo(x - 3.4, y - 25.5 + bob); ctx.lineTo(x + 3.4, y - 25.5 + bob); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
       const segment = useAnimationStore.getState().queue[0];
       if (segment) {
         if (demolitionClock.current?.id !== segment.id) demolitionClock.current = { id: segment.id, start: performance.now() };
@@ -971,6 +983,47 @@ export default function CityCanvas() {
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, [tour, setMapViewport]);
+
+  // "Find on map" (e.g. from the Featured Resident card): fly to the resident and mark them for a few seconds.
+  const mapFocus = useCityPulseStore(s => s.mapFocus);
+  const walkersRef = useRef(walkers);
+  walkersRef.current = walkers;
+  const focusMarkRef = useRef<{ id: string; until: number } | null>(null);
+  useEffect(() => {
+    if (!mapFocus) return;
+    const container = containerRef.current;
+    const walker = walkersRef.current.find(w => w.resident.id === mapFocus.residentId);
+    if (!container || !walker) return;
+    const start = { ...cameraRef.current };
+    const targetZoom = Math.max(1.3, start.zoom);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const began = performance.now();
+    const until = began + 6000;
+    focusMarkRef.current = { id: walker.resident.id, until };
+    // Fly there, then stay locked on (they keep walking) until the marker fades or the user takes the camera.
+    let following = true;
+    const release = () => { following = false; };
+    container.addEventListener('pointerdown', release, { capture: true, once: true });
+    container.addEventListener('wheel', release, { passive: true, once: true });
+    let frame = 0;
+    const animate = (now: number) => {
+      if (!following) return;
+      const t = reduced ? 1 : Math.min(1, (now - began) / 1300);
+      const ease = t * t * (3 - 2 * t);
+      const zoom = start.zoom + (targetZoom - start.zoom) * ease;
+      // Aim at where they are NOW, not where they were when clicked: residents keep walking during the flight.
+      const p = walkerPosition(walker, walkingTimeRef.current);
+      const target = { x: -p.x * zoom, y: -(p.y - 7) * zoom - container.clientHeight * 0.08 };
+      setMapViewport({ x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease, zoom });
+      if (now < until) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(frame);
+      container.removeEventListener('pointerdown', release, { capture: true });
+      container.removeEventListener('wheel', release);
+    };
+  }, [mapFocus, setMapViewport]);
 
   const handleZoomIn  = () => setZoom(z => Math.min(3.0, z * 1.25));
   const handleZoomOut = () => setZoom(z => Math.max(0.25, z * 0.8));

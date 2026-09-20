@@ -20,7 +20,7 @@ export default function StartScreen() {
       <p className="start-motto">People make a city.<br /><span>You shape its future.</span></p>
       <div className="start-content">
         <p className="start-eyebrow"><span /> PEOPLE. POLICY. POSSIBILITY. <span /></p>
-        <h1 id="start-title" className="start-title">State <em>of</em> <strong>US<span>.</span></strong></h1>
+        <h1 id="start-title" className="start-title">State <em>of</em> <strong>US</strong></h1>
         <p className="start-description">A city of different people.<br className="start-mobile-break" /> A future we build together.</p>
         <button className="start-play" onClick={() => setStarted(true)}>
           <svg width="19" height="22" viewBox="0 0 19 22" fill="none" aria-hidden="true"><path d="M2 1.5v19L17 11 2 1.5Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
