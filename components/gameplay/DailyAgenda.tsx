@@ -20,10 +20,13 @@ import { playRedevelopment } from '../animations/redevelopment';
 const FINAL_DEMO_DAY = 6; // Six-day trial, followed by continued sandbox play.
 
 export const useAgenda = create<{ open: boolean; setOpen: (open: boolean) => void }>(set => ({ open: true, setOpen: open => set({ open }) }));
+class AgendaError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
 async function api<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, { method: body ? 'POST' : 'GET', headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? 'Could not load the daily agenda.');
+  if (!response.ok) throw new AgendaError(data.error ?? 'Could not load the daily agenda.', response.status);
   return data;
 }
 // Share work across Strict Mode remounts and repeated agenda openings.
@@ -149,6 +152,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     finally { setBusy(false); }
   };
   const choose = async (candidate: GeneratedEventCandidate) => {
+    if (busy || advancing.current || !day || day.slate.turn !== turn) return;
     setBusy(true); setError(''); useCityPulseStore.setState({ submittingPolicy: true });
     try {
       const saved = await api<GameDayDecision>(`/api/city/${cityId}/decisions`, { candidate_id: candidate.id, turn });
@@ -157,7 +161,14 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       setExpanded(null);
       useCityPulseStore.setState({ submittingPolicy: false });
       await resolve(candidate);
-    } catch(e) { setError(e instanceof Error ? e.message : 'Choice failed.'); }
+    } catch(e) {
+      if (e instanceof AgendaError && e.status === 409) {
+        setExpanded(null);
+        await useCityPulseStore.getState().connectBackend(true);
+        setReload(value => value + 1);
+        useCityPulseStore.getState().showToast('The city changed. Your agenda has been refreshed; review today’s plans.', 'warning');
+      } else setError(e instanceof Error ? e.message : 'Choice failed.');
+    }
     finally { setBusy(false); useCityPulseStore.setState({ submittingPolicy: false }); }
   };
   const resolve = async (chosen?: GeneratedEventCandidate) => {
@@ -168,7 +179,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     try {
       if (choice || pending || useCityPulseStore.getState().pendingPolicy) {
-        const { lines } = await api<{ lines: Omit<ResidentAnnouncement, 'id'>[] }>(`/api/city/${cityId}/interviews`, { turn });
+        const { lines } = await api<{ lines: Omit<ResidentAnnouncement, 'id'>[] }>(`/api/city/${cityId}/interviews`, { turn }).catch(() => ({ lines: [] }));
         const tourLines = [...lines, { speaker: 'news' as const, kind: 'info' as const, tour: 'overview', text: 'Different households, different priorities. We’ll return after the plan takes effect. For now, back to the city as evening approaches.' }];
         const queued = tourLines.map((line, index) => ({ ...line, id: -(Date.now() + index) }));
         const ids = new Set(queued.map(line => line.id));
@@ -191,7 +202,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       if (useCityPulseStore.getState().city.turn - 1 === turn) throw new Error('The day has not advanced. Check the city update and retry.');
       setTransition('morning');
       await pause(1700);
-      if (choice?.candidate_id) setOutcome(await api<GameDayOutcome>(`/api/city/${cityId}/game-day/outcome?turn=${turn}`));
+      if (chosen || choice?.candidate_id) void api<GameDayOutcome>(`/api/city/${cityId}/game-day/outcome?turn=${turn}`).then(setOutcome).catch(() => {});
       if (turn === FINAL_DEMO_DAY - 1 && cityId && localStorage.getItem(`week-recap-shown:${cityId}`) !== '1') {
         setShowWeekRecap(true);
       }

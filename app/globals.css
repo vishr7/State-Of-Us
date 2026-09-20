@@ -240,13 +240,13 @@ html, body {
 .state-brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; padding-right: 12px; }
 .state-brand-emblem { width: 44px; height: 46px; flex-shrink: 0; display: grid; place-items: center; filter: drop-shadow(0 3px 9px #dfae4920); }
 .state-brand-copy { display: flex; flex-direction: column; gap: 5px; }
-.state-brand-wordmark { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; font-size: 24px; line-height: 25px; font-weight: 800; letter-spacing: -1.1px; color: #f4f0e7; }
-.state-brand-of { font-family: Georgia, 'Times New Roman', serif; font-size: 19px; font-weight: 400; font-style: italic; color: #aebbc8; letter-spacing: -0.6px; margin: 0 1px; }
-.state-brand-us { color: #f1c477; letter-spacing: -0.8px; }
+.state-brand-wordmark { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; font-family: var(--font-press-start), monospace; font-size: 15px; line-height: 25px; font-weight: 400; letter-spacing: -0.7px; color: #fff3da; text-shadow: 0 2px 0 #102438; }
+.state-brand-of { font: inherit; color: inherit; }
+.state-brand-us { color: #ffc45c; }
 .state-brand-period { color: #f8e5c0; }
 .state-brand-tagline { display: flex; align-items: center; gap: 6px; color: #91a1b5; font-size: 9px; font-weight: 500; letter-spacing: 0.65px; line-height: 12px; }
 .state-brand-line { width: 13px; height: 1px; background: #d5a854; opacity: 0.8; }
-@media (max-width: 1200px) { .state-brand { gap: 7px; padding-right: 0; } .state-brand-wordmark { font-size: 21px; } .state-brand-tagline { font-size: 8px; letter-spacing: 0.2px; } }
+@media (max-width: 1200px) { .state-brand { gap: 7px; padding-right: 0; } .state-brand-wordmark { font-size: 12px; gap: 5px; } .state-brand-tagline { font-size: 8px; letter-spacing: 0.2px; } }
 
 /* Illustrated title screen — a single invitation into the city. */
 .start-screen { position: relative; isolation: isolate; width: 100%; height: 100svh; min-height: 420px; overflow: auto; display: grid; place-items: center; background: #102337; color: #fff4dc; }
@@ -531,3 +531,8 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .gameplan-dialog .daily-choice-action { position: sticky; bottom: -32px; padding: 16px 0; background: #102237; border-top: 1px solid #41546a; z-index: 2; }
 .gameplan-dialog .daily-choice-action .daily-end { width: 100%; white-space: normal; }
 @media(max-width:900px) { .gameplan-dialog .daily-choice-action { bottom: -24px; } }
+/* At-a-glance facts about the resident who is speaking: dark chips like the nameplate, on the cream panel. */
+.resident-facts { display:flex; flex-wrap:wrap; gap:5px 6px; margin:0 0 9px; padding:0; list-style:none; }
+.resident-facts li { padding:2px 9px; border-radius:999px; background:#193447; border:1px solid #c2a574; color:#fbebc8; font-size:10.5px; font-weight:650; letter-spacing:.02em; line-height:1.55; white-space:nowrap; }
+.city-gameplan .resident-facts { margin-bottom:6px; }
+.city-gameplan .resident-facts li { font-size:10px; padding:1px 8px; }

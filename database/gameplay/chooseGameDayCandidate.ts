@@ -11,7 +11,7 @@ export async function chooseGameDayCandidate(cityId: string, turn: number, candi
     const city = (await db.query<City>("select * from cities where id=$1 for update", [cityId])).rows[0];
     if (!city) throw new GameplayError("City not found.", 404);
     const day = (await db.query<GameDayRow>("select * from game_days where city_id=$1 and turn=$2 and status='ready'", [cityId, turn])).rows[0];
-    if (!day || !day.selected_ids.includes(candidateId)) throw new GameplayError("Candidate was not selected for this city/turn.", 400);
+    if (!day || !day.selected_ids.includes(candidateId)) throw new GameplayError("Today's choices have changed. Refresh the agenda before choosing a plan.", 409);
     const prior = (await db.query<GameDayDecision>("select * from decisions where game_day_id=$1", [day.id])).rows[0];
     if (prior?.candidate_id === candidateId) return prior;
     if (prior || city.current_turn !== turn) throw new GameplayError("Turn is no longer available for this choice.");
