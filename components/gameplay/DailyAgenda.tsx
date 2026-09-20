@@ -12,6 +12,8 @@ import { policyInspiration } from '@/lib/signals/policyInspiration';
 import { agendaHidden } from '@/lib/agendaVisibility';
 import { SpeakText } from '../ui/InsightView';
 import EndOfWeekModal from './EndOfWeekModal';
+import { useAnimationStore } from '../animations/store';
+import { useTransitAnimation } from '../animations/transit';
 import { playTransit } from '../animations/transit';
 import { playRedevelopment } from '../animations/redevelopment';
 
@@ -82,6 +84,9 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const cityId = useCityPulseStore(s => s.backendLink?.cityId);
   const turn = useCityPulseStore(s => s.city.turn - 1);
   const introHidden = useCityPulseStore(agendaHidden);
+  const demolitionActive = useAnimationStore(s => s.queue.length > 0);
+  const transitActive = useTransitAnimation(s => s.spotlight !== null);
+  const [actionSequence, setActionSequence] = useState(false);
   const outageTour = useCityPulseStore(s => s.announcements[0]?.tour === 'outage');
   const protestTour = useCityPulseStore(s => s.announcements[0]?.tour === 'protest');
   const resolving = useCityPulseStore(s => s.resolvingTurn);
@@ -158,6 +163,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const resolve = async (chosen?: GeneratedEventCandidate) => {
     if (advancing.current) return;
     advancing.current = true;
+    setActionSequence(true);
     setBusy(true); setError(''); setExpanded(null);
     const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     try {
@@ -190,7 +196,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
         setShowWeekRecap(true);
       }
     } catch(e) { setError(e instanceof Error ? e.message : 'Could not load outcome.'); }
-    finally { setBusy(false); setTransition(null); advancing.current = false; }
+    finally { setBusy(false); setTransition(null); setActionSequence(false); advancing.current = false; }
   };
   const outage = day?.slate.decisions.some(c => c.policyId === 'ae000004-0000-4000-8000-000000000001');
   const protest = day?.slate.decisions.some(c => c.policyId === 'ae000002-0000-4000-8000-000000000001');
@@ -223,7 +229,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const selectedShort = selected ? affordabilityFor(selected) : null;
   const selectedShortfall = selectedShort ? insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result) : null;
   const canEnd = !!cityId && !!(day || choice || pending) && !busy && !resolving && !loadFailed && (!day?.slate.decisions.length || !!choice || !!pending);
-  return <section hidden={introHidden} className={`daily-dock ${protest || outage ? 'protest-agenda' : ''}`} aria-label="Daily agenda">
+  return <section hidden={introHidden || actionSequence || demolitionActive || transitActive || !!transition} className={`daily-dock ${protest || outage ? 'protest-agenda' : ''}`} aria-label="Daily agenda">
     {(protestTour || outageTour) && transitionContainer && createPortal(<div className="protest-cinema" aria-live="polite"><div className="protest-flash">Emergency decision<small>{outageTour ? 'DAY 4 · POWER OUTAGE' : 'DAY 2 · CITYWIDE AI PROTEST'}</small></div><span className="protest-location">{outageTour ? 'LIVE · HOMEWOOD / POWER FAILURE' : 'LIVE · OAKLAND / CATHEDRAL OF LEARNING'}</span></div>, transitionContainer)}
     {transition && transitionContainer && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, transitionContainer)}
     {showWeekRecap && cityId && document.body && createPortal(<EndOfWeekModal cityId={cityId} onDismiss={() => { localStorage.setItem(`week-recap-shown:${cityId}`, '1'); setShowWeekRecap(false); }} />, document.body)}
