@@ -25,7 +25,12 @@ export async function resolveGameDay(cityId: string, turn: number, react: typeof
   if (!decision) throw new GameplayError("Choose a game-day candidate first.", 400);
   // The engine owns the transaction and expected-turn replay; no provider runs inside it.
   await resolveTurn(cityId, turn);
+  return generateGameDayReactions(cityId, turn, react);
+}
+
+export async function generateGameDayReactions(cityId: string, turn: number, react: typeof generateResidentReactions = generateResidentReactions): Promise<GameDayOutcome> {
   const outcome = await readGameDayOutcome(cityId, turn);
+  const decision = outcome.decision;
   await getPool().query("insert into reaction_runs(decision_id,status,prompt_version) values($1,'pending',$2) on conflict(decision_id) do update set status='pending',prompt_version=$2 where reaction_runs.prompt_version<>$2 and reaction_runs.status<>'running'", [decision.id, REACTION_PROMPT_VERSION]);
   const claimed = await getPool().query("update reaction_runs set status='running',model=$2,started_at=now(),error=null where decision_id=$1 and status in ('pending','failed','unconfigured') returning decision_id", [decision.id, process.env.NEMOTRON_MODEL ?? null]);
   if (!claimed.rows.length) return readGameDayOutcome(cityId, turn);

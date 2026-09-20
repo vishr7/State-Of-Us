@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { resolveTurn } from '@database/simulation/resolveTurn';
 import { z } from 'zod';
 import { findChosenDecision } from '@database/gameplay/chooseGameDayCandidate';
-import { resolveGameDay } from '@database/gameplay/resolveGameDay';
+import { readGameDayOutcome, generateGameDayReactions } from '@database/gameplay/resolveGameDay';
 import { GameplayError } from '@database/gameplay/contracts';
 import {
   CityNotFoundError,
@@ -30,7 +30,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { expected_turn } = z.object({ expected_turn: z.number().int().nonnegative() }).strict().parse(await request.json());
     const chosen = await findChosenDecision(id, expected_turn);
     if (chosen) {
-      const outcome = await resolveGameDay(id, expected_turn);
+      await resolveTurn(id, expected_turn);
+      const outcome = await readGameDayOutcome(id, expected_turn);
+      after(async () => {
+        try { await generateGameDayReactions(id, expected_turn); }
+        catch { console.error('Background resident reactions failed; turn remains saved.'); }
+      });
       return NextResponse.json({ city: outcome.after.city, previous_turn: expected_turn, turn: expected_turn + 1, applied_decisions: outcome.after.applied_decisions, outcome });
     }
     const result = await resolveTurn(id, expected_turn);

@@ -16,7 +16,6 @@ export function PolicyProgress() {
 
 export default function ResidentNarrator() {
   const announcement = useCityPulseStore(s => s.announcements[0]);
-  const agendaOpen = useAgenda(s => s.open);
   const generating = useCityPulseStore(s => s.insightsPending > 0);
   const dismiss = useCityPulseStore(s => s.dismissAnnouncement);
   const otherPanel = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
@@ -79,7 +78,7 @@ export default function ResidentNarrator() {
   const playAgain = () => {
     setMuted(false); localStorage.setItem('resident-voice-muted', 'false'); setReplay(v => v + 1);
   };
-  if ((!announcement && !agendaOpen) || otherDialogue) return null;
+  if (!announcement || otherDialogue) return null;
   return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''}`} aria-label="Mayor's briefing">
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">

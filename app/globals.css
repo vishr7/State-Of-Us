@@ -409,3 +409,19 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .city-gameplan .daily-status { background:#102237ed; padding:8px 12px; border-radius:8px; }
 @media(max-height:780px) { .city-gameplan { bottom:12px; } .city-gameplan .mayor-scene { min-height:110px; } .city-gameplan .mayor-character { height:235px; } .city-gameplan .mayor-caption { max-height:65px; } .city-gameplan .daily-card-row { grid-template-columns:repeat(5,minmax(135px,1fr)); } .city-gameplan .daily-choice-card { aspect-ratio:1.08; } }
 @media(max-width:1000px) { .city-gameplan { left:12px; right:12px; } .city-gameplan .mayor-scene { margin-left:100px; } .city-gameplan .mayor-character { width:140px; left:-110px; height:215px; } .city-gameplan .daily-expanded { left:0; } .city-gameplan .daily-dock-header small { display:none; } }
+
+/* Plan details use the browser top layer, above every map/Mayor stacking context. */
+.gameplan-dialog { position:fixed; inset:0; margin:auto; width:min(880px,calc(100vw - 40px)); max-height:85dvh; padding:0; border:1px solid #a38c60; border-radius:20px; background:#102237; color:#d6e0ed; box-shadow:0 24px 100px #0009; overflow:auto; }
+.gameplan-dialog::backdrop { background:#06101bc7; backdrop-filter:blur(6px); }
+.gameplan-dialog-content { position:relative; padding:32px; }
+.gameplan-dialog .daily-expanded { position:static; margin:0; padding:12px 12px 0 0; max-height:none; border:0; box-shadow:none; background:transparent; grid-template-columns:1.6fr 1fr; gap:32px; font-size:14px; line-height:1.6; }
+.gameplan-dialog .daily-expanded h3 { font-size:25px; line-height:1.2; margin:10px 0 18px; }
+.gameplan-dialog .daily-choice-action { padding-top:32px; }
+.gameplan-dialog .daily-choice-action textarea { height:120px; }
+.gameplan-dialog .daily-details-close { right:14px; top:10px; padding:4px 10px; }
+.city-gameplan { left:50%; right:auto; transform:translateX(-50%); width:calc(100% - 48px); max-width:1080px; bottom:70px; }
+.city-gameplan .daily-card-row { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.city-gameplan .daily-dock-header { background:#102237; }
+.city-gameplan .daily-choice-card { background:linear-gradient(145deg,#20344b,#102237); }
+.city-gameplan .mayor-dialogue { max-width:760px; }
+@media(max-width:900px) { .city-gameplan { width:calc(100% - 24px); } .city-gameplan .daily-card-row { grid-template-columns:repeat(5,minmax(145px,1fr)); } .gameplan-dialog .daily-expanded { grid-template-columns:1fr; } .gameplan-dialog-content { padding:24px; } }

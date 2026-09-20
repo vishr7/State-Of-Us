@@ -12,7 +12,7 @@ import { externalSignalSchema } from "../../lib/signals/decisions";
 import { readJson } from "../../lib/signals/processed";
 import { generateEventCandidates, GENERATOR_PROMPT_VERSION } from "../../lib/signals/generate-event-candidates";
 import { selectEventsWithGemini, SELECTOR_PROMPT_VERSION } from "../../lib/signals/select-events-with-gemini";
-import { generatedEventSchema, generatedSlateSchema } from "../../lib/signals/generated-events";
+import { generatedEventSchema, generatedSlateSchema, type GeneratedEventCandidate } from "../../lib/signals/generated-events";
 import type { GeminiClient } from "../../lib/agents/gemini";
 import { GameplayError, type GameDayResponse, type GameDayRow } from "./contracts";
 
@@ -64,15 +64,28 @@ export async function prepareGameDay(cityId: string, turn: number, dependencies:
     const rows = (await getPool().query<ExternalSignalRow>("select external_signals.*, event_date::text as event_date from external_signals where lower(geography_name)=lower($1) order by external_signals.event_date desc nulls last, id", [claim.city.name])).rows;
     const signals = rows.map((row) => externalSignalSchema.parse({ id: row.id, documentId: row.document_id, category: row.category, headline: row.headline, summary: row.summary, geography: { name: row.geography_name, scope: row.geography_scope }, eventDate: row.event_date, status: row.status, evidence: row.evidence, source: row.source, provenance: row.provenance }));
     const { created_at: _created, updated_at: _updated, ...cityContext } = claim.city;
-    const pool = await generateEventCandidates({ cityId, turn, signals, cityContext: cityContext as SimulationState["city"], targetCount: 10 }, dependencies.gemini);
+    let pool: GeneratedEventCandidate[] = [];
+    let generationWarning: string | null = null;
+    try {
+      pool = await generateEventCandidates({ cityId, turn, signals, cityContext: cityContext as SimulationState["city"], targetCount: 10 }, dependencies.gemini);
+    } catch (error) {
+      generationWarning = error instanceof Error ? error.message.slice(0, 400) : 'Generation failed';
+      console.warn('Daily generation unavailable; using authored choices:', generationWarning);
+    }
     const catalog = (await getPool().query<Policy>("select * from policies order by id")).rows;
     const bound = bindExecutableActions(pool, catalog);
     const hashes = Object.fromEntries(catalog.filter((policy) => bound.some((candidate) => candidate.policyId === policy.id)).map((policy) => [policy.id, policyFingerprint(policy)]));
-    const metadata = { generatorModel: process.env.GEMINI_MODEL ?? null, generatorPromptVersion: GENERATOR_PROMPT_VERSION, selectorModel: process.env.GEMINI_MODEL ?? null, selectorPromptVersion: SELECTOR_PROMPT_VERSION, feedWarning };
+    const metadata = { generatorModel: process.env.GEMINI_MODEL ?? null, generatorPromptVersion: GENERATOR_PROMPT_VERSION, selectorModel: process.env.GEMINI_MODEL ?? null, selectorPromptVersion: SELECTOR_PROMPT_VERSION, feedWarning, generationWarning };
     // Retain the validated pool even if selection fails later.
     await getPool().query("update game_days set candidate_pool=$2::jsonb,policy_hashes=$3::jsonb,generation_metadata=$4::jsonb where id=$1", [claim.id, JSON.stringify(bound), JSON.stringify(hashes), JSON.stringify(metadata)]);
     const previous = (await getPool().query<{ selected_ids: string[] }>("select selected_ids from game_days where city_id=$1 and status='ready' and turn<$2", [cityId, turn])).rows.flatMap((row) => row.selected_ids);
-    const newsSelected = await selectEventsWithGemini({ candidates: bound.filter((candidate) => candidate.executable), cityContext, previouslyShownIds: previous }, dependencies.gemini);
+    let newsSelected: string[];
+    try {
+      newsSelected = await selectEventsWithGemini({ candidates: bound.filter((candidate) => candidate.executable), cityContext, previouslyShownIds: previous }, dependencies.gemini);
+    } catch {
+      // Only already-validated, executable candidates can survive selector failure.
+      newsSelected = bound.filter(c => c.executable && !previous.includes(c.id)).slice(0, 5).map(c => c.id);
+    }
     const choices = fillDailyChoices(bound.filter(c => newsSelected.includes(c.id)), catalog, turn);
     const selected = choices.map(c => c.id);
     const completePool = [...bound, ...choices.filter(c => !bound.some(b => b.id === c.id))];

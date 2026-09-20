@@ -177,9 +177,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         snapshots: [buildSnapshot(world.city, world.neighborhoods, [])],
         lastSnapshot: null,
       }));
-      get().announce(world.pendingPolicy
-        ? `Welcome back. ${world.pendingPolicy.name} is still waiting to take effect. Other decisions will unlock once that turn resolves.`
-        : "Welcome to the Mayor's office. Let's build a better Pittsburgh, one decision at a time. I'll brief you on new policies and developments across the city.");
+      if (world.pendingPolicy) get().announce(`${world.pendingPolicy.name} is selected. End the day to apply it and see what changes.`);
       void get().requestInsights({ mode: 'briefing', policyIds: [] }, true);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

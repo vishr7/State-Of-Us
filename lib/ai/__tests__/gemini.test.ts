@@ -37,5 +37,10 @@ describe('Gemini mayor speech', () => {
     const result = await generateMayorSpeech({ ...facts, turn: 103 }, commentary);
     expect(result.source).toBe('gemini');
     expect(result.text).toBe('Good evening, neighbors.');
+    const request = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string);
+    const context = JSON.parse(request.contents[0].parts[0].text);
+    expect(context.current).toEqual(facts.current);
+    expect(context.policies).toEqual(facts.policies);
+    expect(context.previous).toBeNull();
   });
 });

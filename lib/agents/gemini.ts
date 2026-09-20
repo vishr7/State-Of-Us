@@ -19,7 +19,7 @@ export const geminiJson: GeminiClient = async ({ system, input, schema, model = 
   let response: Response;
   try {
     response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
-      method: 'POST', signal: AbortSignal.timeout(90_000),
+      method: 'POST', signal: AbortSignal.timeout(30_000),
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({ model: model.trim(), system_instruction: `${system}\nReturn only JSON matching this schema: ${JSON.stringify(z.toJSONSchema(schema))}`, input: JSON.stringify(input), store: false,
         response_format: { type: 'text', mime_type: 'application/json', schema: geminiSchema(z.toJSONSchema(schema)) } }),

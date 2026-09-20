@@ -119,12 +119,14 @@ describe("real database vertical slice with mocked providers", () => {
     expect((await holder.db.query("select * from simulation_snapshots where city_id=$1", [cityId])).rows).toHaveLength(2);
   }, 30000);
 
-  it("persists an explicit failed day on invalid evidence without repeating providers", async () => {
+  it("discards invalid evidence and persists five playable fallback choices without repeating providers", async () => {
     const dependencies = providers();
     dependencies.gemini = async ({ schema }) => schema.parse({ candidates: [{ sourceSignalIds: ["bad"] }] });
-    await expect(prepareGameDay(cityId, 0, dependencies)).rejects.toThrow("preparation failed");
-    expect((await holder.db.query<{ status: string }>("select status from game_days")).rows[0].status).toBe("failed");
-    await expect(prepareGameDay(cityId, 0, dependencies)).rejects.toThrow("failed");
+    const day = await prepareGameDay(cityId, 0, dependencies);
+    expect(day.status).toBe('ready');
+    expect(day.slate.decisions).toHaveLength(5);
+    expect(day.slate.decisions.every(c => c.executable && c.generation.model === 'authored-catalog')).toBe(true);
+    expect(await prepareGameDay(cityId, 0, dependencies)).toEqual(day);
     expect(dependencies.ingest).toHaveBeenCalledTimes(1);
   }, 30000);
 });
