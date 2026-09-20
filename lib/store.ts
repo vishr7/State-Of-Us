@@ -34,6 +34,7 @@ import {
 } from './backend';
 import type { BackendLink } from './backend';
 import { createDecision, resolveTurn, getNeighborhoods } from '@/src/lib/apiClient';
+import { recoverTurn } from './recoverTurn';
 
 // ------ Default UI State ------------------------------------
 
@@ -533,9 +534,10 @@ async function advanceViaBackend(get: Get, set: Set) {
   const link = get().backendLink;
   if (!link || get().resolvingTurn || get().submittingPolicy) return; // one in-flight resolve at a time (autoplay ticks can overlap)
 
+  const expectedTurn = get().city.turn - 1;
   set(() => ({ resolvingTurn: true }));
   try {
-    const result = await resolveTurn(link.cityId, get().city.turn - 1);
+    const result = await resolveTurn(link.cityId, expectedTurn);
     const dbNeighborhoods = await getNeighborhoods(link.cityId);
 
     const { city: prevCity, neighborhoods: prevNeighborhoods, agentGroups, activeEvents, snapshots, decisionHistory } = get();
@@ -596,6 +598,15 @@ async function advanceViaBackend(get: Get, set: Set) {
     }
   } catch (err) {
     get().stopPlaying();
+    try {
+      const recovered = await recoverTurn(link.cityId, expectedTurn, async () => {
+        await get().connectBackend(true);
+        if (get().backend.status !== 'connected' || get().city.turn - 1 === expectedTurn) {
+          throw new Error('Could not refresh the saved city.');
+        }
+      });
+      if (recovered) return;
+    } catch { /* Keep the original error visible if the database is unavailable. */ }
     get().showToast(`✗ Turn failed: ${err instanceof Error ? err.message : 'request failed'}`, 'error');
   } finally {
     set(() => ({ resolvingTurn: false }));
