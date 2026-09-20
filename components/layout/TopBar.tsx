@@ -2,6 +2,7 @@
 
 import { useCityPulseStore } from '@/lib/store';
 import { useAgenda } from '../gameplay/DailyAgenda';
+import ResetDemoButton from './ResetDemoButton';
 
 // ============================================================
 // TopBar — full-width fixed 64px header bar
@@ -199,6 +200,7 @@ export default function TopBar() {
 
       {/* === PLAY / PAUSE CONTROLS === */}
       <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+        <ResetDemoButton />
         <button className="px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => { stopPlaying(); useAgenda.getState().setOpen(true); }}>Day {city.turn} · Agenda</button>
         {/* Settings / Analytics */}
         <button

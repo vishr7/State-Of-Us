@@ -1,0 +1,56 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({ query: vi.fn(), residents: vi.fn(), neighborhoods: vi.fn(), city: vi.fn() }));
+vi.mock('../../lib/db', () => ({ withTransaction: (work: (client: unknown) => Promise<unknown>) => work({ query: mocks.query }) }));
+vi.mock('../persistTurnState', () => ({ persistResidents: mocks.residents, persistNeighborhoods: mocks.neighborhoods, persistCity: mocks.city }));
+import { resetDemo } from '../resetDemo';
+
+const baseline = {
+  version: 1, turn: 0, city: { id: 'demo-city', treasury: 500000, current_turn: 0 },
+  residents: [{ id: 'resident', happiness: 70 }], neighborhoods: [{ id: 'district', jobs: 200 }],
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.query.mockResolvedValue({ rows: [] });
+});
+
+describe('demo reset', () => {
+  it('restores the starting finances and people and deletes only this city’s progress', async () => {
+    mocks.query.mockResolvedValueOnce({ rows: [{ id: 'demo-city', current_turn: 8, treasury: 12 }] });
+    mocks.query.mockResolvedValueOnce({ rows: [{ state: baseline }] });
+    await expect(resetDemo('demo-city', 8)).resolves.toEqual({ turn: 0 });
+    expect(mocks.query.mock.calls[0][0]).toContain('for update');
+    expect(mocks.city).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ treasury: 500000, current_turn: 0 }));
+    expect(mocks.residents).toHaveBeenCalledWith(expect.anything(), baseline.residents);
+    expect(mocks.neighborhoods).toHaveBeenCalledWith(expect.anything(), baseline.neighborhoods);
+    const deletes = mocks.query.mock.calls.filter(([sql]) => sql.startsWith('delete'));
+    expect(deletes).toHaveLength(4);
+    for (const [sql, params] of deletes) {
+      expect(sql).toContain('where city_id=$1');
+      expect(params).toEqual(['demo-city']);
+    }
+    expect(deletes.at(-1)?.[0]).toContain('turn>0');
+  });
+
+  it('leaves all progress intact if the original snapshot is missing', async () => {
+    mocks.query.mockResolvedValueOnce({ rows: [{ id: 'demo-city', current_turn: 8 }] });
+    await expect(resetDemo('demo-city', 8)).rejects.toThrow('starting snapshot');
+    expect(mocks.query).toHaveBeenCalledTimes(2);
+    expect(mocks.city).not.toHaveBeenCalled();
+  });
+
+  it('rejects a reset if another request advanced the day', async () => {
+    mocks.query.mockResolvedValueOnce({ rows: [{ id: 'demo-city', current_turn: 9 }] });
+    await expect(resetDemo('demo-city', 8)).rejects.toThrow('day changed');
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+    expect(mocks.city).not.toHaveBeenCalled();
+  });
+
+  it('rejects a snapshot belonging to a different city', async () => {
+    mocks.query.mockResolvedValueOnce({ rows: [{ id: 'demo-city', current_turn: 8 }] });
+    mocks.query.mockResolvedValueOnce({ rows: [{ state: { ...baseline, city: { id: 'other-city' } } }] });
+    await expect(resetDemo('demo-city', 8)).rejects.toThrow('starting snapshot');
+    expect(mocks.query).toHaveBeenCalledTimes(2);
+  });
+});

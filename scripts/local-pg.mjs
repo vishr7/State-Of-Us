@@ -4,7 +4,8 @@
  *   npm run db:start     # start it (no-op if already running)
  *   npm run db:stop      # stop it cleanly
  *   npm run db:status    # is it up, and what's in it?
- *   npm run db:seed      # (re)load the migrations + both seeds into an EMPTY schema
+ *   npm run db:migrate   # apply any migrations added since the database was created (run after pulling)
+ *   npm run db:seed      # load the migrations + both seeds into an EMPTY database
  *
  * Uses the portable PostgreSQL binaries and data directory in
  * %LOCALAPPDATA%\citypulse-pg (override with CITYPULSE_PG_DIR). It lives
@@ -38,6 +39,11 @@ const psql = (args) => spawnSync(bin('psql'), [...conn, '-v', 'ON_ERROR_STOP=1',
 
 const command = process.argv[2];
 
+const migrationFiles = () => readdirSync(join(sqlDir, 'migrations')).filter((f) => f.endsWith('.sql')).sort();
+// Which migrations this local database has had applied. Local-dev bookkeeping only.
+const TRACKING = 'create table if not exists public.local_migrations (name text primary key, applied_at timestamptz not null default now())';
+const record = (name) => psql(['-q', '-c', `insert into public.local_migrations(name) values ('${name}') on conflict do nothing`]);
+
 if (command === 'start') {
   if (running()) {
     console.log('Postgres is already running on localhost:5432');
@@ -66,6 +72,35 @@ if (command === 'start') {
   }
   const r = psql(['-t', '-A', '-c', "select string_agg(name || ' (turn ' || current_turn || ')', ', ' order by name) from cities"]);
   console.log('Postgres is running. Cities:', r.status === 0 ? r.stdout.trim() || '(none — run npm run db:seed)' : `query failed: ${r.stderr.trim()}`);
+} else if (command === 'migrate') {
+  if (!running()) {
+    console.error('Postgres is not running — start it with: npm run db:start');
+    process.exit(1);
+  }
+  let r = psql(['-q', '-c', TRACKING]);
+  const applied = new Set(
+    r.status === 0
+      ? psql(['-t', '-A', '-c', 'select name from public.local_migrations']).stdout.split(String.fromCharCode(10)).map((l) => l.trim()).filter(Boolean)
+      : [],
+  );
+  const pending = migrationFiles().filter((f) => !applied.has(f));
+  if (r.status === 0 && applied.size === 0 && pending.length > 0) {
+    console.error(`No migration history recorded for this database. If it was set up before db:migrate existed, record what it already has, e.g.:
+  psql ... -c "insert into public.local_migrations(name) values ('<file>.sql')"
+then re-run. (A fresh database should use npm run db:seed.)`);
+    process.exit(1);
+  }
+  for (const f of pending) {
+    if (r.status !== 0) break;
+    console.log(`applying ${f}`);
+    r = psql(['-q', '-f', join(sqlDir, 'migrations', f)]);
+    if (r.status === 0) r = record(f);
+  }
+  if (r.status !== 0) {
+    console.error(r.stderr.trim());
+    process.exit(1);
+  }
+  console.log(pending.length ? 'Done.' : 'Already up to date.');
 } else if (command === 'seed') {
   if (!running()) {
     console.error('Postgres is not running — start it with: npm run db:start');
@@ -74,7 +109,7 @@ if (command === 'start') {
   // The Supabase migrations grant to roles plain Postgres doesn't have.
   const roles = "do $$ begin if not exists (select 1 from pg_roles where rolname='anon') then create role anon; end if; if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if; if not exists (select 1 from pg_roles where rolname='service_role') then create role service_role; end if; end $$;";
   const files = [
-    ...readdirSync(join(sqlDir, 'migrations')).filter((f) => f.endsWith('.sql')).sort().map((f) => join('migrations', f)),
+    ...migrationFiles().map((f) => join('migrations', f)),
     'seed.sql',
     'seed_pittsburgh.sql',
   ];
@@ -83,6 +118,10 @@ if (command === 'start') {
     if (r.status !== 0) break;
     console.log(`applying ${f}`);
     r = psql(['-q', '-f', join(sqlDir, f)]);
+    if (r.status === 0 && f.startsWith('migrations')) {
+      r = psql(['-q', '-c', TRACKING]);
+      if (r.status === 0) r = record(f.slice('migrations'.length + 1));
+    }
   }
   if (r.status !== 0) {
     console.error(r.stderr.trim());
@@ -91,6 +130,6 @@ if (command === 'start') {
   }
   console.log('Done.');
 } else {
-  console.error('Usage: node scripts/local-pg.mjs <start|stop|status|seed>');
+  console.error('Usage: node scripts/local-pg.mjs <start|stop|status|migrate|seed>');
   process.exit(1);
 }
