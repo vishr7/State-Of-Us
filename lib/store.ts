@@ -1,3 +1,4 @@
+import { dailyWeather } from './weather';
 import { MAYOR_INTRODUCTION } from './dialogue/introduction';
 import { briefingSpeaker } from './dialogue/speakers';
 // ============================================================
@@ -24,7 +25,7 @@ import {
   initialAgentGroups, initialPolicies, initialBridges,
   initialEvents, initialSnapshots,
 } from './mockData';
-import { simulateTurn, enactPolicy, rollEvent, advanceDate, rollWeather } from './mockEngine';
+import { simulateTurn, enactPolicy, rollEvent, advanceDate } from './mockEngine';
 import { getGroupReactions } from './mockAgents';
 import {
   connectToBackend, overlayCity, overlayNeighborhoods, updateAgentGroups, toDisplayTurn,
@@ -186,6 +187,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         // Charts restart from the database's current state rather than mixing in mock history.
         snapshots: [buildSnapshot(world.city, world.neighborhoods, [])],
         lastSnapshot: null,
+        weather: dailyWeather(world.city.turn, world.link.cityId),
         ...(world.city.turn === 1 ? { announcements: MAYOR_INTRODUCTION.map(({ text, tour }) => ({ tour, id: ++announcementId, speaker: 'mayor' as const, text, kind: 'info' as const, turn: 1, source: 'scripted' as const })) } : {}),
       }));
       if (world.pendingPolicy) get().announce(`${world.pendingPolicy.name} is selected. End the day to apply it and see what changes.`);
@@ -280,7 +282,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       activeEvents: newActiveEvents,
       eventLog: newEvent ? [...state.eventLog, newEvent] : state.eventLog,
       snapshots: newSnapshots,
-      weather: result.weather,
+      weather: dailyWeather(result.updatedCity.turn),
       lastSnapshot: snapshots[snapshots.length - 1] ?? null,
     }));
 
@@ -534,7 +536,7 @@ async function advanceViaBackend(get: Get, set: Set) {
       eventLog: newEvent ? [...state.eventLog, newEvent] : state.eventLog,
       decisionHistory: history,
       snapshots: [...snapshots, buildSnapshot(nextCity, neighborhoods, nextEvents)].slice(-30),
-      weather: rollWeather(nextCity.season),
+      weather: dailyWeather(nextCity.turn, link.cityId),
       lastSnapshot: snapshots[snapshots.length - 1] ?? null,
     }));
 

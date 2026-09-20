@@ -1,0 +1,45 @@
+import { interviewImpact, selectInterviewees } from '@/lib/dialogue/interviewSelection';
+import { z } from 'zod';
+import { withTransaction } from '@database/lib/db';
+import { loadTurnState } from '@database/simulation/loadTurnState';
+import { applyPolicyEffects } from '@database/simulation/applyPolicyEffects';
+
+export const runtime = 'nodejs';
+/** Read-only previews of the saved choice: the turn has not yet resolved. */
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    z.uuid().parse(id);
+    const { turn } = z.object({ turn: z.number().int().nonnegative() }).parse(await request.json());
+    const lines = await withTransaction(async db => {
+      const state = await loadTurnState(db, id);
+      if (state.city.current_turn !== turn) throw new Error('The day changed. Reload before continuing.');
+      const decision = state.decisions[0];
+      const policy = decision && state.policyByDecisionId.get(decision.id);
+      if (!policy) throw new Error('Choose a plan before starting interviews.');
+      const preview = applyPolicyEffects({ city: state.city, neighborhoods: state.neighborhoods, residents: state.residents, effects: policy.effects });
+      const candidates = state.residents.flatMap(resident => {
+        const district = state.neighborhoods.find(n => n.id === resident.neighborhood_id);
+        const next = preview.residents.find(r => r.id === resident.id);
+        const local = preview.neighborhoods.find(n => n.id === resident.neighborhood_id);
+        if (!district || !next || !local) return [];
+        return [{ resident, district, next, local, ...interviewImpact(resident, next, district, local) }];
+      });
+      return selectInterviewees(candidates).flatMap(({ resident, district, next, local, mood, reason }) => {
+        const impacts: string[] = [];
+        if (next.housing_cost !== resident.housing_cost) impacts.push(`my monthly housing costs would ${next.housing_cost < resident.housing_cost ? 'fall' : 'rise'} by $${Math.abs(next.housing_cost - resident.housing_cost).toFixed(0)}`);
+        if (next.commute_minutes !== resident.commute_minutes) impacts.push(`my commute would ${next.commute_minutes < resident.commute_minutes ? 'shorten' : 'lengthen'} by ${Math.abs(next.commute_minutes - resident.commute_minutes).toFixed(1)} minutes`);
+        if (next.income !== resident.income) impacts.push(`my annual income would ${next.income > resident.income ? 'rise' : 'fall'} by $${Math.abs(next.income - resident.income).toFixed(0)}`);
+        const neighborhood = local.transit_access !== district.transit_access ? 'The change to local transit access matters to this neighborhood.' : local.housing_supply !== district.housing_supply ? 'The change in local housing supply is something I’ll be watching.' : 'I’ll be watching whether our neighborhood benefits as the plan takes effect.';
+        const common = { tour: `district:${district.name}`, turn: turn + 1, kind: 'info' as const };
+        return [
+          { ...common, speaker: 'news', text: `We’re in ${district.name}. The city has chosen ${policy.name}. Before it takes effect, we’re asking a ${resident.occupation} who is a ${resident.housing_status}: what would this mean for your household?` },
+          { ...common, speaker: 'resident', label: `${resident.occupation} · ${district.name} · ${mood}`, text: impacts.length ? `${reason} Under this plan, ${impacts.slice(0, 2).join(', and ')}.` : `${reason} ${neighborhood}` },
+        ];
+      });
+    });
+    return Response.json({ lines });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : 'Interviews unavailable.' }, { status: 409 });
+  }
+}

@@ -82,12 +82,13 @@ export default function ResidentNarrator() {
     setMuted(false); localStorage.setItem('resident-voice-muted', 'false'); setReplay(v => v + 1);
   };
   if (!announcement || otherDialogue) return null;
-  return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
+  return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet || (speaker === 'resident' && announcement.tour?.startsWith('district:')) ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {speaker === 'resident' ? <div className="resident-interview-avatar">👤<small>Resident interview</small></div> : <img src={`/avatars/${portrait}.png`} alt="" />}
     </div>
+    {speaker === 'resident' && announcement.tour?.startsWith('district:') && <div className="dialogue-partner" aria-hidden="true"><img src="/avatars/news-anchor.png" alt="" /></div>}
     {announcement.duet && <div className="dialogue-partner" aria-hidden="true"><img src={`/avatars/${speaker === 'mayor' ? 'assistant' : 'mayor-professional'}.png`} alt="" /></div>}
     <div className="mayor-dialogue">
       <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>{speakerName}</h3><span>CITY OF PITTSBURGH · DAY {day}</span></div></div>

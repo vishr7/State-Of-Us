@@ -15,6 +15,7 @@ import TownHallModal from '../modals/TownHallModal';
 import { useCityPulseStore } from '@/lib/store';
 
 import CityCanvas from '../map/CityCanvas';
+import WeatherOverlay from '../map/WeatherOverlay';
 import ResidentNarrator from '../ui/ResidentNarrator';
 
 /**
@@ -44,6 +45,7 @@ export default function GameDashboard() {
         {/* Center — city canvas fills remaining space */}
         <div ref={setMapContainer} className="flex-1 min-w-0 overflow-hidden relative isolate">
           <CityCanvas />
+          <WeatherOverlay />
           <div className="absolute top-3 left-4 z-20 w-[184px]" aria-label="City minimap">
             <MiniMap />
           </div>

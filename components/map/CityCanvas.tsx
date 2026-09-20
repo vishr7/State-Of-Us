@@ -953,7 +953,7 @@ export default function CityCanvas() {
     if (!tour) return;
     const container = containerRef.current;
     if (!container) return;
-    const marker = tour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === tour.slice(9).toLowerCase()) : undefined;
+    const marker = tour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === tour.slice(9).toLowerCase() || n.id === tour.slice(9).toLowerCase().replaceAll(' ', '_')) : undefined;
     const area = marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === tour);
     const fit = Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * .96;
     const z = area ? Math.min(1.05, fit * 2) : fit;

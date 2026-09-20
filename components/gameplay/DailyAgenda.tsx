@@ -1,9 +1,8 @@
 'use client';
-import { outcomeNews } from '@/lib/dialogue/outcomeNews';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { create } from 'zustand';
 import { createPortal } from 'react-dom';
-import { useCityPulseStore } from '@/lib/store';
+import { useCityPulseStore, type ResidentAnnouncement } from '@/lib/store';
 import type { GameDayResponse, GameDayOutcome, GameDayDecision } from '@/database/gameplay/contracts';
 import type { GeneratedEventCandidate } from '@/lib/signals/generated-events';
 import type { Policy } from '@/database/types/database';
@@ -112,16 +111,6 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     }, 4000);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [cityId, outcome]);
-  const reported = useRef(new Set<string>());
-  useEffect(() => {
-    if (!outcome || outcome.reactionStatus !== 'completed' || outcome.turn + 1 !== turn) return;
-    const key = `news:${outcome.cityId}:${outcome.decision.id}`;
-    if (reported.current.has(key) || sessionStorage.getItem(key)) return;
-    const lines = outcomeNews(outcome);
-    if (!lines.length) return;
-    reported.current.add(key); sessionStorage.setItem(key, '1');
-    useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...lines.map((line, index) => ({ ...line, id: -(Date.now() + index) }))] }));
-  }, [outcome, turn]);
   const prepare = async () => {
     const retry = /failed/i.test(error);
     setBusy(true); setError('');
@@ -144,9 +133,22 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const resolve = async () => {
     if (advancing.current) return;
     advancing.current = true;
-    setBusy(true); setError(''); setExpanded(null); setTransition('sunset');
+    setBusy(true); setError(''); setExpanded(null);
     const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     try {
+      if (choice || pending || useCityPulseStore.getState().pendingPolicy) {
+        const { lines } = await api<{ lines: Omit<ResidentAnnouncement, 'id'>[] }>(`/api/city/${cityId}/interviews`, { turn });
+        const tourLines = [...lines, { speaker: 'news' as const, kind: 'info' as const, tour: 'overview', text: 'Different households, different priorities. We’ll return after the plan takes effect. For now, back to the city as evening approaches.' }];
+        const queued = tourLines.map((line, index) => ({ ...line, id: -(Date.now() + index) }));
+        const ids = new Set(queued.map(line => line.id));
+        await new Promise<void>(done => {
+          const unsubscribe = useCityPulseStore.subscribe(state => {
+            if (!state.announcements.some(line => ids.has(line.id))) { unsubscribe(); done(); }
+          });
+          useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...queued] }));
+        });
+      }
+      setTransition('sunset');
       await pause(1400);
       setTransition('night');
       await Promise.all([useCityPulseStore.getState().advanceTurn(), pause(1400)]);
