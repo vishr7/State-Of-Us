@@ -524,3 +524,10 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .trial-grade p, .trial-grade details { font-size: 13px; line-height: 1.6; color: #c2d2e3; }
 .trial-grade summary { cursor: pointer; color: #f4d38a; }
 @media (max-width: 540px) { .trial-grade { flex-direction: column; align-items: flex-start; } }
+
+/* Keep long policy/source text from pushing the decision control off-screen. */
+.gameplan-dialog .daily-expanded { grid-template-columns: minmax(0,1fr); overflow: visible; }
+.gameplan-dialog .daily-expanded > div { min-width: 0; overflow-wrap: anywhere; }
+.gameplan-dialog .daily-choice-action { position: sticky; bottom: -32px; padding: 16px 0; background: #102237; border-top: 1px solid #41546a; z-index: 2; }
+.gameplan-dialog .daily-choice-action .daily-end { width: 100%; white-space: normal; }
+@media(max-width:900px) { .gameplan-dialog .daily-choice-action { bottom: -24px; } }

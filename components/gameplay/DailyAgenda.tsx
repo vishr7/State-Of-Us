@@ -26,7 +26,7 @@ async function api<T>(path: string, body?: unknown): Promise<T> {
 }
 // Share work across Strict Mode remounts and repeated agenda openings.
 const preparingDays = new Map<string, Promise<GameDayResponse>>();
-function loadOrPrepareDay(cityId: string, turn: number): Promise<GameDayResponse> {
+function loadOrPrepareDay(cityId: string, turn: number, retryFailed = false): Promise<GameDayResponse> {
   const key = `${cityId}:${turn}`;
   const existing = preparingDays.get(key);
   if (existing) return existing;
@@ -36,8 +36,8 @@ function loadOrPrepareDay(cityId: string, turn: number): Promise<GameDayResponse
       try { return await api<GameDayResponse>(`${path}?turn=${turn}`); }
       catch (error) {
         const message = error instanceof Error ? error.message : '';
-        if (/not found|No game day/i.test(message)) {
-          try { return await api<GameDayResponse>(path, { turn }); }
+        if (/not found|No game day/i.test(message) || (retryFailed && /day is failed/i.test(message))) {
+          try { return await api<GameDayResponse>(path, { turn, retry: retryFailed }); }
           catch (prepareError) {
             if (!/day is preparing/i.test(String(prepareError))) throw prepareError;
           }
@@ -110,7 +110,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     let cancelled = false;
     setDay(null); setChoice(null); setExpanded(null); setError(''); setLoadFailed(false); setBusy(true);
     Promise.allSettled([
-      loadOrPrepareDay(cityId, turn),
+      loadOrPrepareDay(cityId, turn, reload > 0),
       api<GameDayDecision[]>(`/api/city/${cityId}/decisions`),
     ]).then(([saved, decisions]) => {
       if (cancelled) return;
@@ -122,7 +122,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       }
       if (saved.status === 'rejected' || decisions.status === 'rejected') {
         setLoadFailed(true);
-        setError(saved.status === 'rejected' ? 'Could not load today’s gameplan. Retry loading your saved choices.' : 'Could not verify your current decision. Reload before choosing a plan.');
+        setError(saved.status === 'rejected' ? `Could not load today’s gameplan: ${saved.reason instanceof Error ? saved.reason.message : 'Request failed.'}` : 'Could not verify your current decision. Reload before choosing a plan.');
       }
     }).finally(() => { if (!cancelled) setBusy(false); });
     return () => { cancelled = true; };
@@ -253,7 +253,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
         </article>;
       })}</div></div></PlanDialog>}
       {!cityId && <p className="daily-status">Connect to the database to see today’s choices.</p>}
-      {loadFailed && <button className="daily-end" disabled={busy} onClick={() => setReload(value => value + 1)}>Reload gameplan</button>}
+      {loadFailed && <button className="daily-end" disabled={busy} onClick={() => setReload(value => value + 1)}>Retry loading today’s choices</button>}
       {cityId && !day && !loadFailed && <button className="daily-end m-3" disabled={busy || /day is preparing/i.test(error)} onClick={prepare}>{/failed/i.test(error) ? 'Retry preparation' : 'Prepare today’s choices'}</button>}
       {day?.slate.decisions.length === 0 && <p className="daily-status">No choices available today. You can end the day.</p>}
       <div className="daily-card-row">{day?.slate.decisions.map((candidate,index) => {
