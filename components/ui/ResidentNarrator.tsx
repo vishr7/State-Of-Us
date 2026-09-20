@@ -83,7 +83,7 @@ export default function ResidentNarrator() {
     setMuted(false); localStorage.setItem('resident-voice-muted', 'false'); setReplay(v => v + 1);
   };
   if (!announcement || otherDialogue) return null;
-  return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet || (speaker === 'resident' && announcement.tour?.startsWith('district:')) ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
+  return <aside className={`mayor-scene ${speaker === 'resident' ? 'is-resident' : ''} ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet || (speaker === 'resident' && announcement.tour?.startsWith('district:')) ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}

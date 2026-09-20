@@ -551,8 +551,18 @@ async function advanceViaBackend(get: Get, set: Set) {
       if (!result.applied_decisions.length) void get().requestInsights({ mode: 'event', policyIds: [], event: newEvent.pittsburghFlavor }, true);
     }
     if (result.applied_decisions.length > 0) {
-      void get().requestInsights({ mode: 'outcome', policyIds: result.applied_decisions.slice(0,2).map(d => d.policy_id), event: newEvent?.pittsburghFlavor }, true);
-      get().showToast(`✓ ${result.applied_decisions.map(d => d.policy_name).join(', ')} took full effect. City happiness is now ${nextCity.happiness} out of 100, and approval is ${nextCity.approval} percent. You can now make your next decision.`, 'success');
+      // The outcome narration owns the handoff to today's choices. A success
+      // toast also speaks, so announcing choices here races the AI response.
+      void get().requestInsights({ mode: 'outcome', policyIds: result.applied_decisions.slice(0,2).map(d => d.policy_id), event: newEvent?.pittsburghFlavor }, true).then(insight => {
+        if (insight || get().city.turn !== nextCity.turn || get().backendLink?.cityId !== link.cityId) return;
+        // Provider failures still get a grounded results-first briefing.
+        set(state => ({ announcements: [...state.announcements,
+          { id: ++announcementId, speaker: 'assistant', kind: 'success', turn: nextCity.turn,
+            text: `${result.applied_decisions.map(d => d.policy_name).join(', ')} took full effect. City happiness is now ${nextCity.happiness} out of 100, and approval is ${nextCity.approval} percent.` },
+          { id: ++announcementId, speaker: 'assistant', kind: 'info', turn: nextCity.turn, tour: 'choices',
+            text: 'Now, here are today’s plans. Open a card to review its cost and tradeoffs before choosing.' },
+        ] }));
+      });
     }
   } catch (err) {
     get().stopPlaying();

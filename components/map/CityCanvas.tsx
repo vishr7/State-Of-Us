@@ -552,6 +552,7 @@ export default function CityCanvas() {
   const [pncParkSprite, setPncParkSprite] = useState<HTMLImageElement | null>(null);
   const [pncTowerSprite, setPncTowerSprite] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
+  const replacements = useAnimationStore(s => s.replacements);
   const removedBuildings = useAnimationStore(s => s.removed);
   const demolition = useAnimationStore(s => s.queue[0]);
   const demolitionClock = useRef<{ id: string; start: number } | null>(null);
@@ -751,6 +752,7 @@ export default function CityCanvas() {
               policy.category === 'environment' ? 13 : policy.category === 'transit' ? 15 : 4;
           }
         }
+        if (replacements[tileKey(tx, ty)] !== undefined) sprite = replacements[tileKey(tx, ty)];
         if (sprite !== null) {
           const setback = lotSetback(tx, ty);
           drawSprite(ctx, atlas, sprite, cx + setback.x, cy + setback.y);
@@ -887,7 +889,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, removedBuildings]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, removedBuildings, replacements]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -965,10 +967,18 @@ export default function CityCanvas() {
     if (!tour) return;
     const container = containerRef.current;
     if (!container) return;
+    const demo = tour === 'demo-house' || tour === 'demo-result';
+    let demoLot: { tx: number; ty: number } | undefined;
+    if (demo) {
+      for (let ty = 3; ty < 12 && !demoLot; ty++) for (let tx = 3; tx < 12 && !demoLot; tx++) {
+        const tile = classifyTile(tx, ty);
+        if (tile.building === 'middle' && !tile.tree && !tile.landmarkSprite && !tile.cathedral) demoLot = { tx, ty };
+      }
+    }
     const marker = tour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === tour.slice(9).toLowerCase() || n.id === tour.slice(9).toLowerCase().replaceAll(' ', '_')) : undefined;
-    const area = marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === tour);
+    const area = demoLot ? tileToScreen(demoLot.tx, demoLot.ty) : marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === tour);
     const fit = Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * .96;
-    const z = area ? Math.min(1.05, fit * 2) : fit;
+    const z = area ? demo ? 1.65 : Math.min(1.05, fit * 2) : fit;
     const target = area ? { x: -area.x * z, y: -area.y * z - container.clientHeight * .12, zoom: z } : { x: 0, y: 30, zoom: z };
     const start = { ...cameraRef.current };
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -981,7 +991,10 @@ export default function CityCanvas() {
       if (t < 1) frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+    const timer = tour === 'demo-house' && demoLot ? setTimeout(() => {
+      useAnimationStore.getState().demolish({ id: 'intro-house-replacement', ...demoLot!, replacement: 1 });
+    }, 2200) : undefined;
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, [tour, setMapViewport]);
 
   // "Find on map" (e.g. from the Featured Resident card): fly to the resident and mark them for a few seconds.
