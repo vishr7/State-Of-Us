@@ -92,14 +92,14 @@ const residentSelectorSchema = z.object({
 export const eventEffectsSchema = z.object({
   version: z.literal(1),
   ramp_turns: z.number().optional(),
-  city: z.record(z.enum(cityTargets), effectOpSchema).optional(),
+  city: z.partialRecord(z.enum(cityTargets), effectOpSchema).optional(),
   neighborhoods: z.array(z.object({
     where: neighborhoodSelectorSchema.optional(),
-    set: z.record(z.enum(neighborhoodTargets), effectOpSchema),
+    set: z.partialRecord(z.enum(neighborhoodTargets), effectOpSchema),
   }).strict()).max(6).optional(),
   residents: z.array(z.object({
     where: residentSelectorSchema.optional(),
-    set: z.record(z.enum(residentTargets), effectOpSchema),
+    set: z.partialRecord(z.enum(residentTargets), effectOpSchema),
   }).strict()).max(6).optional(),
 }).strict();
 export type EventEffects = z.infer<typeof eventEffectsSchema>;

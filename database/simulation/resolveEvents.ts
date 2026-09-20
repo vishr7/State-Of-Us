@@ -63,7 +63,7 @@ function rowToExternalSignal(row: ExternalSignalRow & { event_date_text: string 
     eventDate: row.event_date_text,
     status: row.status,
     evidence: row.evidence as ExternalSignal['evidence'],
-    source: row.source as ExternalSignal['source'],
+    source: row.source as unknown as ExternalSignal['source'],
     provenance: row.provenance as ExternalSignal['provenance'],
   };
 }
