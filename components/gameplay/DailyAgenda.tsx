@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { create } from 'zustand';
+import { createPortal } from 'react-dom';
 import { useCityPulseStore } from '@/lib/store';
 import type { GameDayResponse, GameDayOutcome, GameDayDecision } from '@/database/gameplay/contracts';
 import type { GeneratedEventCandidate } from '@/lib/signals/generated-events';
@@ -65,6 +66,8 @@ export default function DailyAgenda() {
   const [choice, setChoice] = useState<GameDayDecision | null>(null);
   const [outcome, setOutcome] = useState<GameDayOutcome | null>(null);
   const [busy, setBusy] = useState(false);
+  const [transition, setTransition] = useState<'sunset' | 'night' | 'morning' | null>(null);
+  const advancing = useRef(false);
   const [error, setError] = useState('');
   const [loadFailed, setLoadFailed] = useState(false);
   const [reload, setReload] = useState(0);
@@ -119,34 +122,36 @@ export default function DailyAgenda() {
       setChoice(saved);
       useCityPulseStore.setState({ pendingPolicy: { name: candidate.title, turn: turn + 1 } });
       setExpanded(null);
-      void useCityPulseStore.getState().requestInsights({
-        mode: 'decision', policyIds: [candidate.policyId!],
-        event: `The player selected the simulation proposal "${candidate.title}": ${candidate.proposedAction ?? candidate.description}. Explain this decision and residents' likely feelings. Its effects have not been applied yet.`.slice(0, 600),
-      }, true).then(result => {
-        if (!result && useCityPulseStore.getState().city.turn === turn + 1) {
-          useCityPulseStore.getState().announce(`${candidate.title} is selected. We’ll see the city’s response when you end the day.`, 'info');
-        }
-      });
+      useCityPulseStore.setState({ submittingPolicy: false });
+      await resolve();
     } catch(e) { setError(e instanceof Error ? e.message : 'Choice failed.'); }
     finally { setBusy(false); useCityPulseStore.setState({ submittingPolicy: false }); }
   };
   const resolve = async () => {
-    setBusy(true); setError('');
+    if (advancing.current) return;
+    advancing.current = true;
+    setBusy(true); setError(''); setExpanded(null); setTransition('sunset');
+    const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     try {
-      await useCityPulseStore.getState().advanceTurn();
+      await pause(900);
+      setTransition('night');
+      await Promise.all([useCityPulseStore.getState().advanceTurn(), pause(900)]);
       if (useCityPulseStore.getState().city.turn - 1 === turn) throw new Error('The day has not advanced. Check the city update and retry.');
+      setTransition('morning');
+      await pause(1100);
       if (choice?.candidate_id) setOutcome(await api<GameDayOutcome>(`/api/city/${cityId}/game-day/outcome?turn=${turn}`));
     } catch(e) { setError(e instanceof Error ? e.message : 'Could not load outcome.'); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setTransition(null); advancing.current = false; }
   };
   const selected = day?.slate.decisions.find(c => c.id === expanded);
   const money = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
   const costs = (candidate: GeneratedEventCandidate) => catalog.find(p => p.id === candidate.policyId);
   const canEnd = !!cityId && !!(day || choice || pending) && !busy && !resolving && !loadFailed && (!day?.slate.decisions.length || !!choice || !!pending);
   return <section className="daily-dock" aria-label="Daily agenda">
-    <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>City gameplan</h2><small>{choice || pending ? 'Decision locked · End the day to see its effects' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
+    {transition && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, document.body)}
+    <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>City gameplan</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
       {outcome && <button onClick={() => setExpanded(expanded === 'outcome' ? null : 'outcome')}>Last results</button>}
-      <button className="daily-end" disabled={!canEnd} onClick={resolve}>{resolving ? 'Resolving…' : 'End day →'}</button>
+      <button className="daily-end" hidden={!choice && !pending && !!day?.slate.decisions.length} disabled={!canEnd || !!transition} onClick={resolve}>{resolving || transition ? 'Advancing…' : choice || pending ? 'Resume next day →' : 'Skip day →'}</button>
       <button aria-label={open ? 'Collapse daily choices' : 'Show daily choices'} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? '⌄' : '⌃'}</button>
     </div></header>
     {error && <p role="alert" className="daily-status">{error}</p>}
