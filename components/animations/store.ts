@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { classifyTile, GW, GH } from '../map/cityMapData';
 
-export interface DemolitionSegment { id: string; tx: number; ty: number; replacement?: number }
+export interface DemolitionSegment { id: string; tx: number; ty: number; replacement?: number; clearTrees?: boolean }
 interface AnimationState {
   queue: DemolitionSegment[];
   replacements: Record<string, number>;
@@ -17,7 +17,7 @@ export const useAnimationStore = create<AnimationState>((set) => ({
   demolish: segment => set(state => {
     if (!Number.isInteger(segment.tx) || !Number.isInteger(segment.ty) || segment.tx < 0 || segment.ty < 0 || segment.tx >= GW || segment.ty >= GH) return state;
     const tile = classifyTile(segment.tx, segment.ty);
-    if (!tile.building || tile.tree || tile.cathedral || tile.landmarkSprite || state.seen[segment.id] || state.removed[tileKey(segment.tx, segment.ty)] || state.queue.some(item => item.tx === segment.tx && item.ty === segment.ty)) return state;
+    if (!(segment.clearTrees ? tile.tree : tile.building && !tile.tree) || tile.cathedral || tile.landmarkSprite || state.seen[segment.id] || state.removed[tileKey(segment.tx, segment.ty)] || state.queue.some(item => item.tx === segment.tx && item.ty === segment.ty)) return state;
     return { queue: [...state.queue, segment], seen: { ...state.seen, [segment.id]: true } };
   }),
   impact: segment => set(state => ({ removed: { ...state.removed, [tileKey(segment.tx, segment.ty)]: true } })),

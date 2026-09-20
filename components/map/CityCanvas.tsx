@@ -1,3 +1,4 @@
+import { drawRiverLife } from '../animations/riverLife';
 import { drawProtest } from '../animations/protest';
 'use client';
 
@@ -67,9 +68,12 @@ function drawSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, inde
 
 const landmarkCells: Record<LandmarkSprite, number> = { cathedral: 0, hospital: 1, police: 2, skyscraper: 3, office: 4, university: 5 };
 function drawLandmarkSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, kind: LandmarkSprite, x: number, y: number) {
+  // The hospital campus spans columns 17–18: anchor at its midpoint,
+  // leaving the entrance and ambulance bay inside the grass parcel.
+  if (kind === 'hospital') { x -= TW / 4; y -= TH / 4; }
   const index = landmarkCells[kind];
   const sw = atlas.naturalWidth / 3, sh = atlas.naturalHeight / 2;
-  const size = kind === 'cathedral' ? 190 : kind === 'skyscraper' ? 154 : kind === 'hospital' ? 145 : kind === 'office' ? 128 : 112;
+  const size = kind === 'cathedral' ? 190 : kind === 'skyscraper' ? 154 : kind === 'hospital' ? 132 : kind === 'office' ? 128 : 112;
   // The second atlas row contains the bottom tips of the row above it.
   // Trim only that narrow strip and keep the building's scale and anchor.
   const trim = index >= 3 ? 26 : 0;
@@ -102,27 +106,44 @@ function drawRoad(ctx: CanvasRenderingContext2D, cx: number, cy: number, tx?: nu
   ctx.transform(TW / 2, TH / 2, -TW / 2, TH / 2, cx, cy);
   ctx.fillStyle = '#b9b7a0';
   ctx.fillRect(-0.5, -0.5, 1, 1);
-  const roadAt = (dx: number, dy: number) => tx === undefined || ty === undefined || classifyTile(tx + dx, ty + dy).ground === 'road';
-  const alongX = tx !== undefined && (roadAt(-1, 0) || roadAt(1, 0));
-  const alongY = roadAt(0, -1) || roadAt(0, 1);
+  const roadAt = (dx: number, dy: number) => {
+    if (tx === undefined || ty === undefined) return dx === 0;
+    const neighbor = classifyTile(tx + dx, ty + dy);
+    // Every river crossing follows the tile Y axis.
+    return neighbor.ground === 'road' && (!neighbor.bridge || dx === 0);
+  };
+  const west = roadAt(-1,0), east = roadAt(1,0);
+  const north = roadAt(0,-1), south = roadAt(0,1);
+  const connections = Number(west)+Number(east)+Number(north)+Number(south);
   ctx.fillStyle = ROAD_COLOR;
-  if (alongX) ctx.fillRect(-0.5, -0.34, 1, 0.68);
-  if (alongY) ctx.fillRect(-0.34, -0.5, 0.68, 1);
-  ctx.strokeStyle = '#ddd5a5';
-  ctx.lineWidth = 0.018;
-  ctx.setLineDash([0.12, 0.1]);
-  if (!(alongX && alongY)) {
+  ctx.fillRect(-.34,-.34,.68,.68);
+  if(west) ctx.fillRect(-.5,-.34,.5,.68);
+  if(east) ctx.fillRect(0,-.34,.5,.68);
+  if(north) ctx.fillRect(-.34,-.5,.68,.5);
+  if(south) ctx.fillRect(-.34,0,.68,.5);
+  // Fine curb edges follow the actual pavement, never crossing a junction.
+  ctx.strokeStyle = '#d0ceba'; ctx.lineWidth=.015;
+  ctx.beginPath();
+  if(!north) { ctx.moveTo(-.34,-.34);ctx.lineTo(.34,-.34); }
+  if(!south) { ctx.moveTo(-.34,.34);ctx.lineTo(.34,.34); }
+  if(!west) { ctx.moveTo(-.34,-.34);ctx.lineTo(-.34,.34); }
+  if(!east) { ctx.moveTo(.34,-.34);ctx.lineTo(.34,.34); }
+  ctx.stroke();
+  ctx.strokeStyle = '#c8c39c'; ctx.lineWidth=.013;
+  ctx.setLineDash([.09,.12]);
+  if(connections === 2 && ((west && east) || (north && south))) {
     ctx.beginPath();
-    if (alongX) { ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); }
-    else { ctx.moveTo(0, -0.5); ctx.lineTo(0, 0.5); }
+    if(west && east) { ctx.moveTo(-.5,0);ctx.lineTo(.5,0); }
+    else { ctx.moveTo(0,-.5);ctx.lineTo(0,.5); }
     ctx.stroke();
-  } else {
-    ctx.fillStyle = '#e6dfca';
-    for (let stripe = -0.26; stripe < 0.3; stripe += 0.1) {
-      ctx.fillRect(stripe, -0.46, 0.055, 0.12);
-      ctx.fillRect(stripe, 0.34, 0.055, 0.12);
-      ctx.fillRect(-0.46, stripe, 0.12, 0.055);
-      ctx.fillRect(0.34, stripe, 0.12, 0.055);
+  } else if(connections >= 3) {
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#dedccb';
+    for(let stripe=-.25;stripe<.26;stripe+=.1) {
+      if(north) ctx.fillRect(stripe,-.44,.045,.075);
+      if(south) ctx.fillRect(stripe,.365,.045,.075);
+      if(west) ctx.fillRect(-.44,stripe,.075,.045);
+      if(east) ctx.fillRect(.365,stripe,.075,.045);
     }
   }
   ctx.restore();
@@ -137,7 +158,7 @@ function drawQuay(ctx: CanvasRenderingContext2D, tx: number, ty: number, cx: num
     { dx: 0, dy: 1, a: [0, 24], b: [-48, 0] },
   ];
   for (const edge of edges) {
-    if (!isWater(tx + edge.dx, ty + edge.dy)) continue;
+    if (classifyTile(tx + edge.dx, ty + edge.dy).ground !== 'water') continue;
     const [ax, ay] = edge.a, [bx, by] = edge.b;
     fillPoly(ctx, [[cx+ax,cy+ay],[cx+bx,cy+by],[cx+bx,cy+by+8],[cx+ax,cy+ay+8]], '#777c72');
     ctx.strokeStyle = '#d9cfaa'; ctx.lineWidth = 3;
@@ -822,6 +843,7 @@ export default function CityCanvas() {
         ctx.moveTo(cx - 8 + drift, cy + 5); ctx.lineTo(cx + 8 + drift, cy + 5);
       }
       ctx.stroke(); ctx.globalAlpha = 1;
+      drawRiverLife(ctx, ambientMotion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? time : 0);
       for (const { tx, ty, cx, cy, info, alongX } of trafficTiles) {
         if (info.ground === 'road' && !info.bridge && (tx + ty) % 5 === 0) {
           const progress = ambientMotion ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
@@ -994,7 +1016,7 @@ export default function CityCanvas() {
     if (demo) {
       for (let ty = 3; ty < 12 && !demoLot; ty++) for (let tx = 3; tx < 12 && !demoLot; tx++) {
         const tile = classifyTile(tx, ty);
-        if (tile.building === 'middle' && !tile.tree && !tile.landmarkSprite && !tile.cathedral) demoLot = { tx, ty };
+        if (tile.tree && !tile.building && !tile.landmarkSprite && !tile.cathedral) demoLot = { tx, ty };
       }
     }
     const focusTour = tour === 'outage' ? 'district:Homewood' : tour;
@@ -1015,7 +1037,7 @@ export default function CityCanvas() {
     };
     frame = requestAnimationFrame(animate);
     const timer = tour === 'demo-house' && demoLot ? setTimeout(() => {
-      useAnimationStore.getState().demolish({ id: 'intro-house-replacement', ...demoLot!, replacement: 1 });
+      useAnimationStore.getState().demolish({ id: 'intro-tree-housing', ...demoLot!, replacement: 0, clearTrees: true });
     }, 2200) : undefined;
     return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, [tour, setMapViewport]);
