@@ -97,10 +97,10 @@ describe("real database vertical slice with mocked providers", () => {
     expect(await resolveGameDay(cityId, 0, react)).toEqual(outcome);
     expect(react).toHaveBeenCalledTimes(1);
     const savedReactions = (await holder.db.query<{ evaluation: unknown; support: number; provenance: { promptVersion: string } }>("select * from resident_reactions order by resident_id")).rows;
-    expect(savedReactions).toHaveLength(5);
+    expect(savedReactions).toHaveLength(outcome.reactions.length);
     expect(savedReactions[0].evaluation).toEqual(outcome.reactions[0]);
     expect(savedReactions[0].support).toBe(0.8);
-    expect(savedReactions[0].provenance.promptVersion).toBe("resident-outcome-v2");
+    expect(savedReactions[0].provenance.promptVersion).toBe("resident-emotion-v3");
     expect((await holder.db.query("select * from simulation_snapshots where city_id=$1", [cityId])).rows).toHaveLength(2);
     const next = await prepareGameDay(cityId, 1, dependencies);
     expect(next.slate.decisions).toHaveLength(5);

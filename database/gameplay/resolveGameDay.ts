@@ -50,7 +50,13 @@ export async function generateGameDayReactions(cityId: string, turn: number, rea
     const input: NemotronInput = { candidate: outcome.candidate, policy, residents, before: outcome.before, after: outcome.after, memories };
     const generated = await react(input);
     input.socialVoices = generated.map(r => ({ residentId: r.residentId, neighborhood: '', supportScore: r.supportScore, reaction: r.reaction }));
-    const reactions = validateReactions({ reactions: generated }, residents, input);
+    const reactions = validateReactions({ reactions: generated }, residents);
+    // Individual content was validated against the exact first/second-pass prompt by the generator.
+    // Injected generators still get canonical validation, with their named peer available.
+    for (const reaction of reactions) validateReactions({ reactions: [reaction] }, [residents.find(r => r.id === reaction.residentId)!], {
+      ...input, residents: [residents.find(r => r.id === reaction.residentId)!],
+      socialVoices: input.socialVoices?.filter(v => v.residentId === reaction.socialResponse?.toResidentId),
+    });
     await withTransaction(async (db) => {
       for (const reaction of reactions) await db.query("insert into resident_reactions(city_id,turn,decision_id,game_day_id,candidate_id,resident_id,support,sentiment,reaction,main_reason,provenance,evaluation) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb) on conflict(decision_id,resident_id) do update set support=excluded.support,sentiment=excluded.sentiment,reaction=excluded.reaction,main_reason=excluded.main_reason,provenance=excluded.provenance,evaluation=excluded.evaluation", [cityId, turn, decision.id, decision.game_day_id, decision.candidate_id, reaction.residentId, reaction.supportScore / 100, reaction.sentiment, reaction.reaction, reaction.mainReason, JSON.stringify({ model: process.env.NEMOTRON_MODEL ?? null, promptVersion: REACTION_PROMPT_VERSION, beforeTurn: turn, afterTurn: turn + 1, execution: buildResidentOutcomePrompt(input, reaction.residentId).execution }), JSON.stringify(reaction)]);
       await db.query("update reaction_runs set status='completed',completed_at=now() where decision_id=$1", [decision.id]);

@@ -90,6 +90,9 @@ export async function generateResidentReactions(input: NemotronInput, provider: 
     const reply = responses.find(r => r.residentId === first.residentId);
     if (!reply?.socialResponse) return first;
     // Preserve first-pass material assessment; peer persuasion is bounded and separate.
-    return { ...first, socialResponse: reply.socialResponse, emotions: reply.emotions ?? first.emotions };
+    const emotions = first.emotions && reply.emotions
+      ? Object.fromEntries(Object.entries(first.emotions).map(([key, value]) => [key, Math.max(value - 10, Math.min(value + 10, reply.emotions![key as keyof typeof reply.emotions]))])) as NonNullable<ResidentReaction['emotions']>
+      : reply.emotions ?? first.emotions;
+    return { ...first, socialResponse: reply.socialResponse, emotions };
   });
 }

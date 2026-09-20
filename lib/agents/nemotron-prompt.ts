@@ -69,7 +69,7 @@ export function buildResidentOutcomePrompt(input: NemotronInput, residentId: str
       supportedBenefits: [...candidate.supportedBenefits], supportedRisks: [...candidate.supportedRisks], evidence: candidate.evidence.map((ref) => ({ ...ref })), authoredPolicy: { id: policy.id, name: policy.name } },
     outcome,
     memory: input.memories?.[residentId] ?? [],
-    socialVoices: (input.socialVoices ?? []).filter(v => v.residentId !== residentId),
+    socialVoices: (input.socialVoices ?? []).filter(v => v.residentId !== residentId).sort((a, b) => a.supportScore - b.supportScore).filter((_, index, voices) => index === 0 || index === voices.length - 1),
     exposure: {
       monthlyHousingRelief: resident.housing_cost - updated.housing_cost,
       housingReliefShareOfMonthlyIncome: (resident.housing_cost - updated.housing_cost) / Math.max(resident.income / 12, 1),
