@@ -543,8 +543,18 @@ export default function CityCanvas() {
   const frontCloudRef = useRef<HTMLDivElement>(null);
   const residents = useCityPulseStore(s => s.residents);
   const selectResident = useCityPulseStore(s => s.selectResident);
-  const walkers = useMemo(() => createWalkers(residents), [residents]);
-  const cars = useMemo(() => createCars(45), []);
+  const population = useCityPulseStore(s => s.city.population);
+  // Street traffic should read as a real proxy for city size: scale pedestrian
+  // and car counts by how far population has moved from wherever it started,
+  // so a policy/event that grows or shrinks the city visibly thins or fills
+  // the streets instead of always showing the same fixed crowd.
+  const basePopulationRef = useRef<number | null>(null);
+  if (basePopulationRef.current === null && population > 0) basePopulationRef.current = population;
+  const populationRatio = basePopulationRef.current ? Math.min(1.5, Math.max(0.15, population / basePopulationRef.current)) : 1;
+  const walkerLimit = Math.max(3, Math.round(100 * populationRatio));
+  const carCount = Math.max(5, Math.round(45 * populationRatio));
+  const walkers = useMemo(() => createWalkers(residents, walkerLimit), [residents, walkerLimit]);
+  const cars = useMemo(() => createCars(carCount), [carCount]);
   const walkingTimeRef = useRef(0);
   const hoveredWalkerRef = useRef<string | null>(null);
   const clickStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);

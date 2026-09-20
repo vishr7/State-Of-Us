@@ -51,7 +51,9 @@
       "Bash(rm -rf .next)",
       "Read(//c/Program Files/PostgreSQL/18/bin/**)",
       "PowerShell(net stop postgresql-x64-18)",
-      "PowerShell(Stop-Service -Name postgresql-x64-18 -ErrorAction Stop)"
+      "PowerShell(Stop-Service -Name postgresql-x64-18 -ErrorAction Stop)",
+      "Bash(node scripts/_mobile.mjs)",
+      "Bash(node scripts/_desktop.mjs)"
     ],
     "additionalDirectories": [
       "\\tmp"

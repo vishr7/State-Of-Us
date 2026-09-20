@@ -358,6 +358,26 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .insight-history { border-top: 1px solid #304055; padding: 10px 22px; }
 @media (max-width: 640px) { .insights-backdrop { padding: 8px; } .insights-modal { max-height: 96vh; } .insights-modal h2 { font-size: 20px; } .insight-residents { grid-template-columns: 1fr; } }
 
+/* End-of-week recap: reuses .insights-backdrop/.insights-modal for the shell. */
+.week-recap-body { overflow: auto; padding: 4px 26px 26px; min-height: 0; }
+.week-recap-heading { font-size: 13px; font-weight: 700; color: #ead2a7; margin: 18px 0 10px; }
+.week-recap-heading:first-child { margin-top: 0; }
+.week-recap-stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 10px; }
+.week-recap-stat { display: flex; flex-direction: column; gap: 4px; border: 1px solid #2c4058; border-radius: 10px; background: #14243a; padding: 12px 14px; }
+.week-recap-stat-label { font-size: 10px; color: #8da4bd; text-transform: uppercase; letter-spacing: .06em; }
+.week-recap-stat-value { font-size: 15px; font-weight: 700; color: #e4eaf2; }
+.week-recap-stat-delta { font-size: 12px; font-weight: 700; color: #9ab0c4; }
+.week-recap-stat-delta.is-up { color: #7fd8a8; }
+.week-recap-stat-delta.is-down { color: #e58b7c; }
+.week-recap-actions { display: flex; flex-direction: column; gap: 8px; }
+.week-recap-actions li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; border: 1px solid #293e55; border-radius: 8px; background: #0c1929; padding: 10px 13px; }
+.week-recap-action-day { font-size: 9px; font-weight: 700; letter-spacing: .06em; color: #d1b27b; }
+.week-recap-action-name { font-size: 13px; font-weight: 700; color: #e4eaf2; }
+.week-recap-action-reason { font-size: 11px; font-style: italic; color: #98abc2; flex-basis: 100%; }
+.week-recap-handoff { margin-top: 22px; padding-top: 16px; border-top: 1px solid #293b51; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.week-recap-handoff p { font-size: 14px; color: #dfebf3; max-width: 480px; line-height: 1.6; }
+@media (max-width: 640px) { .week-recap-stats { grid-template-columns: 1fr 1fr; } .week-recap-handoff { flex-direction: column; align-items: stretch; } }
+
 /* Daily decisions remain part of the game, with five square cards in one row. */
 .daily-dock { flex-shrink:0; background:#0c1928; border-top:1px solid #304258; color:#d6e0ed; padding:10px 20px 14px; z-index:40; }
 .daily-dock-header,.daily-dock-header>div,.daily-card-top,.daily-card-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; }

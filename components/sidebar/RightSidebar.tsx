@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCityPulseStore, selectFeaturedResident } from '@/lib/store';
 import { AgentGroup, IncomeGroup } from '@/lib/types';
 import Avatar from '../ui/Avatar';
@@ -214,6 +214,9 @@ export default function RightSidebar() {
   const agentGroups = useCityPulseStore(s => s.agentGroups);
   const selectResident = useCityPulseStore(s => s.selectResident);
   const residents = useCityPulseStore(s => s.residents);
+  // On mobile the sidebar is an off-canvas drawer (closed by default, so the
+  // map gets almost the whole screen) rather than the always-visible desktop column.
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Map group to a representative resident for click-through
   const groupResidentId = (incomeGroup: string) => {
@@ -221,15 +224,8 @@ export default function RightSidebar() {
     return r?.id ?? null;
   };
 
-  return (
-    <div
-      className="flex flex-col gap-3 p-3 flex-shrink-0 overflow-y-auto"
-      style={{
-        width: 320,
-        background: '#0A1628',
-        borderLeft: '1px solid #1E3050',
-      }}
-    >
+  const content = (
+    <>
       {/* === RESIDENT SENTIMENT CARD === */}
       <div className="rounded-xl p-3" style={{ background: '#162236', border: '1px solid #1E3050' }}>
         {/* Card header */}
@@ -259,7 +255,51 @@ export default function RightSidebar() {
       {/* === FEATURED RESIDENT CARD === */}
       <CommunityVoices />
       <FeaturedResidentCard />
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: always-visible fixed-width column */}
+      <div
+        className="hidden md:flex flex-col gap-3 p-3 flex-shrink-0 overflow-y-auto"
+        style={{ width: 320, background: '#0A1628', borderLeft: '1px solid #1E3050' }}
+      >
+        {content}
+      </div>
+
+      {/* Mobile: floating toggle over the map — keeps the map itself full-width */}
+      <button
+        type="button"
+        className="md:hidden fixed z-40 flex items-center justify-center w-12 h-12 rounded-full shadow-lg"
+        style={{ top: 150, right: 12, background: '#162236', border: '1px solid #1E3050' }}
+        onClick={() => setMobileOpen(true)}
+        aria-label="Show residents panel"
+        hidden={mobileOpen}
+      >
+        <GroupIcon />
+      </button>
+
+      {/* Mobile: off-canvas drawer + backdrop */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Residents panel">
+          <div className="absolute inset-0" style={{ background: '#00000099' }} onClick={() => setMobileOpen(false)} />
+          <div
+            className="absolute right-0 top-0 bottom-0 flex flex-col gap-3 p-3 overflow-y-auto"
+            style={{ width: 'min(85vw, 340px)', background: '#0A1628', borderLeft: '1px solid #1E3050' }}
+          >
+            <button
+              type="button"
+              className="self-end px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800"
+              onClick={() => setMobileOpen(false)}
+            >
+              Close ✕
+            </button>
+            {content}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useCityPulseStore } from '@/lib/store';
 import { useAgenda } from '../gameplay/DailyAgenda';
 import ResetDemoButton from './ResetDemoButton';
@@ -104,6 +105,15 @@ const GearIcon = () => (
     <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
+const MenuIcon = ({ open }: { open: boolean }) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    {open ? (
+      <path d="M4 4l10 10M14 4 4 14" stroke="#F0F4FA" strokeWidth="1.8" strokeLinecap="round"/>
+    ) : (
+      <path d="M2.5 5h13M2.5 9h13M2.5 13h13" stroke="#F0F4FA" strokeWidth="1.8" strokeLinecap="round"/>
+    )}
+  </svg>
+);
 
 // ------ Main TopBar Component --------------------------------
 
@@ -113,6 +123,7 @@ export default function TopBar() {
   const setAnalytics = useCityPulseStore(s => s.setAnalytics);
   const lastSnapshot = useCityPulseStore(s => s.lastSnapshot);
   const backend = useCityPulseStore(s => s.backend);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Compute deltas vs. last snapshot
   const prevCity = lastSnapshot ?? null;
@@ -130,88 +141,132 @@ export default function TopBar() {
 
   const badgeColor = (v: number | null) => (v === null || v >= 0 ? '#22C55E' : '#EF4444');
 
+  const statPills = (
+    <>
+      <StatPill
+        icon={<CoinIcon />}
+        iconBg="#7A4F0030"
+        label="Budget"
+        value={fmtCurrency(city.treasury)}
+      />
+      <StatPill
+        icon={<TrendUpIcon />}
+        iconBg="#22C55E20"
+        label="Revenue"
+        value={fmtCurrency(city.revenue)}
+        badge={prevCity ? signedBadge(revenueChange, '$') : '+17%'}
+        badgeColor="#22C55E"
+      />
+      <StatPill
+        icon={<SmileyIcon />}
+        iconBg="#EAB30820"
+        label="Happiness"
+        value={String(city.happiness)}
+        badge={signedBadge(happinessDelta)}
+        badgeColor={badgeColor(happinessDelta)}
+      />
+      <StatPill
+        icon={<StarIcon />}
+        iconBg="#FFB81C20"
+        label="Approval"
+        value={`${city.approval}%`}
+        badge={signedBadge(approvalDelta, '', '%')}
+        badgeColor={badgeColor(approvalDelta)}
+      />
+      <StatPill
+        icon={<PeopleIcon />}
+        iconBg="#3B82F620"
+        label="Population"
+        value={city.population.toLocaleString()}
+        badge={signedBadge(populationDelta)}
+        badgeColor={badgeColor(populationDelta)}
+      />
+    </>
+  );
+
   return (
-    <div
-      className="flex items-center gap-3 px-4 flex-shrink-0"
-      style={{
-        height: 64,
-        background: '#0A1628',
-        borderBottom: '1px solid #1E3050',
-        zIndex: 50,
-      }}
-    >
-      {/* === BRAND === */}
-      <div className="state-brand" aria-label="State of US — Your city. Our tomorrow.">
-        <div className="state-brand-emblem" aria-hidden="true"><CityPixelIcon /></div>
-        <div className="state-brand-copy">
-          <div className="state-brand-wordmark"><span>State</span><span className="state-brand-of">of</span><span className="state-brand-us">US<span className="state-brand-period">.</span></span></div>
-          <div className="state-brand-tagline"><span className="state-brand-line" aria-hidden="true" />Your city. Our tomorrow.</div>
+    <div className="relative flex-shrink-0" style={{ zIndex: 50 }}>
+      <div
+        className="flex items-center gap-3 px-4"
+        style={{
+          height: 64,
+          background: '#0A1628',
+          borderBottom: '1px solid #1E3050',
+        }}
+      >
+        {/* === BRAND === */}
+        <div className="state-brand" aria-label="State of US — Your city. Our tomorrow.">
+          <div className="state-brand-emblem" aria-hidden="true"><CityPixelIcon /></div>
+          <div className="state-brand-copy">
+            <div className="state-brand-wordmark"><span>State</span><span className="state-brand-of">of</span><span className="state-brand-us">US<span className="state-brand-period">.</span></span></div>
+            <div className="state-brand-tagline"><span className="state-brand-line" aria-hidden="true" />Your city. Our tomorrow.</div>
+          </div>
+        </div>
+
+        {/* Data source badge + City voices — desktop only, moved into the mobile menu below */}
+        <div className="hidden md:flex items-center gap-3">
+          <BackendBadge status={backend.status} error={backend.error} />
+          <button className="ml-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => useCityPulseStore.getState().setTownHall(true)}>City voices</button>
+        </div>
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* === STAT PILLS (desktop) === */}
+        <div className="hidden md:flex items-center gap-2">{statPills}</div>
+
+        {/* === PLAY / PAUSE CONTROLS (desktop) === */}
+        <div className="hidden md:flex items-center gap-1 ml-2 flex-shrink-0">
+          <ResetDemoButton />
+          <button className="px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => { stopPlaying(); useAgenda.getState().setOpen(true); }}>Day {city.turn} · Agenda</button>
+          {/* Settings / Analytics */}
+          <button
+            onClick={() => setAnalytics(true)}
+            className="flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
+            style={{ background: '#162236', border: '1px solid #1E3050' }}
+            title="Analytics"
+          >
+            <GearIcon />
+          </button>
+        </div>
+
+        {/* === MOBILE: day pill + hamburger, everything else moves into the dropdown === */}
+        <div className="flex md:hidden items-center gap-2">
+          <button className="px-2.5 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800 whitespace-nowrap" onClick={() => { stopPlaying(); useAgenda.getState().setOpen(true); }}>Day {city.turn}</button>
+          <button
+            onClick={() => setMenuOpen(v => !v)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
+            style={{ background: '#162236', border: '1px solid #1E3050' }}
+          >
+            <MenuIcon open={menuOpen} />
+          </button>
         </div>
       </div>
 
-      {/* Data source: live database vs. local mock engine */}
-      <BackendBadge status={backend.status} error={backend.error} />
-
-      <button className="ml-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => useCityPulseStore.getState().setTownHall(true)}>City voices</button>
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* === STAT PILLS === */}
-      <div className="flex items-center gap-2">
-        <StatPill
-          icon={<CoinIcon />}
-          iconBg="#7A4F0030"
-          label="Budget"
-          value={fmtCurrency(city.treasury)}
-        />
-        <StatPill
-          icon={<TrendUpIcon />}
-          iconBg="#22C55E20"
-          label="Revenue"
-          value={fmtCurrency(city.revenue)}
-          badge={prevCity ? signedBadge(revenueChange, '$') : '+17%'}
-          badgeColor="#22C55E"
-        />
-        <StatPill
-          icon={<SmileyIcon />}
-          iconBg="#EAB30820"
-          label="Happiness"
-          value={String(city.happiness)}
-          badge={signedBadge(happinessDelta)}
-          badgeColor={badgeColor(happinessDelta)}
-        />
-        <StatPill
-          icon={<StarIcon />}
-          iconBg="#FFB81C20"
-          label="Approval"
-          value={`${city.approval}%`}
-          badge={signedBadge(approvalDelta, '', '%')}
-          badgeColor={badgeColor(approvalDelta)}
-        />
-        <StatPill
-          icon={<PeopleIcon />}
-          iconBg="#3B82F620"
-          label="Population"
-          value={city.population.toLocaleString()}
-          badge={signedBadge(populationDelta)}
-          badgeColor={badgeColor(populationDelta)}
-        />
-      </div>
-
-      {/* === PLAY / PAUSE CONTROLS === */}
-      <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-        <ResetDemoButton />
-        <button className="px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => { stopPlaying(); useAgenda.getState().setOpen(true); }}>Day {city.turn} · Agenda</button>
-        {/* Settings / Analytics */}
-        <button
-          onClick={() => setAnalytics(true)}
-          className="flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
-          style={{ background: '#162236', border: '1px solid #1E3050' }}
-          title="Analytics"
+      {/* === MOBILE MENU PANEL === */}
+      {menuOpen && (
+        <div
+          className="md:hidden absolute left-0 right-0 top-full flex flex-col gap-3 p-3 max-h-[80vh] overflow-y-auto"
+          style={{ background: '#0A1628', borderBottom: '1px solid #1E3050', boxShadow: '0 12px 30px #0008' }}
         >
-          <GearIcon />
-        </button>
-      </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <BackendBadge status={backend.status} error={backend.error} />
+            <button className="px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => { useCityPulseStore.getState().setTownHall(true); setMenuOpen(false); }}>City voices</button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">{statPills}</div>
+          <div className="flex items-center gap-2">
+            <ResetDemoButton />
+            <button
+              onClick={() => { setAnalytics(true); setMenuOpen(false); }}
+              className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
+              style={{ background: '#162236', border: '1px solid #1E3050', color: '#94A3B8' }}
+            >
+              <GearIcon /> Analytics
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

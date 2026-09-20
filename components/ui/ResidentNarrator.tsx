@@ -109,6 +109,7 @@ export default function ResidentNarrator() {
         <span className="mayor-speaking"><span className="resident-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>{muted ? 'Captions only' : status === 'loading' ? 'Preparing voice…' : status === 'speaking' ? 'Speaking' : announcement?.speechSource === 'gemini' ? 'Gemini-transcribed briefing' : announcement?.source === 'nemotron' ? 'Nemotron briefing' : 'Voice briefing'}</span>
         <button onClick={toggleMute} aria-label={muted ? `Unmute ${speakerName} voice` : `Mute ${speakerName} voice`}>{muted ? 'Unmute' : 'Mute'}</button>
         <button onClick={playAgain} disabled={!announcement || status === 'loading'}>Replay</button>
+        <button onClick={dismiss} aria-label={`Skip ${speakerName} briefing`}>Skip →</button>
 
       </div>
     </div>

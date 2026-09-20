@@ -11,10 +11,20 @@ export function drawProtest(ctx: CanvasRenderingContext2D, x: number, y: number,
     ctx.fillStyle = '#24303c'; ctx.fillRect(px-3,py+1,2,4); ctx.fillRect(px+1,py+1,2,4);
     ctx.fillStyle = ['#edbd91','#ad754f','#724a35'][n%3]; ctx.beginPath(); ctx.arc(px,py-12+bob,3,0,Math.PI*2); ctx.fill();
     if (n%4===0) {
+      const text = ['HUMANS FIRST','OUR DATA','FAIR AI'][n%3];
+      const boardX = px-7, boardY = py-31+bob, boardW = 25, boardH = 11;
       ctx.fillStyle='#8c6945';ctx.fillRect(px+4,py-26+bob,1,19);
-      ctx.fillStyle='#fff0c9';ctx.fillRect(px-7,py-31+bob,25,11);
-      ctx.fillStyle='#26323a';ctx.font='bold 4px sans-serif';ctx.textAlign='center';
-      ctx.fillText(['HUMANS FIRST','OUR DATA','FAIR AI'][n%3],px+5,py-24+bob);
+      ctx.fillStyle='#fff0c9';ctx.fillRect(boardX,boardY,boardW,boardH);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(boardX+1,boardY+1,boardW-2,boardH-2); ctx.clip();
+      ctx.fillStyle='#26323a';ctx.textAlign='center';ctx.textBaseline='middle';
+      // Shrink to fit instead of a fixed size, so longer slogans never spill past the board.
+      let size = 3.4;
+      ctx.font = `bold ${size}px sans-serif`;
+      const maxWidth = boardW - 3;
+      while (size > 1.6 && ctx.measureText(text).width > maxWidth) { size -= 0.2; ctx.font = `bold ${size}px sans-serif`; }
+      ctx.fillText(text, px+5, boardY+boardH/2+0.5);
+      ctx.restore();
     }
   }
   ctx.restore();

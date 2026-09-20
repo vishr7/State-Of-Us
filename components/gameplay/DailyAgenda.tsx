@@ -11,6 +11,9 @@ import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from '@/lib/dialogue/protest';
 import { policyInspiration } from '@/lib/signals/policyInspiration';
 import { agendaHidden } from '@/lib/agendaVisibility';
 import { SpeakText } from '../ui/InsightView';
+import EndOfWeekModal from './EndOfWeekModal';
+
+const FINAL_DEMO_DAY = 7; // The scripted week is days 1-7; day 8 onward is the player's own city.
 
 export const useAgenda = create<{ open: boolean; setOpen: (open: boolean) => void }>(set => ({ open: true, setOpen: open => set({ open }) }));
 async function api<T>(path: string, body?: unknown): Promise<T> {
@@ -92,6 +95,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const [loadFailed, setLoadFailed] = useState(false);
   const [reload, setReload] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [showWeekRecap, setShowWeekRecap] = useState(false);
   const [catalog, setCatalog] = useState<Policy[]>([]);
   useEffect(() => { api<Policy[]>('/api/policies').then(setCatalog).catch(() => {}); }, [day?.gameDayId]);
   useEffect(() => { if (cityId) setOpen(true); }, [cityId, turn, setOpen]);
@@ -172,6 +176,10 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       setTransition('morning');
       await pause(1700);
       if (choice?.candidate_id) setOutcome(await api<GameDayOutcome>(`/api/city/${cityId}/game-day/outcome?turn=${turn}`));
+      if (turn === FINAL_DEMO_DAY - 1 && cityId && localStorage.getItem(`week-recap-shown:${cityId}`) !== '1') {
+        localStorage.setItem(`week-recap-shown:${cityId}`, '1');
+        setShowWeekRecap(true);
+      }
     } catch(e) { setError(e instanceof Error ? e.message : 'Could not load outcome.'); }
     finally { setBusy(false); setTransition(null); advancing.current = false; }
   };
@@ -209,6 +217,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   return <section hidden={introHidden} className={`daily-dock ${protest || outage ? 'protest-agenda' : ''}`} aria-label="Daily agenda">
     {(protestTour || outageTour) && transitionContainer && createPortal(<div className="protest-cinema" aria-live="polite"><div className="protest-flash">Emergency decision<small>{outageTour ? 'DAY 4 · POWER OUTAGE' : 'DAY 2 · CITYWIDE AI PROTEST'}</small></div><span className="protest-location">{outageTour ? 'LIVE · HOMEWOOD / POWER FAILURE' : 'LIVE · OAKLAND / CATHEDRAL OF LEARNING'}</span></div>, transitionContainer)}
     {transition && transitionContainer && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, transitionContainer)}
+    {showWeekRecap && cityId && document.body && createPortal(<EndOfWeekModal cityId={cityId} onDismiss={() => setShowWeekRecap(false)} />, document.body)}
     <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>{outage ? 'Emergency · Homewood power outage' : protest ? 'Emergency · Citywide AI protest' : 'City gameplan'}</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : outage ? 'Emergency repairs or wait for the utility' : protest ? 'Fund safeguards or cancel the rollout' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
       {outcome && <button onClick={() => setExpanded(expanded === 'outcome' ? null : 'outcome')}>Last results</button>}
       <button className="daily-end" hidden={!choice && !pending && !!day?.slate.decisions.length} disabled={!canEnd || !!transition} onClick={resolve}>{resolving || transition ? 'Advancing…' : choice || pending ? 'Resume next day →' : 'Skip day →'}</button>
