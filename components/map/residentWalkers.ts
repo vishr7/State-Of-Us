@@ -64,25 +64,23 @@ export function walkerPosition(walker: Walker, seconds: number) {
   const position = tileToScreen(a.x + (b.x-a.x)*fraction + 0.39, a.y + (b.y-a.y)*fraction + 0.39);
   return { ...position, facing: b.x-b.y >= a.x-a.y ? 1 : -1, stride: Math.sin(seconds * 8 + walker.phase) * 1.5 };
 }
-export function drawWalker(ctx: CanvasRenderingContext2D, walker: Walker, seconds: number) {
-  const p = walkerPosition(walker, seconds);
-  const look = walker.appearance;
-  ctx.save(); ctx.translate(p.x,p.y); ctx.scale(p.facing,1);
+// Draws one resident, feet at the origin and facing right. The map animates `stride`; a portrait passes 0.
+function drawResidentSprite(ctx: CanvasRenderingContext2D, resident: Resident, look: Appearance, stride: number) {
   ctx.fillStyle = '#10232e55'; ctx.beginPath(); ctx.ellipse(0,1,4,1.6,0,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle = look.skirt ? look.skin : look.bottoms; ctx.lineWidth = look.skirt ? 1.3 : 1.8;
-  ctx.beginPath();ctx.moveTo(-1,-4);ctx.lineTo(-1+p.stride,-0.5);ctx.moveTo(1,-4);ctx.lineTo(1-p.stride,-0.5);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-1,-4);ctx.lineTo(-1+stride,-0.5);ctx.moveTo(1,-4);ctx.lineTo(1-stride,-0.5);ctx.stroke();
   ctx.fillStyle = '#25313b';
-  ctx.fillRect(-1.8+p.stride,-1,2.3,1.2);ctx.fillRect(0.2-p.stride,-1,2.3,1.2);
+  ctx.fillRect(-1.8+stride,-1,2.3,1.2);ctx.fillRect(0.2-stride,-1,2.3,1.2);
 
   // Hair behind the shoulders gives longer styles a distinct silhouette.
   ctx.fillStyle = look.hair;
   if (look.hairstyle === 1) ctx.fillRect(-2.5,-12,4.8,5.5);
   if (look.hairstyle === 2) ctx.fillRect(-3.5,-12,2,4);
-  ctx.fillStyle = walker.resident.portraitColor;ctx.fillRect(-2.5,-9,5,5.5);
-  ctx.fillStyle = look.jacket ? look.accent : walker.resident.portraitColor;
+  ctx.fillStyle = resident.portraitColor;ctx.fillRect(-2.5,-9,5,5.5);
+  ctx.fillStyle = look.jacket ? look.accent : resident.portraitColor;
   ctx.fillRect(-3,-8.5,1.3,3.5);ctx.fillRect(2,-8.5,1.3,3.5);
   ctx.fillStyle = look.skin;
-  ctx.fillRect(-3,-5+p.stride*0.35,1.2,1.4);ctx.fillRect(2,-5-p.stride*0.35,1.2,1.4);
+  ctx.fillRect(-3,-5+stride*0.35,1.2,1.4);ctx.fillRect(2,-5-stride*0.35,1.2,1.4);
   if (look.jacket) {
     ctx.fillStyle = look.accent;
     ctx.fillRect(-2.5,-9,1.7,5.5);ctx.fillRect(1,-9,1.5,5.5);
@@ -118,6 +116,27 @@ export function drawWalker(ctx: CanvasRenderingContext2D, walker: Walker, second
   } else {
     ctx.fillStyle = '#343033';ctx.fillRect(1,-11.7,0.6,0.8);
   }
+}
+
+export function drawWalker(ctx: CanvasRenderingContext2D, walker: Walker, seconds: number) {
+  const p = walkerPosition(walker, seconds);
+  ctx.save(); ctx.translate(p.x,p.y); ctx.scale(p.facing,1);
+  drawResidentSprite(ctx, walker.resident, walker.appearance, p.stride);
+  ctx.restore();
+}
+
+/**
+ * The same figure the resident has on the map (appearance is derived from their id, so it matches
+ * exactly), standing still and scaled to fit a square of `size` CSS pixels.
+ */
+export function drawResidentPortrait(ctx: CanvasRenderingContext2D, resident: Resident, size: number) {
+  // The sprite spans roughly x -3.7..3.7 and y -16.2..2.6 (feet shadow included).
+  const scale = size * 0.86 / 18.8;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(scale, scale);
+  ctx.translate(0, 6.8);
+  drawResidentSprite(ctx, resident, appearanceFor(resident.id), 0);
   ctx.restore();
 }
 

@@ -3,6 +3,7 @@
 import { useCityPulseStore, selectFeaturedResident } from '@/lib/store';
 import { AgentGroup, IncomeGroup } from '@/lib/types';
 import Avatar from '../ui/Avatar';
+import ResidentSprite from '../ui/ResidentSprite';
 
 // ------ Sentiment Bar Row -----------------------------------
 
@@ -82,6 +83,7 @@ function CommunityVoices() {
 function FeaturedResidentCard() {
   const resident = useCityPulseStore(selectFeaturedResident);
   const selectResident = useCityPulseStore(s => s.selectResident);
+  const focusResidentOnMap = useCityPulseStore(s => s.focusResidentOnMap);
 
   if (!resident) return null;
 
@@ -110,12 +112,21 @@ function FeaturedResidentCard() {
 
       {/* Resident info */}
       <div className="flex items-start gap-2.5">
-        <Avatar
-          initials={resident.portraitInitials}
-          color={resident.portraitColor}
-          src={resident.avatarUrl}
-          size={48}
-        />
+        {/* The photo is a button of its own: it flies the map to this resident; the rest of the card opens their profile. */}
+        <button
+          type="button"
+          className="group relative flex-shrink-0 rounded-xl transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300"
+          title={`Find ${resident.name} on the map`}
+          aria-label={`Find ${resident.name} on the map`}
+          onClick={e => { e.stopPropagation(); focusResidentOnMap(resident.id); }}
+        >
+          <ResidentSprite resident={resident} size={56} />
+          <span
+            aria-hidden="true"
+            className="absolute -bottom-1 -right-1 grid place-items-center w-5 h-5 rounded-full text-[10px] shadow-md opacity-90 group-hover:opacity-100"
+            style={{ background: '#F6D28E', color: '#0A1628', border: '1.5px solid #0D1E30' }}
+          >📍</span>
+        </button>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold leading-tight" style={{ color: '#F0F4FA' }}>
             {resident.name}

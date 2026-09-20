@@ -13,6 +13,7 @@ import { briefingSpeaker } from './dialogue/speakers';
 import { create } from 'zustand';
 import type { CityInsight, InsightRequest } from './ai/contracts';
 import { selectPolicyLock, unaffordableReason } from './policyProgress';
+import { featuredResidentForDay } from './featuredResident';
 export { selectPolicyLock, unaffordableReason } from './policyProgress';
 import { personaResidents } from './personas';
 import {
@@ -63,6 +64,9 @@ interface CityPulseStore extends GameState {
   announce: (text: string, kind?: ResidentAnnouncement['kind']) => void;
   dismissAnnouncement: () => void;
   submittingPolicy: boolean;
+  /** Ask the map to fly to a resident. `nonce` makes repeat requests for the same resident fire again. */
+  mapFocus: { residentId: string; nonce: number } | null;
+  focusResidentOnMap: (residentId: string) => void;
   pendingPolicy: { name: string; turn: number } | null;
   // Derived / convenience
   weather: { condition: WeatherCondition; tempC: number };
@@ -138,6 +142,8 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   announce: (text, kind = 'info') => set(state => ({ announcements: [...state.announcements, { id: ++announcementId, speaker: kind === 'warning' ? 'news' : 'assistant', tour: /next decision/i.test(text) ? 'choices' : undefined, text: text.replace(/^[✓✗⚡]\s*/, ''), kind }] })),
   dismissAnnouncement: () => set(state => ({ announcements: state.announcements.slice(1) })),
   submittingPolicy: false,
+  mapFocus: null,
+  focusResidentOnMap: (residentId) => set(state => ({ mapFocus: { residentId, nonce: (state.mapFocus?.nonce ?? 0) + 1 } })),
   pendingPolicy: null,
   // Initial game state
   city: initialCity,
@@ -570,8 +576,9 @@ export const selectActiveBridge = (state: CityPulseStore) =>
 export const selectActiveResident = (state: CityPulseStore) =>
   state.residents.find(r => r.id === state.ui.selectedResidentId) ?? null;
 
+// A new resident is featured each game day (see lib/featuredResident.ts).
 export const selectFeaturedResident = (state: CityPulseStore) =>
-  state.residents[0]; // Could rotate based on turn
+  featuredResidentForDay(state.residents, state.city.turn);
 
 export const selectProposedPolicies = (state: CityPulseStore) =>
   state.policies.filter(p => p.status === 'proposed');
