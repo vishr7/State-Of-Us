@@ -98,6 +98,29 @@ kept in history instead of interrupting the player with a stale briefing.
 
 See [NVIDIA model API documentation](https://docs.api.nvidia.com/nim/reference/nvidia-nemotron-3-5-lightning-30b-a3b-infer).
 
+## Gemini-transcribed Mayor speech (implemented)
+
+Nemotron (or its scripted fallback) still produces the underlying records for every
+briefing: the measured summary, per-resident stances, and the resident conversation.
+`lib/ai/gemini.ts` takes those records — plus the day number (`facts.turn`) and
+today's game event, if any — and asks Gemini to transcribe them into the actual
+words the Mayor speaks aloud for that day's performance. The result replaces
+`commentary.mayorSpeech` before ElevenLabs voices it through the existing
+`/api/resident-speech` endpoint; nothing about the TTS call itself changes.
+
+Set `GEMINI_API_KEY` in the project-root `.env` and restart Next.js. The optional
+`GEMINI_MODEL` defaults to `gemini-2.5-flash`. If the key is missing, the request
+limit is hit, or the Gemini call fails, the Mayor speaks the records' own
+`mayorSpeech` text unchanged (`CityInsight.speechSource` is `'scripted'` instead of
+`'gemini'`) — the briefing is never blocked on Gemini being available. The Mayor's
+nameplate shows the current day (`Day N`, from `city.turn`, which already advances
+once per resolved turn) so the speech is clearly tied to that day's performance.
+
+Today's event is read from the existing `activeEvents`/`GameEvent` data (see
+`lib/mockEngine.ts`'s `rollEvent`) via `InsightFacts.event`. The in-development
+"one of five events per turn" system is expected to keep populating that same
+field, so no further wiring should be needed once it lands.
+
 ## Manual acceptance checklist
 
 - Dashboard preview greets the mayor with the supplied resident name.

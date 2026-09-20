@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { parseCommentary, type Commentary, type CityInsight, type InsightFacts } from './contracts';
+import { generateMayorSpeech } from './gemini';
 const cache = new Map<string, { expires: number; value: CityInsight }>();
 const pending = new Map<string, Promise<CityInsight>>();
 let calls = 0;
@@ -29,7 +30,22 @@ export async function generateInsight(facts: InsightFacts): Promise<CityInsight>
   if (cached && cached.expires > Date.now()) return cached.value;
   const existing = pending.get(hash); if (existing) return existing;
   const work = (async (): Promise<CityInsight> => {
-    const fallback = (notice: string): CityInsight => ({ id: hash, facts, commentary: fallbackCommentary(facts), source: 'scripted', model: null, notice });
+    // Nemotron (or its scripted fallback) supplies the records — summary, resident
+    // stances, conversation. Gemini transcribes those records into the words the
+    // Mayor actually speaks; if Gemini can't run, the records' own speech is used as-is.
+    const finalize = async (base: Omit<CityInsight, 'speechSource' | 'speechNotice'>): Promise<CityInsight> => {
+      const speech = await generateMayorSpeech(facts, base.commentary);
+      const value: CityInsight = {
+        ...base,
+        commentary: { ...base.commentary, mayorSpeech: speech.text },
+        speechSource: speech.source,
+        speechNotice: speech.notice,
+      };
+      if (cache.size >= 40) cache.delete(cache.keys().next().value!);
+      cache.set(hash, { expires: Date.now() + 120000, value });
+      return value;
+    };
+    const fallback = (notice: string) => finalize({ id: hash, facts, commentary: fallbackCommentary(facts), source: 'scripted', model: null, notice });
     if (!process.env.NVIDIA_API_KEY) return fallback('NVIDIA is not configured. Showing a scripted summary.');
     if (Date.now() - windowStart > 60000) { calls = 0; windowStart = Date.now(); }
     if (++calls > 15) return fallback('AI request limit reached. Showing a scripted summary; try again shortly.');
@@ -44,10 +60,7 @@ export async function generateInsight(facts: InsightFacts): Promise<CityInsight>
       const content = payload.choices?.[0]?.message?.content;
       if (typeof content !== 'string') throw new Error('Missing model content');
       const commentary = parseCommentary(content, facts);
-      const value: CityInsight = { id: hash, source: 'nemotron', model, facts, commentary };
-      if (cache.size >= 40) cache.delete(cache.keys().next().value!);
-      cache.set(hash, { expires: Date.now() + 120000, value });
-      return value;
+      return await finalize({ id: hash, source: 'nemotron', model, facts, commentary });
     } catch (error) {
       console.error('Nemotron commentary unavailable:', error instanceof Error ? error.message.slice(0,180) : 'request failed');
       return fallback('Nemotron is temporarily unavailable. Showing scripted commentary and engine-calculated facts.');

@@ -19,6 +19,7 @@ export default function ResidentNarrator() {
   const waiting = useCityPulseStore(s => s.announcements.length);
   const dismiss = useCityPulseStore(s => s.dismissAnnouncement);
   const otherDialogue = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
+  const day = useCityPulseStore(s => s.city.turn);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'speaking' | 'ready' | 'error'>('ready');
   const [error, setError] = useState('');
@@ -83,13 +84,13 @@ export default function ResidentNarrator() {
       <img src="/avatars/mayor-professional.png" alt="" />
     </div>
     <div className="mayor-dialogue">
-      <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>Mayor</h3><span>CITY OF PITTSBURGH</span></div></div>
+      <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>Mayor</h3><span>CITY OF PITTSBURGH · DAY {day}</span></div></div>
       <button aria-label="Dismiss Mayor's briefing" onClick={dismiss} className="mayor-close">×</button>
       <div className="mayor-dialogue-heading">{announcement.kind === 'warning' ? 'CITY UPDATE' : announcement.kind === 'success' ? 'POLICY BRIEFING' : announcement.kind === 'error' ? 'ACTION NEEDED' : 'FROM THE MAYOR’S OFFICE'}</div>
       <p className="mayor-caption" aria-live="polite">{announcement.text}</p>
       {error && !muted && <div className="mayor-voice-error" role="status">{error}</div>}
       <div className="mayor-controls">
-        <span className="mayor-speaking"><span className="resident-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>{muted ? 'Captions only' : status === 'loading' ? 'Preparing voice…' : status === 'speaking' ? 'Speaking' : announcement.source === 'nemotron' ? 'Nemotron briefing' : 'Voice briefing'}</span>
+        <span className="mayor-speaking"><span className="resident-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>{muted ? 'Captions only' : status === 'loading' ? 'Preparing voice…' : status === 'speaking' ? 'Speaking' : announcement.speechSource === 'gemini' ? 'Gemini-transcribed briefing' : announcement.source === 'nemotron' ? 'Nemotron briefing' : 'Voice briefing'}</span>
         <button onClick={toggleMute} aria-label={muted ? 'Unmute Mayor voice' : 'Mute Mayor voice'}>{muted ? 'Unmute' : 'Mute'}</button>
         <button onClick={playAgain} disabled={status === 'loading'}>Replay</button>
         <button className="mayor-continue" onClick={dismiss}>{waiting > 1 ? `Next (${waiting - 1})` : 'Continue'} <span aria-hidden="true">▸</span></button>
