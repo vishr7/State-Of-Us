@@ -33,7 +33,22 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('package-lock.json','utf8'\\)\\); console.log\\('both JSON OK'\\)\")",
       "Bash(grep -n \"^\\\\.next\\\\|/\\\\.next\" .gitignore)",
       "Bash(git stash *)",
-      "Bash(node -e \"const {z}=require\\('zod'\\); console.log\\(typeof z.partialRecord\\)\")"
+      "Bash(node -e \"const {z}=require\\('zod'\\); console.log\\(typeof z.partialRecord\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(break)",
+      "Bash(npm ls *)",
+      "Read(//usr/local/**)",
+      "Read(//c//**)",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(node -e \"require.resolve\\('puppeteer'\\)\")",
+      "Bash(curl -s http://localhost:3000 -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(npx tsx *)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const p=JSON.parse\\(d\\);console.log\\(JSON.stringify\\(p.devDependencies,null,2\\)\\);}\\)\")",
+      "Bash(npx playwright *)",
+      "Bash(node scripts/_shot.mjs)",
+      "Bash(DEBUG_ROAD_OVERRIDES=1 npx tsx scripts/_overrides.ts)",
+      "Bash(rm -f scripts/_overrides.ts scripts/_intersections.ts)",
+      "Bash(rm -rf .next)"
     ],
     "additionalDirectories": [
       "\\tmp"
