@@ -121,9 +121,10 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         const speaker = briefingSpeaker(day, request.mode);
         const duet = speaker === 'mayor';
         const lines: ResidentAnnouncement[] = [];
+        if (insight.facts.assessment && speaker === 'mayor') lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: `Since Day ${insight.facts.assessment.baselineDay}, happiness changed by ${insight.facts.assessment.happinessChange} points and approval by ${insight.facts.assessment.approvalChange} points. ${insight.facts.assessment.improvedDistricts} districts improved. The performance grant is $${insight.facts.assessment.grant.toLocaleString('en-US')}, already included in the budget.` });
         if (duet) lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: day === 1 ? 'Mayor, the city is ready. Shall we walk through the first decision?' : 'Mayor, the latest results are in. What should we take from them?' });
         lines.push({ id: ++announcementId, speaker, duet, text: day === 1 && speaker === 'mayor' ? 'Choose one of the five plans, check its cost and tradeoffs, and confirm your choice. That moves us into the next day. My assistant will guide you; I’ll return every third day to review the results. ' + insight.commentary.mayorSpeech.slice(0, 620) : insight.commentary.mayorSpeech, kind: 'info', source: insight.source, speechSource: insight.speechSource, turn: day });
-        if (duet) lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: day === 1 ? 'And I’ll keep the paperwork under control. Your five plans are ready to explore.' : 'Noted. I’ll keep those tradeoffs in view as we look at the next plans.' });
+        lines.push({ id: ++announcementId, speaker: 'assistant', duet, kind: 'info', turn: day, text: 'Next, we’ll look at today’s plans. Open a card to compare its cost and tradeoffs, then choose how we move forward.' });
         set(state => ({ announcements: [...state.announcements, ...lines] }));
       }
       return insight;

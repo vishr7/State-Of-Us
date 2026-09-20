@@ -1,3 +1,4 @@
+import { assessPerformance } from './performanceAssessment';
 /**
  * Orchestrates one full turn resolution:
  *
@@ -89,6 +90,16 @@ export async function resolveTurn(cityId: string, expectedTurn?: number): Promis
     const newTurn = previousTurn + 1;
     city = { ...city, current_turn: newTurn };
 
+    let assessment: SimulationState['assessment'];
+    const displayDay = newTurn + 1;
+    if (displayDay % 3 === 0) {
+      const baselineTurn = Math.max(0, newTurn - 3);
+      const baseline = (await client.query<{ state: SimulationState }>('select state from simulation_snapshots where city_id=$1 and turn=$2', [cityId, baselineTurn])).rows[0]?.state;
+      if (baseline) {
+        assessment = assessPerformance(displayDay, baseline, { city, neighborhoods });
+        city = { ...city, treasury: city.treasury + assessment.grant };
+      }
+    }
     await persistResidents(client, residents);
     await persistNeighborhoods(client, neighborhoods);
     await persistCity(client, city);
@@ -96,6 +107,7 @@ export async function resolveTurn(cityId: string, expectedTurn?: number): Promis
     const state: SimulationState = {
       version: 1,
       turn: newTurn,
+      ...(assessment ? { assessment } : {}),
       city: omitTimestamps(city),
       neighborhoods,
       residents,

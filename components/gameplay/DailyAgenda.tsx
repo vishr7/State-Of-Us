@@ -61,7 +61,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const { open, setOpen } = useAgenda();
   const cityId = useCityPulseStore(s => s.backendLink?.cityId);
   const turn = useCityPulseStore(s => s.city.turn - 1);
-  const introHidden = useCityPulseStore(s => !!s.announcements[0]?.tour && s.announcements[0].tour !== 'choices');
+  const introHidden = useCityPulseStore(s => s.announcements[0]?.tour !== 'choices' && (s.announcements.length > 0 || s.insightsPending > 0 || s.resolvingTurn));
   const resolving = useCityPulseStore(s => s.resolvingTurn);
   const pending = useCityPulseStore(s => s.pendingPolicy);
   const treasury = useCityPulseStore(s => s.city.treasury);

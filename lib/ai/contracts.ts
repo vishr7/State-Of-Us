@@ -23,6 +23,7 @@ export type Commentary = z.infer<typeof commentarySchema>;
 export interface Metrics { treasury: number; happiness: number; approval: number; averageRent: number; revenue: number; expenses: number }
 export interface VoicePersona { id: string; name: string; occupation: string; neighborhood: string; income: number; housing: string; priorities: string[]; neighborhoodHappiness: number | null }
 export interface InsightFacts {
+  assessment?: import('../../database/simulation/performanceAssessment').PerformanceAssessment;
   cityName: string; turn: number; mode: InsightRequest['mode'];
   current: Metrics; previous: Metrics | null;
   policies: { id: string; name: string; description: string; status: 'proposed' | 'queued' | 'applied' }[];

@@ -356,6 +356,7 @@ export interface AppliedDecision {
  * to storing a content hash plus a diff against the previous snapshot.
  */
 export interface SimulationState {
+  assessment?: import('../simulation/performanceAssessment').PerformanceAssessment;
   version: 1;
   turn: number;
   city: Omit<City, 'created_at' | 'updated_at'>;
