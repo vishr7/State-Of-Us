@@ -577,7 +577,16 @@ export default function CityCanvas() {
   }, [demolition?.id, setMapViewport]);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
-  const isPlaying = useCityPulseStore(s => s.ui.isPlaying);
+  // Street life (people, cars) is ambient. It used to follow `ui.isPlaying`, but the daily-agenda
+  // flow retired turn autoplay (nothing sets it any more), which froze everyone in place.
+  const [ambientMotion, setAmbientMotion] = useState(true);
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setAmbientMotion(!query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, []);
   useEffect(() => {
     const img = new Image();
     img.onload = () => setAtlas(img);
@@ -776,7 +785,7 @@ export default function CityCanvas() {
       const dt = Math.min(32, now - previousTime);
       previousTime = now;
       const time = (now - startT) * 0.001;
-      if (isPlaying) walkingTimeRef.current += dt / 1000;
+      if (ambientMotion) walkingTimeRef.current += dt / 1000;
       const camera = cameraRef.current;
       const velocity = velocityRef.current;
       if (!dragRef.current && (velocity.x || velocity.y)) {
@@ -812,7 +821,7 @@ export default function CityCanvas() {
       ctx.stroke(); ctx.globalAlpha = 1;
       for (const { tx, ty, cx, cy, info, alongX } of trafficTiles) {
         if (info.ground === 'road' && !info.bridge && (tx + ty) % 5 === 0) {
-          const progress = isPlaying ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
+          const progress = ambientMotion ? (time * 0.16 + rng(tx, ty)) % 1 : rng(tx, ty);
           const vx = cx + (progress - 0.5) * TW * (alongX ? 1 : -1);
           const vy = cy + (progress - 0.5) * TH;
           drawCar(ctx, vx, vy, alongX, (tx + ty * 3) % 4);
@@ -866,7 +875,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, isPlaying, setMapViewport, walkers, removedBuildings]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, removedBuildings]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -1064,7 +1073,7 @@ export default function CityCanvas() {
       )}
 
       <div className="hud-ctrl absolute top-3 right-3 z-40 rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-xs text-slate-200">
-        <label htmlFor="map-resident-picker" className="block mb-1 text-[10px] text-slate-400">{walkers.length} synthetic residents · {isPlaying ? 'Walking' : 'Paused — press Play'}</label>
+        <label htmlFor="map-resident-picker" className="block mb-1 text-[10px] text-slate-400">{walkers.length} synthetic residents{ambientMotion ? '' : ' · Motion reduced'}</label>
         <select id="map-resident-picker" aria-label="Explore a resident" value="" onChange={e => selectResident(e.target.value)} className="w-44 bg-slate-900 text-slate-200 outline-none">
           <option value="" disabled>Explore a resident…</option>
           {residents.map(resident => <option key={resident.id} value={resident.id}>{resident.name} · {resident.age}</option>)}
