@@ -12,6 +12,7 @@ import { policyInspiration } from '@/lib/signals/policyInspiration';
 import { agendaHidden } from '@/lib/agendaVisibility';
 import { SpeakText } from '../ui/InsightView';
 import EndOfWeekModal from './EndOfWeekModal';
+import { playTransit } from '../animations/transit';
 import { playRedevelopment } from '../animations/redevelopment';
 
 const FINAL_DEMO_DAY = 7; // The scripted week is days 1-7; day 8 onward is the player's own city.
@@ -170,7 +171,10 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
         });
       }
       const project = chosen ?? day?.slate.decisions.find(c => c.id === choice?.candidate_id);
-      if (project && cityId) await playRedevelopment(project, `${cityId}:${turn}`);
+      if (project && cityId) {
+        await playRedevelopment(project, `${cityId}:${turn}`);
+        await playTransit(project, `${cityId}:${turn}`);
+      }
       setTransition('sunset');
       await pause(1400);
       setTransition('night');

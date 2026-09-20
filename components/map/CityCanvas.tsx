@@ -8,6 +8,8 @@ import { createWalkers, drawWalker, walkerPosition, hitTestWalker } from './resi
 import { createCars, carFrame, advanceCars } from './carRoutes';
 import { useCityPulseStore } from '@/lib/store';
 import { drawCar } from './carSprite';
+import { drawBus } from './busSprite';
+import { addsBusService, useTransitAnimation } from '../animations/transit';
 import { useAnimationStore, tileKey } from '../animations/store';
 import { drawDemolition, DEMOLITION_IMPACT_MS, DEMOLITION_DURATION_MS } from '../animations/demolition';
 
@@ -612,6 +614,11 @@ export default function CityCanvas() {
   }, [demolition?.id, setMapViewport]);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
+  const transitServices = useTransitAnimation(s => s.services.length);
+  const transitSpotlight = useTransitAnimation(s => s.spotlight);
+  const activeBusPlans = policies.filter(p => p.status === 'active' && addsBusService(p.name)).length;
+  const busCount = Math.min(6, Math.max(transitServices, activeBusPlans) * 2);
+  const buses = useMemo(() => createCars(14).slice(8, 8 + busCount).map(bus => ({ ...bus, baseSpeed: .48 })), [busCount]);
   // Send every pedestrian and car back to the start of its own route each
   // time a turn advances. `turn` only changes mid-way through the daily
   // agenda's sunset/night/morning transition (see DailyAgenda's `resolve`),
@@ -874,10 +881,11 @@ export default function CityCanvas() {
       }).map(({walker,position}) => ({id:walker.resident.id, x:cw/dpr/2 + camera.x + position.x*camera.zoom, y:ch/dpr/2 + camera.y + (position.y-7)*camera.zoom}));
       // Cars brake for pedestrians ahead of them and for higher-priority cars,
       // so they never overlap each other or a person crossing the street.
-      if (ambientMotion) advanceCars(cars, dt / 1000, positions.map(({ position }) => position));
-      const carPositions = cars.map(carFrame).sort((a, b) => a.y - b.y);
+      if (ambientMotion) advanceCars([...cars, ...buses], dt / 1000, positions.map(({ position }) => position));
+      const carPositions = [...cars.map(c => ({ ...carFrame(c), bus: false })), ...buses.map(c => ({ ...carFrame(c), bus: true }))].sort((a, b) => a.y - b.y);
       for (const car of carPositions) {
-        drawCar(ctx, car.x, car.y, car.alongX, car.variant);
+        if (car.bus) drawBus(ctx, car.x, car.y, car.alongX);
+        else drawCar(ctx, car.x, car.y, car.alongX, car.variant);
       }
       for (const {walker, position} of positions) {
         drawWalker(ctx, walker, walkingTime);
@@ -977,7 +985,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, removedBuildings, replacements]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, buses, removedBuildings, replacements]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -1050,6 +1058,26 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
+  useEffect(() => {
+    if (!transitSpotlight || !buses.length) return;
+    const start = { ...cameraRef.current };
+    const began = performance.now();
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fixed = carFrame(buses[0]);
+    let frame = 0;
+    const follow = (now: number) => {
+      const point = reduced ? fixed : carFrame(buses[0]);
+      const t = reduced ? 1 : Math.min(1, (now - began) / 1600);
+      const ease = t * t * (3 - 2 * t), zoom = 1.9;
+      setMapViewport({ x: start.x + (-point.x * zoom - start.x) * ease,
+        y: start.y + (-point.y * zoom + 30 - start.y) * ease,
+        zoom: start.zoom + (zoom - start.zoom) * ease });
+      frame = requestAnimationFrame(follow);
+    };
+    frame = requestAnimationFrame(follow);
+    return () => cancelAnimationFrame(frame);
+  }, [transitSpotlight, buses, setMapViewport]);
+
   // Policy works begin only after the reporter's queue has finished.
   useEffect(() => {
     if (!demolition?.redevelopment) return;
