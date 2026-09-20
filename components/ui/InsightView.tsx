@@ -38,7 +38,7 @@ export default function InsightView({ insight }: { insight: CityInsight }) {
   const currentTurn = useCityPulseStore(s => s.city.turn);
   const person = (id: string) => facts.residents.find(r => r.id === id);
   return <div className="insight-view">
-    <div className="insight-provenance"><span>{insight.source === 'nemotron' ? 'NVIDIA Nemotron' : 'Scripted fallback'}</span><span>Turn {facts.turn}{facts.turn !== currentTurn ? ' · historical snapshot' : ''}</span></div>
+    <div className="insight-provenance"><span>{insight.source === 'nemotron' ? 'NVIDIA Nemotron' : 'Scripted fallback'}{insight.speechSource === 'gemini' ? ' + Gemini speech' : ''}</span><span>Day {facts.turn}{facts.turn !== currentTurn ? ' · historical snapshot' : ''}</span></div>
     {insight.notice && <p className="insight-notice" role="status">{insight.notice}</p>}
     <p className="insight-summary">{commentary.summary}</p>
     <section className="insight-section"><h3>{facts.scenarios.length === 2 ? 'Independent next-turn previews' : 'Measured city conditions'}</h3>

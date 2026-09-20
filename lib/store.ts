@@ -48,7 +48,7 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; turn?: number }
+export interface ResidentAnnouncement { id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
   insights: CityInsight[];
@@ -115,7 +115,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       set(state => ({ insights: [insight, ...state.insights.filter(item => item.id !== insight.id)].slice(0, 12) }));
       // Slow AI responses can be reviewed in history but must not interrupt a newer turn.
       if (speak && get().city.turn === insight.facts.turn) {
-        set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: insight.commentary.mayorSpeech, kind: 'info', source: insight.source, turn: insight.facts.turn }] }));
+        set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: insight.commentary.mayorSpeech, kind: 'info', source: insight.source, speechSource: insight.speechSource, turn: insight.facts.turn }] }));
       }
       return insight;
     } catch (error) {

@@ -31,7 +31,8 @@
       "Bash(PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c \"select 1\")",
       "Bash(echo \"exit $?\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('package-lock.json','utf8'\\)\\); console.log\\('both JSON OK'\\)\")",
-      "Bash(grep -n \"^\\\\.next\\\\|/\\\\.next\" .gitignore)"
+      "Bash(grep -n \"^\\\\.next\\\\|/\\\\.next\" .gitignore)",
+      "Bash(git stash *)"
     ],
     "additionalDirectories": [
       "\\tmp"

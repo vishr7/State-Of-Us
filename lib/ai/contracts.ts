@@ -30,7 +30,12 @@ export interface InsightFacts {
   residents: VoicePersona[];
   event?: string; question?: string;
 }
-export interface CityInsight { id: string; source: 'nemotron' | 'scripted'; model: string | null; notice?: string; facts: InsightFacts; commentary: Commentary }
+export interface CityInsight {
+  id: string; source: 'nemotron' | 'scripted'; model: string | null; notice?: string; facts: InsightFacts; commentary: Commentary;
+  /** Who actually wrote `commentary.mayorSpeech`. Gemini transcribes Nemotron's (or the scripted) records into the spoken address; if Gemini is unavailable the records' own mayorSpeech is spoken as-is. */
+  speechSource: 'gemini' | 'scripted';
+  speechNotice?: string;
+}
 
 export function parseCommentary(raw: string, facts: InsightFacts): Commentary {
   const clean = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/^\s*```(?:json)?\s*/, '').replace(/\s*```\s*$/, '').trim();
