@@ -9,3 +9,7 @@ export function dailyWeather(day: number, cityId = 'pittsburgh'): { condition: W
   const rainy = day === 3 || (day > 3 && (hash >>> 0) / 4294967296 < .1);
   return { condition: rainy ? 'rain' : 'sunny', tempC: rainy ? 15 : 20 };
 }
+
+/** Temperatures are stored in Celsius; the UI shows Fahrenheit. */
+export const celsiusToFahrenheit = (celsius: number) => Math.round(celsius * 9 / 5 + 32);
+export const formatTemperature = (celsius: number) => `${celsiusToFahrenheit(celsius)}°F`;

@@ -14,7 +14,7 @@ import { briefingSpeaker } from './dialogue/speakers';
 import { create } from 'zustand';
 import type { CityInsight, InsightRequest } from './ai/contracts';
 import { selectPolicyLock, unaffordableReason } from './policyProgress';
-import { featuredResidentForDay } from './featuredResident';
+import { pickRandomResident, RECENT_MEMORY } from './featuredResident';
 export { selectPolicyLock, unaffordableReason } from './policyProgress';
 import { personaResidents } from './personas';
 import {
@@ -67,6 +67,9 @@ interface CityPulseStore extends GameState {
   submittingPolicy: boolean;
   /** Ask the map to fly to a resident. `nonce` makes repeat requests for the same resident fire again. */
   mapFocus: { residentId: string; nonce: number } | null;
+  /** Today's featured resident, chosen at random once per game day (`recent` = earlier picks, kept so they aren't repeated soon). */
+  featured: { day: number; residentId: string; recent: string[] } | null;
+  rollFeaturedResident: () => void;
   focusResidentOnMap: (residentId: string) => void;
   pendingPolicy: { name: string; turn: number } | null;
   // Derived / convenience
@@ -158,6 +161,16 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   dismissAnnouncement: () => set(state => ({ announcements: state.announcements.slice(1) })),
   submittingPolicy: false,
   mapFocus: null,
+  featured: null,
+  // Idempotent: called on every render pass that might need it; only picks when the day has changed.
+  rollFeaturedResident: () => set(state => {
+    const { residents, featured, city } = state;
+    if (featured && featured.day === city.turn && residents.some(r => r.id === featured.residentId)) return {};
+    const memory = Math.min(RECENT_MEMORY, residents.length - 1);
+    const recent = featured && memory > 0 ? [...featured.recent, featured.residentId].slice(-memory) : [];
+    const pick = pickRandomResident(residents, recent);
+    return pick ? { featured: { day: city.turn, residentId: pick.id, recent } } : {};
+  }),
   focusResidentOnMap: (residentId) => set(state => ({ mapFocus: { residentId, nonce: (state.mapFocus?.nonce ?? 0) + 1 } })),
   pendingPolicy: null,
   // Initial game state
@@ -601,9 +614,9 @@ export const selectActiveBridge = (state: CityPulseStore) =>
 export const selectActiveResident = (state: CityPulseStore) =>
   state.residents.find(r => r.id === state.ui.selectedResidentId) ?? null;
 
-// A new resident is featured each game day (see lib/featuredResident.ts).
+// A random resident is featured each game day (chosen by rollFeaturedResident; kept until the next roll so nothing flickers).
 export const selectFeaturedResident = (state: CityPulseStore) =>
-  featuredResidentForDay(state.residents, state.city.turn);
+  state.featured ? state.residents.find(r => r.id === state.featured!.residentId) : undefined;
 
 export const selectProposedPolicies = (state: CityPulseStore) =>
   state.policies.filter(p => p.status === 'proposed');

@@ -77,7 +77,6 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const [error, setError] = useState('');
   const [loadFailed, setLoadFailed] = useState(false);
   const [reload, setReload] = useState(0);
-  const [reason, setReason] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<Policy[]>([]);
   useEffect(() => { api<Policy[]>('/api/policies').then(setCatalog).catch(() => {}); }, [day?.gameDayId]);
@@ -86,7 +85,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     if (!cityId) return;
     useCityPulseStore.getState().stopPlaying();
     let cancelled = false;
-    setDay(null); setChoice(null); setExpanded(null); setReason(''); setError(''); setLoadFailed(false); setBusy(true);
+    setDay(null); setChoice(null); setExpanded(null); setError(''); setLoadFailed(false); setBusy(true);
     Promise.allSettled([
       loadOrPrepareDay(cityId, turn),
       api<GameDayDecision[]>(`/api/city/${cityId}/decisions`),
@@ -124,7 +123,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const choose = async (candidate: GeneratedEventCandidate) => {
     setBusy(true); setError(''); useCityPulseStore.setState({ submittingPolicy: true });
     try {
-      const saved = await api<GameDayDecision>(`/api/city/${cityId}/decisions`, { candidate_id: candidate.id, turn, player_reasoning: reason.trim() || undefined });
+      const saved = await api<GameDayDecision>(`/api/city/${cityId}/decisions`, { candidate_id: candidate.id, turn });
       setChoice(saved);
       useCityPulseStore.setState({ pendingPolicy: { name: candidate.title, turn: turn + 1 } });
       setExpanded(null);
@@ -209,7 +208,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
           <h4>Where the money goes</h4><p>{costs(selected)?.description ?? 'Budget details are unavailable.'}</p>
           <p className="daily-money">{costs(selected) ? `${money(costs(selected)!.upfront_cost)} upfront · ${money(Math.abs(costs(selected)!.recurring_cost))} recurring ${costs(selected)!.recurring_cost < 0 ? 'revenue' : 'cost'}` : 'Loading budget…'}</p>
           <details><summary>Background, tradeoffs & sources</summary><p>{selected.description}</p>{selected.supportedBenefits.map((t,i)=><p key={`b${i}`}>Potential benefit: {t}</p>)}{selected.supportedRisks.map((t,i)=><p key={`r${i}`}>Tradeoff: {t}</p>)}{selected.sourceRefs.map((source,i)=><p key={i}>{/^https?:\/\//.test(source.url) ? <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> : source.title}</p>)}</details>
-        </div><div className="daily-choice-action"><label>Your reasoning (optional)<textarea maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label>{selectedShort && <p role="alert" className="daily-short-note"><span aria-hidden="true">🔒</span><span>Can’t afford this yet — you’re <strong>{money(selectedShort.result.shortfall)}</strong> short. {insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result).replace(/^Not enough cash for "[^"]*": /, '')}</span></p>}<button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable || !!selectedShortfall} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : selectedShortfall ? 'Not enough cash' : 'Choose this plan'}</button></div>
+        </div><div className="daily-choice-action">{selectedShort && <p role="alert" className="daily-short-note"><span aria-hidden="true">🔒</span><span>Can’t afford this yet — you’re <strong>{money(selectedShort.result.shortfall)}</strong> short. {insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result).replace(/^Not enough cash for "[^"]*": /, '')}</span></p>}<button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable || !!selectedShortfall} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : selectedShortfall ? 'Not enough cash' : 'Choose this plan'}</button></div>
       </div></PlanDialog>}
       {expanded === 'outcome' && outcome && <PlanDialog onClose={() => setExpanded(null)}><div className="daily-expanded"><div><h3>Day {outcome.turn+1} · {outcome.candidate.title}</h3><p>Happiness {outcome.before.city.happiness} → {outcome.after.city.happiness} · Treasury {money(outcome.before.city.treasury)} → {money(outcome.after.city.treasury)}</p><p>Resident reactions: {outcome.reactionStatus}</p>{outcome.reactions.map(r => {
         const resident = outcome.after.residents.find(p => p.id === r.residentId);

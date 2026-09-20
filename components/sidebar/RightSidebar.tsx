@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useCityPulseStore, selectFeaturedResident } from '@/lib/store';
 import { AgentGroup, IncomeGroup } from '@/lib/types';
 import Avatar from '../ui/Avatar';
@@ -84,6 +85,11 @@ function FeaturedResidentCard() {
   const resident = useCityPulseStore(selectFeaturedResident);
   const selectResident = useCityPulseStore(s => s.selectResident);
   const focusResidentOnMap = useCityPulseStore(s => s.focusResidentOnMap);
+  const day = useCityPulseStore(s => s.city.turn);
+  const rollFeaturedResident = useCityPulseStore(s => s.rollFeaturedResident);
+
+  // Pick a new random resident whenever the game day changes (no-op if today's is already chosen).
+  useEffect(() => { rollFeaturedResident(); }, [day, rollFeaturedResident]);
 
   if (!resident) return null;
 
