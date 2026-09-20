@@ -928,6 +928,10 @@ npm run db:stop
 
 The game-day vertical-slice migration must be applied before using the new persisted Gemini/Nemotron workflow.
 
+**After pulling new code, run `npm run db:migrate`.** It applies only the migrations added since your local
+database was created (`db:seed` is for a brand-new, empty database). Skipping it causes errors such as
+`relation "game_days" does not exist` — a failing "Reset demo" button or "Could not load today's gameplan".
+
 **---**
 
 # Tests
