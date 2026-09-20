@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import ResidentPortrait from './ResidentPortrait';
+import PersonaPortrait from './PersonaPortrait';
 import { useAgenda } from '../gameplay/DailyAgenda';
 import { useCityPulseStore, selectPolicyLock } from '@/lib/store';
 
@@ -25,6 +26,9 @@ export default function ResidentNarrator() {
   const speakerName = announcement?.label ?? (speaker === 'mayor' ? 'Mayor' : speaker === 'news' ? 'News anchor' : speaker === 'resident' ? 'Resident' : 'City assistant');
   const portrait = speaker === 'mayor' ? 'mayor-professional' : speaker === 'news' ? 'news-anchor' : 'assistant';
   const day = useCityPulseStore(s => s.city.turn);
+  // A viewpoint from someone who walks the map: show THEIR figure and take the camera to them.
+  const mapResident = useCityPulseStore(s => speaker === 'resident' && announcement?.residentId ? s.residents.find(r => r.id === announcement.residentId) : undefined);
+  const focusResidentOnMap = useCityPulseStore(s => s.focusResidentOnMap);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'speaking' | 'ready' | 'error'>('ready');
   const [error, setError] = useState('');
@@ -76,6 +80,10 @@ export default function ResidentNarrator() {
     return () => window.removeEventListener('keydown', onKey);
   }, [announcement?.id, dismiss, otherDialogue]);
 
+  useEffect(() => {
+    if (announcement && !otherDialogue && mapResident) focusResidentOnMap(mapResident.id);
+  }, [announcement?.id, otherDialogue, mapResident?.id, focusResidentOnMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const toggleMute = () => {
     const next = !muted; setMuted(next); localStorage.setItem('resident-voice-muted', String(next));
   };
@@ -87,7 +95,7 @@ export default function ResidentNarrator() {
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {speaker === 'resident' ? <ResidentPortrait id={announcement.residentId ?? announcement.label ?? "resident"} age={announcement.residentAge} /> : <img src={`/avatars/${portrait}.png`} alt="" />}
+      {speaker === 'resident' ? (mapResident ? <PersonaPortrait resident={mapResident} /> : <ResidentPortrait id={announcement.residentId ?? announcement.label ?? "resident"} age={announcement.residentAge} />) : <img src={`/avatars/${portrait}.png`} alt="" />}
     </div>
     {speaker === 'resident' && announcement.tour?.startsWith('district:') && <div className="dialogue-partner" aria-hidden="true"><img src="/avatars/news-anchor.png" alt="" /></div>}
     {announcement.duet && <div className="dialogue-partner" aria-hidden="true"><img src={`/avatars/${speaker === 'mayor' ? 'assistant' : 'mayor-professional'}.png`} alt="" /></div>}

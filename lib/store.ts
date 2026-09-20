@@ -1,3 +1,5 @@
+'use client';
+
 import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from './dialogue/protest';
 import { dailyWeather } from './weather';
 import { MAYOR_INTRODUCTION } from './dialogue/introduction';
@@ -8,8 +10,6 @@ import { briefingSpeaker } from './dialogue/speakers';
 // Components are presentational — they read from here and call actions.
 // The turn interval runs here, not in a component.
 // ============================================================
-
-'use client';
 
 import { create } from 'zustand';
 import type { CityInsight, InsightRequest } from './ai/contracts';

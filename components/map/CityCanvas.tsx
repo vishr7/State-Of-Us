@@ -984,7 +984,8 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
-  const tour = useCityPulseStore(s => s.announcements[0]?.tour);
+  // A speaking map resident gets a camera lock on them (mapFocus); the district tour would fight it.
+  const tour = useCityPulseStore(s => { const a = s.announcements[0]; return a?.speaker === 'resident' && a.residentId ? undefined : a?.tour; });
   useEffect(() => {
     if (!tour) return;
     const container = containerRef.current;
