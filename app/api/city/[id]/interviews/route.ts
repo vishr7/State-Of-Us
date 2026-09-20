@@ -7,7 +7,7 @@ import { loadTurnState } from '@database/simulation/loadTurnState';
 import { applyPolicyEffects } from '@database/simulation/applyPolicyEffects';
 
 export const runtime = 'nodejs';
-/** Read-only previews of the saved choice: the turn has not yet resolved. */
+/** Preview effects and reserve unique interviewees for this game day. */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -27,7 +27,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         if (!district || !next || !local) return [];
         return [{ resident, district, next, local, ...interviewImpact(resident, next, district, local) }];
       });
-      return { people: selectInterviewees(candidates), policy };
+      const days = (await db.query<{ turn: number; generation_metadata: { interviewResidentIds?: string[] } }>(
+        'select turn,generation_metadata from game_days where city_id=$1 order by turn', [id])).rows;
+      const saved = days.find(day => day.turn === turn)?.generation_metadata.interviewResidentIds;
+      const used = new Set(days.filter(day => day.turn !== turn).flatMap(day => day.generation_metadata.interviewResidentIds ?? []));
+      const people = saved
+        ? saved.flatMap(id => { const person = candidates.find(p => p.resident.id === id); return person ? [person] : []; })
+        : selectInterviewees(candidates, used);
+      if (people.length < 2) throw new Error('Not enough new residents are available for two distinct interviews.');
+      if (!saved) {
+        const reservation = await db.query(
+          "update game_days set generation_metadata=jsonb_set(generation_metadata,'{interviewResidentIds}',$3::jsonb) where city_id=$1 and turn=$2 returning id",
+          [id, turn, JSON.stringify(people.map(p => p.resident.id))]);
+        if (!reservation.rows.length) throw new Error('Prepare this game day before starting interviews.');
+      }
+      return { people, policy };
     });
     const generated = await interviewDialogue(context.people, context.policy);
     const lines = context.people.flatMap(({ resident, district, next, local, mood, reason }, index) => {

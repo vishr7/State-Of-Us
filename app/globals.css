@@ -472,3 +472,16 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .city-gameplan .is-resident .mayor-character { left:-150px; width:135px; height:176px; }
 .city-gameplan .is-resident .mayor-character svg { display:block; width:100%; height:100%; }
 @media(max-width:1000px) { .city-gameplan .is-resident .mayor-character { left:-100px; width:90px; height:117px; } }
+
+/* A single restrained emergency reveal, with cinematic bars over gameplay only. */
+.protest-cinema { position:absolute; inset:0; z-index:30; pointer-events:none; box-shadow:inset 0 0 150px #070d1b99; }
+.protest-cinema::before,.protest-cinema::after { content:''; position:absolute; left:0; right:0; height:7%; background:#070d18; animation:protest-bars 1s ease both; }
+.protest-cinema::before { top:0; } .protest-cinema::after { bottom:0; }
+.protest-flash { position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); padding:24px 50px; background:#801e25ed; border-block:1px solid #ffa27d; color:#fff3d5; text-transform:uppercase; letter-spacing:.15em; font-size:clamp(20px,3vw,38px); font-weight:800; text-align:center; animation:protest-reveal 4s both; }
+.protest-flash small { display:block; margin-top:12px; font-size:11px; letter-spacing:.2em; }
+.protest-location { position:absolute; top:10%; left:24px; color:#fff4df; background:#871f2bdd; padding:8px 14px; font-size:11px; letter-spacing:.12em; }
+.city-gameplan .protest-agenda .daily-card-row { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:740px; margin:auto; }
+.protest-agenda .daily-choice-card { border-color:#bb7855; }
+@keyframes protest-reveal { 0% { opacity:0; } 15%,70% { opacity:1; } 100% { opacity:0; visibility:hidden; } }
+@keyframes protest-bars { from { height:0; } to { height:7%; } }
+@media(prefers-reduced-motion:reduce) { .protest-cinema::before,.protest-cinema::after { animation:none; } .protest-flash { animation:none; font-size:18px; top:18%; padding:8px 16px; } }

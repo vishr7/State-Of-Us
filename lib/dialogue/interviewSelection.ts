@@ -1,6 +1,8 @@
 import type { Resident, Neighborhood } from '../../database/types/database';
 export function interviewImpact(before: Resident, after: Resident, district: Neighborhood, nextDistrict: Neighborhood) {
   const factors = [
+    { score: after.happiness - before.happiness, benefit: 'this response addresses the disruption our household is facing', harm: 'our household is left dealing with the disruption for longer' },
+    { score: (after.government_trust - before.government_trust) * 20, benefit: 'the city is responding to people in our situation', harm: 'the response makes me feel that people in our situation are being overlooked' },
     { score: (before.housing_cost - after.housing_cost) / Math.max(before.income / 12, 1) * 100, benefit: 'lower housing costs would leave more room in my household budget', harm: 'higher housing costs would squeeze my household budget' },
     { score: (after.income - before.income) / Math.max(before.income, 1) * 100, benefit: 'higher income would give my household more breathing room', harm: 'losing income would make it harder to cover our bills' },
     { score: (before.commute_minutes - after.commute_minutes) * before.transit_sensitivity, benefit: 'a shorter commute would give me more time back', harm: 'a longer commute would take more time out of my day' },
@@ -13,8 +15,8 @@ export function interviewImpact(before: Resident, after: Resident, district: Nei
   const reason = mood === 'mixed' ? `I have mixed feelings: ${positive[0].benefit}, but ${negative[0].harm}.` : mood === 'hopeful' ? `I’m happy about this plan because ${positive[0].benefit}.` : mood === 'upset' ? `I’m upset about this plan because ${negative[0].harm}.` : 'I’m not convinced yet. The projections don’t show a direct change to my household bills or commute, so I want to understand what we get for the city’s spending.';
   return { score: factors.reduce((sum,f) => sum + f.score, 0), mood, reason };
 }
-export function selectInterviewees<T extends { resident: Resident; score: number; mood: string }>(people: T[]): T[] {
-  const unique = [...new Map(people.map(p => [p.resident.id, p])).values()];
+export function selectInterviewees<T extends { resident: Resident; score: number; mood: string }>(people: T[], excluded: ReadonlySet<string> = new Set()): T[] {
+  const unique = [...new Map(people.filter(p => !excluded.has(p.resident.id)).map(p => [p.resident.id, p])).values()];
   if (unique.length < 2) return unique;
   const sorted = unique.sort((a,b) => Math.abs(b.score) - Math.abs(a.score) || a.resident.id.localeCompare(b.resident.id));
   const first = sorted[0];

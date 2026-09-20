@@ -1,3 +1,4 @@
+import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from './dialogue/protest';
 import { dailyWeather } from './weather';
 import { MAYOR_INTRODUCTION } from './dialogue/introduction';
 import { briefingSpeaker } from './dialogue/speakers';
@@ -111,6 +112,19 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
   requestInsights: async (request, speak = false) => {
     const link = get().backendLink;
     if (!link) { set({ insightsError: 'Connect to the live database to generate grounded city analysis.' }); return null; }
+    // Day 2 is authored: don't hold its opening behind external AI providers.
+    if (speak && [2, 4].includes(get().city.turn) && (request.mode === 'outcome' || request.mode === 'briefing')) {
+      const city = get().city;
+      const outage = city.turn === 4;
+      set(state => ({ announcements: [...state.announcements,
+        { id: ++announcementId, speaker: 'assistant', kind: 'info', turn: city.turn,
+          text: `Yesterday’s results are in. City happiness is ${city.happiness} out of 100, approval is ${city.approval} percent, and we have $${city.treasury.toLocaleString('en-US')} in the budget. Now we need to respond to ${outage ? 'a power outage in Homewood' : 'a protest in Oakland'}.` },
+        { id: ++announcementId, speaker: 'news', kind: 'warning', turn: city.turn, tour: outage ? 'outage' : 'protest', text: outage ? OUTAGE_BRIEFING : PROTEST_BRIEFING },
+        { id: ++announcementId, speaker: 'assistant', kind: 'info', turn: city.turn, tour: 'choices',
+          text: 'Here are the two responses. Review the costs and effects, then make your emergency decision.' },
+      ] }));
+      return null;
+    }
     set(state => ({ insightsPending: state.insightsPending + 1, insightsError: null }));
     try {
       const response = await fetch(`/api/city/${link.cityId}/insights`, {
@@ -129,6 +143,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         if (insight.facts.assessment && speaker === 'mayor') lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: `Since Day ${insight.facts.assessment.baselineDay}, happiness changed by ${insight.facts.assessment.happinessChange} points and approval by ${insight.facts.assessment.approvalChange} points. ${insight.facts.assessment.improvedDistricts} districts improved. The performance grant is $${insight.facts.assessment.grant.toLocaleString('en-US')}, already included in the budget.` });
         if (duet) lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: day === 1 ? 'Mayor, the city is ready. Shall we walk through the first decision?' : 'Mayor, the latest results are in. What should we take from them?' });
         lines.push({ id: ++announcementId, speaker, duet, text: day === 1 && speaker === 'mayor' ? 'Choose one of the five plans, check its cost and tradeoffs, and confirm your choice. That moves us into the next day. My assistant will guide you; I’ll return every third day to review the results. ' + insight.commentary.mayorSpeech.slice(0, 620) : insight.commentary.mayorSpeech, kind: 'info', source: insight.source, speechSource: insight.speechSource, turn: day });
+        if (day === 2) lines.push({ id: ++announcementId, speaker: 'news', kind: 'warning', turn: day, tour: 'protest', text: PROTEST_BRIEFING });
         lines.push({ id: ++announcementId, tour: 'choices', speaker: 'assistant', duet, kind: 'info', turn: day, text: 'Next, we’ll look at today’s plans. Open a card to compare its cost and tradeoffs, then choose how we move forward.' });
         set(state => ({ announcements: [...state.announcements, ...lines] }));
       }
@@ -554,7 +569,7 @@ async function advanceViaBackend(get: Get, set: Set) {
       // The outcome narration owns the handoff to today's choices. A success
       // toast also speaks, so announcing choices here races the AI response.
       void get().requestInsights({ mode: 'outcome', policyIds: result.applied_decisions.slice(0,2).map(d => d.policy_id), event: newEvent?.pittsburghFlavor }, true).then(insight => {
-        if (insight || get().city.turn !== nextCity.turn || get().backendLink?.cityId !== link.cityId) return;
+        if ([2, 4].includes(nextCity.turn) || insight || get().city.turn !== nextCity.turn || get().backendLink?.cityId !== link.cityId) return;
         // Provider failures still get a grounded results-first briefing.
         set(state => ({ announcements: [...state.announcements,
           { id: ++announcementId, speaker: 'assistant', kind: 'success', turn: nextCity.turn,

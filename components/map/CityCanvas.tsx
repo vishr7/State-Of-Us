@@ -1,3 +1,4 @@
+import { drawProtest } from '../animations/protest';
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -846,6 +847,27 @@ export default function CityCanvas() {
       // Transparent building/tree silhouettes occlude pedestrians behind them.
       ctx.drawImage(foreground, -foreground.width / 2, -foreground.height / 2);
       ctx.drawImage(labels, -labels.width / 2, -labels.height / 2);
+      const protestState = useCityPulseStore.getState();
+      if (protestState.city.turn === 4) {
+        const district = NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === 'homewood');
+        if (district) {
+          ctx.save();
+          const shade = ctx.createRadialGradient(district.wx, district.wy, 20, district.wx, district.wy, 145);
+          shade.addColorStop(0, '#020917dd'); shade.addColorStop(.65, '#020917aa'); shade.addColorStop(1, '#02091700');
+          ctx.fillStyle = shade; ctx.fillRect(district.wx-145,district.wy-145,290,290);
+          ctx.fillStyle = '#ffcd71'; ctx.textAlign = 'center'; ctx.font = 'bold 12px sans-serif';
+          ctx.fillText('⚡ LOCAL POWER FAILURE', district.wx, district.wy-70);
+          ctx.font = '9px sans-serif'; ctx.fillText('Affected lower-income households', district.wx, district.wy-55);
+          ctx.strokeStyle = '#ffcd7188'; ctx.setLineDash([5,6]); ctx.lineWidth=2;
+          ctx.beginPath();ctx.ellipse(district.wx,district.wy,110,55,0,0,Math.PI*2);ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      if (protestState.city.turn === 2) {
+        const downtown = tileToScreen(CATHEDRAL_TX + 1, CATHEDRAL_TY + 1);
+        if (downtown) drawProtest(ctx, downtown.x, downtown.y + 45, time, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      }
       // "Find on map" marker: drawn over the foreground so a resident who walks behind a building can still be found.
       const focused = focusMark ? positions.find(item => item.walker.resident.id === focusMark.id) : undefined;
       if (focused) {
@@ -975,10 +997,11 @@ export default function CityCanvas() {
         if (tile.building === 'middle' && !tile.tree && !tile.landmarkSprite && !tile.cathedral) demoLot = { tx, ty };
       }
     }
-    const marker = tour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === tour.slice(9).toLowerCase() || n.id === tour.slice(9).toLowerCase().replaceAll(' ', '_')) : undefined;
-    const area = demoLot ? tileToScreen(demoLot.tx, demoLot.ty) : marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === tour);
+    const focusTour = tour === 'outage' ? 'district:Homewood' : tour;
+    const marker = focusTour.startsWith('district:') ? NEIGHBORHOOD_MARKERS.find(n => n.name.toLowerCase() === focusTour.slice(9).toLowerCase() || n.id === focusTour.slice(9).toLowerCase().replaceAll(' ', '_')) : undefined;
+    const area = tour === 'protest' ? tileToScreen(CATHEDRAL_TX + 1, CATHEDRAL_TY + 1) : demoLot ? tileToScreen(demoLot.tx, demoLot.ty) : marker ? { x: marker.wx, y: marker.wy } : MAP_AREAS.find(a => a.id === (tour === 'protest' ? 'downtown' : tour));
     const fit = Math.min(container.clientWidth / 2800, container.clientHeight / 1560) * .96;
-    const z = area ? demo ? 1.65 : Math.min(1.05, fit * 2) : fit;
+    const z = area ? (tour === 'protest' || tour === 'outage') ? 1.8 : demo ? 1.65 : Math.min(1.05, fit * 2) : fit;
     const target = area ? { x: -area.x * z, y: -area.y * z - container.clientHeight * .12, zoom: z } : { x: 0, y: 30, zoom: z };
     const start = { ...cameraRef.current };
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
