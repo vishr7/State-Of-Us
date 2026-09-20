@@ -1,12 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import TopBar from './TopBar';
-import LeftSidebar from '../sidebar/LeftSidebar';
+import MiniMap from '../sidebar/MiniMap';
 import RightSidebar from '../sidebar/RightSidebar';
-import BottomPanel from './BottomPanel';
-import MapSkeleton from '../map/MapSkeleton';
 import Toast from '../ui/Toast';
 import NeighborhoodDrawer from '../modals/NeighborhoodDrawer';
 import BridgeModal from '../modals/BridgeModal';
@@ -23,11 +20,8 @@ import ResidentNarrator, { PolicyProgress } from '../ui/ResidentNarrator';
  * GameDashboard — the single full-screen layout shell.
  * Layout:
  *   TopBar (full width, 64px)
- *   ┌─────────────┬────────────────────┬─────────────────┐
- *   │ LeftSidebar │    CityCanvas      │  RightSidebar   │
- *   │  (200px)    │  (flex-1, fills)  │    (320px)      │
- *   └─────────────┴────────────────────┴─────────────────┘
- *   BottomPanel (full width, 150px)
+ *   CityCanvas with floating minimap | RightSidebar
+ *   The map fills all remaining height below the header.
  */
 export default function GameDashboard() {
   const ui = useCityPulseStore(s => s.ui);
@@ -43,22 +37,22 @@ export default function GameDashboard() {
       {/* TOP BAR */}
       <TopBar />
 
-      {/* MAIN CONTENT: left sidebar | canvas | right sidebar */}
-      <div className="flex flex-1 overflow-hidden">
-        <LeftSidebar />
-
+      {/* MAIN CONTENT: canvas | right sidebar */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Center — city canvas fills remaining space */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 min-w-0 overflow-hidden relative">
           <CityCanvas />
+          <div className="absolute top-3 left-4 z-20 w-[184px]" aria-label="City minimap">
+            <MiniMap />
+          </div>
+          <div className="absolute bottom-4 left-4 z-20 max-w-[calc(100%-180px)] rounded-xl overflow-hidden shadow-lg">
+            <PolicyProgress />
+          </div>
           <ResidentNarrator />
         </div>
 
         <RightSidebar />
       </div>
-
-      {/* BOTTOM PANEL */}
-      <PolicyProgress />
-      <BottomPanel />
 
       {/* TOAST NOTIFICATIONS */}
       <Toast />

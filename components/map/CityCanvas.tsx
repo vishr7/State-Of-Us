@@ -800,7 +800,7 @@ export default function CityCanvas() {
 
       {/* Interaction hint */}
       <div
-        className="hud-ctrl absolute top-3 left-4 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 pointer-events-none z-20 backdrop-blur-md"
+        className="hud-ctrl absolute top-[166px] left-4 px-3 py-1.5 rounded-lg text-xs hidden md:flex items-center gap-2 pointer-events-none z-20 backdrop-blur-md"
         style={{ background: 'rgba(10,22,40,0.85)', border: '1px solid rgba(30,48,80,0.7)', color: '#94A3B8' }}
       >
         <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
