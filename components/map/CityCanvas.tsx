@@ -925,11 +925,34 @@ export default function CityCanvas() {
       const segment = useAnimationStore.getState().queue[0];
       if (segment) {
         if (demolitionClock.current?.id !== segment.id) demolitionClock.current = { id: segment.id, start: performance.now() };
-        const elapsed = performance.now() - demolitionClock.current.start;
+        const elapsed = performance.now() - demolitionClock.current.start - (segment.redevelopment ? 1600 : 0);
         const target = tileToScreen(segment.tx, segment.ty);
-        drawDemolition(ctx, target.x, target.y, elapsed, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        if (elapsed >= 0 && elapsed < DEMOLITION_DURATION_MS) drawDemolition(ctx, target.x, target.y, elapsed, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
         if (elapsed >= DEMOLITION_IMPACT_MS && !useAnimationStore.getState().removed[tileKey(segment.tx, segment.ty)]) useAnimationStore.getState().impact(segment);
-        if (elapsed >= DEMOLITION_DURATION_MS) useAnimationStore.getState().finish(segment.id);
+        if (atlas && segment.redevelopment && elapsed >= DEMOLITION_DURATION_MS && segment.replacement !== undefined) {
+          const progress = Math.min(1, (elapsed - DEMOLITION_DURATION_MS) / 2200);
+          const setback = lotSetback(segment.tx, segment.ty);
+          const x = target.x + setback.x, y = target.y + setback.y;
+          ctx.save();
+          // Build upward from the foundation, then hold the finished home for a beat.
+          ctx.beginPath(); ctx.rect(x - 60, y + 24 - progress * 125, 120, progress * 125); ctx.clip();
+          drawSprite(ctx, atlas, segment.replacement, x, y);
+          ctx.restore();
+          if (progress < 1) {
+            ctx.save(); ctx.strokeStyle = '#eac474'; ctx.lineWidth = 2;
+            for (const dx of [-48, 48]) { ctx.beginPath(); ctx.moveTo(x + dx, y + 15); ctx.lineTo(x + dx, y - 88); ctx.stroke(); }
+            for (let level = 0; level < 4; level++) { ctx.beginPath(); ctx.moveTo(x - 48, y - level * 25); ctx.lineTo(x + 48, y - level * 25); ctx.stroke(); }
+            ctx.restore();
+          }
+        }
+        if (segment.redevelopment) {
+          ctx.save(); ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center';
+          ctx.fillStyle = '#10283b'; ctx.fillRect(target.x - 130, target.y + 34, 260, 30);
+          ctx.fillStyle = '#f3d58c';
+          ctx.fillText(elapsed < DEMOLITION_DURATION_MS ? 'REDEVELOPMENT · Site clearance' : elapsed < DEMOLITION_DURATION_MS + 2200 ? 'Building affordable homes…' : 'New homes · Simulated project', target.x, target.y + 54);
+          ctx.restore();
+        }
+        if (elapsed >= DEMOLITION_DURATION_MS + (segment.redevelopment ? 3400 : 0)) useAnimationStore.getState().finish(segment.id);
       }
 
       const hovered = walkerHitsRef.current.some(hit => hit.id === hoveredWalkerRef.current) ? positions.find(item => item.walker.resident.id === hoveredWalkerRef.current) : undefined;
@@ -954,7 +977,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, removedBuildings]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, removedBuildings, replacements]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -1027,6 +1050,27 @@ export default function CityCanvas() {
     container.addEventListener('wheel', wheel, { passive: false });
     return () => container.removeEventListener('wheel', wheel);
   }, [setMapViewport]);
+  // Policy works begin only after the reporter's queue has finished.
+  useEffect(() => {
+    if (!demolition?.redevelopment) return;
+    const start = { ...cameraRef.current };
+    const point = tileToScreen(demolition.tx, demolition.ty);
+    const zoom = 1.8;
+    const began = performance.now();
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let frame = 0;
+    const fly = (now: number) => {
+      const t = reduced ? 1 : Math.min(1, (now - began) / 1400);
+      const ease = t * t * (3 - 2 * t);
+      setMapViewport({ x: start.x + (-point.x * zoom - start.x) * ease,
+        y: start.y + (-point.y * zoom + 50 - start.y) * ease,
+        zoom: start.zoom + (zoom - start.zoom) * ease });
+      if (t < 1) frame = requestAnimationFrame(fly);
+    };
+    frame = requestAnimationFrame(fly);
+    return () => cancelAnimationFrame(frame);
+  }, [demolition, setMapViewport]);
+
   // A speaking map resident gets a camera lock on them (mapFocus); the district tour would fight it.
   const tour = useCityPulseStore(s => { const a = s.announcements[0]; return a?.speaker === 'resident' && a.residentId ? undefined : a?.tour; });
   useEffect(() => {

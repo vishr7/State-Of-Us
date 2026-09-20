@@ -12,6 +12,7 @@ import { policyInspiration } from '@/lib/signals/policyInspiration';
 import { agendaHidden } from '@/lib/agendaVisibility';
 import { SpeakText } from '../ui/InsightView';
 import EndOfWeekModal from './EndOfWeekModal';
+import { playRedevelopment } from '../animations/redevelopment';
 
 const FINAL_DEMO_DAY = 7; // The scripted week is days 1-7; day 8 onward is the player's own city.
 
@@ -146,11 +147,11 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       useCityPulseStore.setState({ pendingPolicy: { name: candidate.title, turn: turn + 1 } });
       setExpanded(null);
       useCityPulseStore.setState({ submittingPolicy: false });
-      await resolve();
+      await resolve(candidate);
     } catch(e) { setError(e instanceof Error ? e.message : 'Choice failed.'); }
     finally { setBusy(false); useCityPulseStore.setState({ submittingPolicy: false }); }
   };
-  const resolve = async () => {
+  const resolve = async (chosen?: GeneratedEventCandidate) => {
     if (advancing.current) return;
     advancing.current = true;
     setBusy(true); setError(''); setExpanded(null);
@@ -168,6 +169,8 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
           useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...queued] }));
         });
       }
+      const project = chosen ?? day?.slate.decisions.find(c => c.id === choice?.candidate_id);
+      if (project && cityId) await playRedevelopment(project, `${cityId}:${turn}`);
       setTransition('sunset');
       await pause(1400);
       setTransition('night');
@@ -220,7 +223,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     {showWeekRecap && cityId && document.body && createPortal(<EndOfWeekModal cityId={cityId} onDismiss={() => setShowWeekRecap(false)} />, document.body)}
     <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>{outage ? 'Emergency · Homewood power outage' : protest ? 'Emergency · Citywide AI protest' : 'City gameplan'}</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : outage ? 'Emergency repairs or wait for the utility' : protest ? 'Fund safeguards or cancel the rollout' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
       {outcome && <button onClick={() => setExpanded(expanded === 'outcome' ? null : 'outcome')}>Last results</button>}
-      <button className="daily-end" hidden={!choice && !pending && !!day?.slate.decisions.length} disabled={!canEnd || !!transition} onClick={resolve}>{resolving || transition ? 'Advancing…' : choice || pending ? 'Resume next day →' : 'Skip day →'}</button>
+      <button className="daily-end" hidden={!choice && !pending && !!day?.slate.decisions.length} disabled={!canEnd || !!transition} onClick={() => void resolve()}>{resolving || transition ? 'Advancing…' : choice || pending ? 'Resume next day →' : 'Skip day →'}</button>
       <button aria-label={open ? 'Collapse daily choices' : 'Show daily choices'} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? '⌄' : '⌃'}</button>
     </div></header>
     {error && <p role="alert" className="daily-status">{error}</p>}

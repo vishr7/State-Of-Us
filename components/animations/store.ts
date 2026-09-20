@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { classifyTile, GW, GH } from '../map/cityMapData';
 
-export interface DemolitionSegment { id: string; tx: number; ty: number; replacement?: number; clearTrees?: boolean }
+export interface DemolitionSegment { id: string; tx: number; ty: number; replacement?: number; clearTrees?: boolean; redevelopment?: boolean }
 interface AnimationState {
   queue: DemolitionSegment[];
   replacements: Record<string, number>;
