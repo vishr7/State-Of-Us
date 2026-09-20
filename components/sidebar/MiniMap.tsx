@@ -4,10 +4,9 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useCityPulseStore } from '@/lib/store';
 import {
   TW, TH, GW, GH,
-  tileToScreen, screenToTile, rng,
+  tileToScreen, screenToTileExact, rng,
   classifyTile, isWater,
   NEIGHBORHOOD_MARKERS, PITTSBURGH_LANDMARKS,
-  WORLD_BOUNDS,
   TileInfo,
 } from '../map/cityMapData';
 
@@ -174,25 +173,37 @@ export default function MiniMap() {
     }
   }, [tileToMinimap]);
 
-  // Viewport box — map isometric camera position back to bird's-eye tile coords
-  const zoom = Math.max(0.4, Math.min(3, viewport.zoom || 0.65));
+  // Camera focus box. The main canvas is isometric but this minimap is a plain top-down grid, so the
+  // true view footprint here is a diamond covering most of the city at normal zoom. Instead we draw a
+  // compact UPRIGHT rectangle sized from that footprint: the largest upright box that is guaranteed to
+  // sit inside what is on screen (its half-extents p, q in tiles satisfy p + q <= min(view width in
+  // tiles, view height in tiles)), scaled down by FOCUS_SCALE and shaped like the screen. It grows when
+  // you zoom out or enlarge the window and shrinks when you zoom in.
+  const FOCUS_SCALE = 0.55;
+  const zoom = Math.max(0.05, viewport.zoom || 0.65);
   const containerW = viewport.containerW ?? 900;
   const containerH = viewport.containerH ?? 650;
 
-  // Center tile of the viewport
+  // Camera centre, via the exact inverse projection and the same tile -> minimap mapping click-to-pan uses.
   const camScreenX = -(viewport.x || 0) / zoom;
   const camScreenY = -(viewport.y || 0) / zoom;
-  const { tx: camTX, ty: camTY } = screenToTile(camScreenX, camScreenY);
-  const camCenter = tileToMinimap(camTX, camTY);
+  const { tx: camTX, ty: camTY } = screenToTileExact(camScreenX, camScreenY);
+  const camCenter = { x: padX + camTX * cellW, y: padY + camTY * cellH };
 
-  // Compact camera focus box, rather than a full viewport footprint.
-  const visW = containerW / zoom;
-  const visH = containerH / zoom;
-  const boxW = Math.max(12, Math.min(30, (visW / WORLD_BOUNDS.width) * (W - padX * 2) * 0.45));
-  const boxH = Math.max(10, Math.min(24, (visH / WORLD_BOUNDS.height) * (H - padY - padB) * 0.45));
+  const viewTilesW = containerW / zoom / TW;
+  const viewTilesH = containerH / zoom / TH;
+  const reach = FOCUS_SCALE * Math.min(viewTilesW, viewTilesH); // p + q, in tiles
+  const ratio = (containerW / containerH) * (cellH / cellW);    // p / q, so the box matches the screen's shape
+  const halfTilesX = reach * ratio / (1 + ratio);
+  const halfTilesY = reach / (1 + ratio);
+  const mapW = W - padX * 2;
+  const mapH = H - padY - padB;
+  const boxW = Math.max(12, Math.min(mapW, 2 * halfTilesX * cellW));
+  const boxH = Math.max(9, Math.min(mapH, 2 * halfTilesY * cellH));
 
   const boxX = Math.max(padX, Math.min(W - padX - boxW, camCenter.x - boxW / 2));
   const boxY = Math.max(padY, Math.min(H - padB - boxH, camCenter.y - boxH / 2));
+  const bracket = Math.min(5, boxW / 3, boxH / 3);
 
   // Pan main canvas to minimap click point
   const panToMinimapPoint = (clientX: number, clientY: number) => {
@@ -304,10 +315,10 @@ export default function MiniMap() {
         />
         <path
           d={`
-            M ${boxX} ${boxY + 5} L ${boxX} ${boxY} L ${boxX + 5} ${boxY}
-            M ${boxX + boxW - 5} ${boxY} L ${boxX + boxW} ${boxY} L ${boxX + boxW} ${boxY + 5}
-            M ${boxX} ${boxY + boxH - 5} L ${boxX} ${boxY + boxH} L ${boxX + 5} ${boxY + boxH}
-            M ${boxX + boxW - 5} ${boxY + boxH} L ${boxX + boxW} ${boxY + boxH} L ${boxX + boxW} ${boxY + boxH - 5}
+            M ${boxX} ${boxY + bracket} L ${boxX} ${boxY} L ${boxX + bracket} ${boxY}
+            M ${boxX + boxW - bracket} ${boxY} L ${boxX + boxW} ${boxY} L ${boxX + boxW} ${boxY + bracket}
+            M ${boxX} ${boxY + boxH - bracket} L ${boxX} ${boxY + boxH} L ${boxX + bracket} ${boxY + boxH}
+            M ${boxX + boxW - bracket} ${boxY + boxH} L ${boxX + boxW} ${boxY + boxH} L ${boxX + boxW} ${boxY + boxH - bracket}
           `}
           fill="none" stroke="#FFFFFF" strokeWidth="2"
         />

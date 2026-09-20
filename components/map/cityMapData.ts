@@ -18,6 +18,16 @@ export function tileToScreen(tx: number, ty: number) {
   return { x: (tx - ty) * (TW / 2) + OX, y: (tx + ty) * (TH / 2) + OY };
 }
 
+/**
+ * Unrounded inverse of tileToScreen. `screenToTile` below snaps to whole tiles,
+ * which is right for picking a tile but wrong for continuous camera math.
+ */
+export function screenToTileExact(sx: number, sy: number) {
+  const origin = tileToScreen(0, 0);
+  const x = (sx - origin.x) / (TW / 2);
+  const y = (sy - origin.y) / (TH / 2);
+  return { tx: (x + y) / 2, ty: (y - x) / 2 };
+}
 export function screenToTile(sx: number, sy: number) {
   const x = (sx - OX) / (TW / 2);
   const y = (sy - OY) / (TH / 2);
