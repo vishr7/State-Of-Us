@@ -56,7 +56,7 @@ function PlanDialog({ children, onClose }: { children: ReactNode; onClose: () =>
     </div>
   </dialog>;
 }
-export default function DailyAgenda() {
+export default function DailyAgenda({ transitionContainer }: { transitionContainer: HTMLElement | null }) {
   const { open, setOpen } = useAgenda();
   const cityId = useCityPulseStore(s => s.backendLink?.cityId);
   const turn = useCityPulseStore(s => s.city.turn - 1);
@@ -133,12 +133,12 @@ export default function DailyAgenda() {
     setBusy(true); setError(''); setExpanded(null); setTransition('sunset');
     const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     try {
-      await pause(900);
+      await pause(1400);
       setTransition('night');
-      await Promise.all([useCityPulseStore.getState().advanceTurn(), pause(900)]);
+      await Promise.all([useCityPulseStore.getState().advanceTurn(), pause(1400)]);
       if (useCityPulseStore.getState().city.turn - 1 === turn) throw new Error('The day has not advanced. Check the city update and retry.');
       setTransition('morning');
-      await pause(1100);
+      await pause(1700);
       if (choice?.candidate_id) setOutcome(await api<GameDayOutcome>(`/api/city/${cityId}/game-day/outcome?turn=${turn}`));
     } catch(e) { setError(e instanceof Error ? e.message : 'Could not load outcome.'); }
     finally { setBusy(false); setTransition(null); advancing.current = false; }
@@ -148,7 +148,7 @@ export default function DailyAgenda() {
   const costs = (candidate: GeneratedEventCandidate) => catalog.find(p => p.id === candidate.policyId);
   const canEnd = !!cityId && !!(day || choice || pending) && !busy && !resolving && !loadFailed && (!day?.slate.decisions.length || !!choice || !!pending);
   return <section className="daily-dock" aria-label="Daily agenda">
-    {transition && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, document.body)}
+    {transition && transitionContainer && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, transitionContainer)}
     <header className="daily-dock-header"><div><span>DAY {turn + 1}</span><h2>City gameplan</h2><small>{choice || pending ? 'Decision saved · Advancing to tomorrow' : 'Choose one plan for your city'}</small></div><div className="flex gap-2 items-center">
       {outcome && <button onClick={() => setExpanded(expanded === 'outcome' ? null : 'outcome')}>Last results</button>}
       <button className="daily-end" hidden={!choice && !pending && !!day?.slate.decisions.length} disabled={!canEnd || !!transition} onClick={resolve}>{resolving || transition ? 'Advancing…' : choice || pending ? 'Resume next day →' : 'Skip day →'}</button>

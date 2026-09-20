@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import TopBar from './TopBar';
 import DailyAgenda from '../gameplay/DailyAgenda';
 import MiniMap from '../sidebar/MiniMap';
@@ -25,6 +25,7 @@ import ResidentNarrator from '../ui/ResidentNarrator';
  *   The map fills all remaining height below the header.
  */
 export default function GameDashboard() {
+  const [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
   const ui = useCityPulseStore(s => s.ui);
   const connectBackend = useCityPulseStore(s => s.connectBackend);
 
@@ -41,14 +42,14 @@ export default function GameDashboard() {
       {/* MAIN CONTENT: canvas | right sidebar */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Center — city canvas fills remaining space */}
-        <div className="flex-1 min-w-0 overflow-hidden relative">
+        <div ref={setMapContainer} className="flex-1 min-w-0 overflow-hidden relative isolate">
           <CityCanvas />
           <div className="absolute top-3 left-4 z-20 w-[184px]" aria-label="City minimap">
             <MiniMap />
           </div>
           <div className="city-gameplan">
             <ResidentNarrator />
-            <DailyAgenda />
+            <DailyAgenda transitionContainer={mapContainer} />
           </div>
         </div>
 
