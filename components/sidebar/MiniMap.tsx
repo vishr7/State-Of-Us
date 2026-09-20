@@ -180,16 +180,16 @@ export default function MiniMap() {
   const containerH = viewport.containerH ?? 650;
 
   // Center tile of the viewport
-  const camScreenX = -(viewport.x || 0);
-  const camScreenY = -(viewport.y || 0);
+  const camScreenX = -(viewport.x || 0) / zoom;
+  const camScreenY = -(viewport.y || 0) / zoom;
   const { tx: camTX, ty: camTY } = screenToTile(camScreenX, camScreenY);
   const camCenter = tileToMinimap(camTX, camTY);
 
-  // Viewport box dimensions: visible screen area → approximate tile span → minimap px
+  // Compact camera focus box, rather than a full viewport footprint.
   const visW = containerW / zoom;
   const visH = containerH / zoom;
-  const boxW = Math.max(16, Math.min(W * 0.9, (visW / WORLD_BOUNDS.width) * (W - padX * 2)));
-  const boxH = Math.max(12, Math.min(H * 0.9, (visH / WORLD_BOUNDS.height) * (H - padY - padB)));
+  const boxW = Math.max(12, Math.min(30, (visW / WORLD_BOUNDS.width) * (W - padX * 2) * 0.45));
+  const boxH = Math.max(10, Math.min(24, (visH / WORLD_BOUNDS.height) * (H - padY - padB) * 0.45));
 
   const boxX = Math.max(padX, Math.min(W - padX - boxW, camCenter.x - boxW / 2));
   const boxY = Math.max(padY, Math.min(H - padB - boxH, camCenter.y - boxH / 2));
@@ -203,7 +203,7 @@ export default function MiniMap() {
 
     const { tx, ty } = minimapToTile(mx, my);
     const { x: wx, y: wy } = tileToScreen(tx, ty);
-    setMapViewport({ x: -wx, y: -wy });
+    setMapViewport({ x: -wx * zoom, y: -wy * zoom });
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
