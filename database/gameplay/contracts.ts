@@ -18,7 +18,8 @@ export interface ReactionRunRow {
 }
 export interface ResidentReactionRow {
   id: string; city_id: string; turn: number; decision_id: string; game_day_id: string; candidate_id: string;
-  resident_id: string; support: number; sentiment: ResidentReaction["sentiment"]; reaction: string; main_reason: string;
+  resident_id: string; support: number; sentiment: ResidentReaction["sentiment"] | "neutral"; reaction: string; main_reason: string;
+  evaluation: ResidentReaction | null;
   provenance: Record<string, unknown>; created_at: string;
 }
 export interface GameDayOutcome {

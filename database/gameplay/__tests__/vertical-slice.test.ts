@@ -82,7 +82,7 @@ describe("real database vertical slice with mocked providers", () => {
       expect(input.before.turn).toBe(0); expect(input.after.turn).toBe(1);
       expect(input.residents).toHaveLength(5);
       expect(input.residents.every((resident) => input.before.residents.some((before) => before.id === resident.id))).toBe(true);
-      return input.residents.map((resident) => ({ residentId: resident.id, support: 0.8, sentiment: "positive" as const, reaction: "My commute improved.", mainReason: "The resolved simulation reduced commute time." }));
+      return input.residents.map((resident) => ({ residentId: resident.id, supportScore: 80, sentiment: "positive" as const, satisfaction: "happy" as const, reaction: "I feel better about local services.", mainReason: "Transit access improved in my neighborhood.", personalImpact: "positive" as const, neighborhoodImpact: "positive" as const, financialImpact: "neutral" as const, executionAssessment: "unknown" as const, keyFactors: [{ factor: "neighborhood.transit_access", effect: "positive" as const, reason: "Local transit access improved." }] }));
     });
     const outcome = await resolveGameDay(cityId, 0, react);
     const policy = (await holder.db.query<Policy>("select * from policies where id=$1", [TRANSIT_POLICY_ID])).rows[0];
@@ -96,7 +96,11 @@ describe("real database vertical slice with mocked providers", () => {
     expect(outcome.reactions).toHaveLength(5); expect(outcome.reactionStatus).toBe("completed");
     expect(await resolveGameDay(cityId, 0, react)).toEqual(outcome);
     expect(react).toHaveBeenCalledTimes(1);
-    expect((await holder.db.query("select * from resident_reactions")).rows).toHaveLength(5);
+    const savedReactions = (await holder.db.query<{ evaluation: unknown; support: number; provenance: { promptVersion: string } }>("select * from resident_reactions order by resident_id")).rows;
+    expect(savedReactions).toHaveLength(5);
+    expect(savedReactions[0].evaluation).toEqual(outcome.reactions[0]);
+    expect(savedReactions[0].support).toBe(0.8);
+    expect(savedReactions[0].provenance.promptVersion).toBe("resident-outcome-v2");
     expect((await holder.db.query("select * from simulation_snapshots where city_id=$1", [cityId])).rows).toHaveLength(2);
     const next = await prepareGameDay(cityId, 1, dependencies);
     expect(next.slate.decisions).toEqual([]); // previously shown source/action IDs excluded
@@ -109,7 +113,7 @@ describe("real database vertical slice with mocked providers", () => {
     await chooseGameDayCandidate(cityId, 0, prepared.slate.decisions[0].id);
     const failed = await resolveGameDay(cityId, 0, async () => { throw new Error("provider down"); });
     expect(failed.reactionStatus).toBe("failed"); expect(failed.after.turn).toBe(1);
-    const retried = await resolveGameDay(cityId, 0, async ({ residents }) => residents.map((resident) => ({ residentId: resident.id, support: 0.5, sentiment: "neutral", reaction: "I see the changes.", mainReason: "The outcome is recorded." })));
+    const retried = await resolveGameDay(cityId, 0, async ({ residents }) => residents.map((resident) => ({ residentId: resident.id, supportScore: 50, sentiment: "mixed", satisfaction: "mixed", reaction: "I see the changes.", mainReason: "My neighborhood has better transit access.", personalImpact: "neutral", neighborhoodImpact: "positive", financialImpact: "neutral", executionAssessment: "unknown", keyFactors: [{ factor: "neighborhood.transit_access", effect: "positive", reason: "Local access improved." }] })));
     expect(retried.after).toEqual(failed.after); expect(retried.reactionStatus).toBe("completed");
     expect((await holder.db.query("select * from simulation_snapshots where city_id=$1", [cityId])).rows).toHaveLength(2);
   }, 30000);

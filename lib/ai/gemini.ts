@@ -14,7 +14,7 @@ function clean(raw: string): string {
     .replace(/^\s*```(?:\w+)?\s*/, '')
     .replace(/\s*```\s*$/, '')
     .trim()
-    .replace(/^["“](.*)["”]$/s, '$1')
+    .replace(/^["“]([\s\S]*)["”]$/, '$1')
     .trim();
 }
 

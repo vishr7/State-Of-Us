@@ -362,7 +362,7 @@ export interface Database {
       };
       resident_reactions: {
         Row: ResidentReactionRow;
-        Insert: Insert<ResidentReactionRow, 'id' | 'created_at'>;
+        Insert: Insert<ResidentReactionRow, 'id' | 'created_at' | 'evaluation'>;
         Update: Partial<ResidentReactionRow>;
       };
       cities: {
