@@ -1,5 +1,44 @@
 # Map animation segments
 
+## Power outage event scene
+
+Preview `PowerOutageAnimation.tsx` at `/demo/power-outage` with `npm run dev`.
+The page includes a large version and a 360px result panel matching the existing
+neighborhood drawer. The panel starts on demand for a lit/dark comparison.
+
+```tsx
+import PowerOutageAnimation from '@/components/animations/PowerOutageAnimation';
+
+<PowerOutageAnimation width="100%" autoPlay loop={false} showReplayButton />
+```
+
+Props: `width`, `height` (numeric pixels or CSS sizes), `autoPlay` (true), `loop`
+(false), `onComplete`, `className`, `showReplayButton` (true), and
+`showEmergencyLights` (true). Callbacks must come from a client component. Mount
+on an event or change the React `key` to start afresh; hide controls for overlays.
+This component has no API, simulation, event-classification or state-store hooks.
+
+The 360×280 SVG caps width to its container and letterboxes explicit heights
+without cropping. Window glass stays roughly 5px wide inside a padded 360px panel.
+The source apartment and garden are atlas cells 4 and 13, unchanged. Fourteen
+small facade-aligned window overlays, the sprite's two existing streetlamps, a utility box,
+and an optional amber backup light use the existing warm gold/slate palette.
+The atlas has baked-in daytime shading; twilight tint preserves its texture,
+so this is illustrative lighting rather than a relit sprite or live map tile.
+
+Playback lasts 4.5 seconds: a powered hold, two low-amplitude local lighting dips,
+three staggered circuits switching off, streetlamp loss, a tiny contact spark,
+and a stable dark scene. Only local lights dip; ambient shading changes smoothly.
+Fixed glass positions, circuit offsets and pure timeline math avoid render-time
+randomness. SSR and the first client render both show the powered state.
+
+Reduced motion shows the final outage even with autoplay disabled. Turning the
+preference on during playback settles immediately; looping is suppressed.
+Completion fires once per completed play, including reduced-motion autoplay.
+Replay cancels the current play. Explicit looping holds the final state for 1.4
+seconds between plays. Unmount cleans up frames, timers and preference listeners.
+An accessible SVG description, polite status and keyboard replay are included.
+
 ## Protest event scene
 
 `ProtestEventAnimation.tsx` is a decorative, reusable scene. Preview it at
