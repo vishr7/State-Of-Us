@@ -128,6 +128,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       ] }));
       return null;
     }
+    const requestedAt = Date.now();
     set(state => ({ insightsPending: state.insightsPending + 1, insightsError: null }));
     try {
       const response = await fetch(`/api/city/${link.cityId}/insights`, {
@@ -138,7 +139,8 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       const insight = data as CityInsight;
       set(state => ({ insights: [insight, ...state.insights.filter(item => item.id !== insight.id)].slice(0, 12) }));
       // Slow AI responses can be reviewed in history but must not interrupt a newer turn.
-      if (speak && get().city.turn === insight.facts.turn) {
+      if (speak && get().city.turn === insight.facts.turn && get().backendLink?.cityId === link.cityId
+        && !get().pendingPolicy && !get().submittingPolicy && !get().resolvingTurn && Date.now() - requestedAt < 8000) {
         const day = insight.facts.turn;
         const speaker = briefingSpeaker(day, request.mode);
         const duet = speaker === 'mayor';

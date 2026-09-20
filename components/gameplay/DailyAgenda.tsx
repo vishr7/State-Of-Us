@@ -9,6 +9,7 @@ import type { Policy } from '@/database/types/database';
 import { checkAffordability, insufficientFundsMessage } from '@/database/simulation/affordability';
 import { PROTEST_BRIEFING, OUTAGE_BRIEFING } from '@/lib/dialogue/protest';
 import { policyInspiration } from '@/lib/signals/policyInspiration';
+import { agendaHidden } from '@/lib/agendaVisibility';
 import { SpeakText } from '../ui/InsightView';
 
 export const useAgenda = create<{ open: boolean; setOpen: (open: boolean) => void }>(set => ({ open: true, setOpen: open => set({ open }) }));
@@ -75,7 +76,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const { open, setOpen } = useAgenda();
   const cityId = useCityPulseStore(s => s.backendLink?.cityId);
   const turn = useCityPulseStore(s => s.city.turn - 1);
-  const introHidden = useCityPulseStore(s => s.announcements[0]?.tour !== 'choices' && (s.announcements.length > 0 || s.insightsPending > 0 || s.resolvingTurn));
+  const introHidden = useCityPulseStore(agendaHidden);
   const outageTour = useCityPulseStore(s => s.announcements[0]?.tour === 'outage');
   const protestTour = useCityPulseStore(s => s.announcements[0]?.tour === 'protest');
   const resolving = useCityPulseStore(s => s.resolvingTurn);
@@ -182,7 +183,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     if (protestTour || outageTour) { protestSeen.current = key; return; }
     if ((!protest && !outage) || choice || pending || busy || resolving || introHidden || protestSeen.current === key) return;
     const state = useCityPulseStore.getState();
-    if (state.insightsPending || state.announcements.some(a => (a.tour === 'protest' || a.tour === 'outage'))) return;
+    if (state.announcements.some(a => (a.tour === 'protest' || a.tour === 'outage'))) return;
     protestSeen.current = key;
     // Also cover reloads and unavailable AI narration, without repeating a live bulletin.
     const id = -Date.now();
