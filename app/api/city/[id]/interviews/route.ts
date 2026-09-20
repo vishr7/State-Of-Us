@@ -1,3 +1,5 @@
+import { interviewDialogue } from '@/lib/dialogue/interviewDialogue';
+import { residentIdentity } from '@/lib/dialogue/residentIdentity';
 import { interviewImpact, selectInterviewees } from '@/lib/dialogue/interviewSelection';
 import { z } from 'zod';
 import { withTransaction } from '@database/lib/db';
@@ -11,7 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     z.uuid().parse(id);
     const { turn } = z.object({ turn: z.number().int().nonnegative() }).parse(await request.json());
-    const lines = await withTransaction(async db => {
+    const context = await withTransaction(async db => {
       const state = await loadTurnState(db, id);
       if (state.city.current_turn !== turn) throw new Error('The day changed. Reload before continuing.');
       const decision = state.decisions[0];
@@ -25,7 +27,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         if (!district || !next || !local) return [];
         return [{ resident, district, next, local, ...interviewImpact(resident, next, district, local) }];
       });
-      return selectInterviewees(candidates).flatMap(({ resident, district, next, local, mood, reason }) => {
+      return { people: selectInterviewees(candidates), policy };
+    });
+    const generated = await interviewDialogue(context.people, context.policy);
+    const lines = context.people.flatMap(({ resident, district, next, local, mood, reason }, index) => {
+        const identity = residentIdentity(resident.id);
+        const dialogue = generated?.find(d => d.residentId === resident.id);
+        const job = resident.occupation.replaceAll('_', ' ');
         const impacts: string[] = [];
         if (next.housing_cost !== resident.housing_cost) impacts.push(`my monthly housing costs would ${next.housing_cost < resident.housing_cost ? 'fall' : 'rise'} by $${Math.abs(next.housing_cost - resident.housing_cost).toFixed(0)}`);
         if (next.commute_minutes !== resident.commute_minutes) impacts.push(`my commute would ${next.commute_minutes < resident.commute_minutes ? 'shorten' : 'lengthen'} by ${Math.abs(next.commute_minutes - resident.commute_minutes).toFixed(1)} minutes`);
@@ -33,11 +41,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const neighborhood = local.transit_access !== district.transit_access ? 'The change to local transit access matters to this neighborhood.' : local.housing_supply !== district.housing_supply ? 'The change in local housing supply is something I’ll be watching.' : 'I’ll be watching whether our neighborhood benefits as the plan takes effect.';
         const common = { tour: `district:${district.name}`, turn: turn + 1, kind: 'info' as const };
         return [
-          { ...common, speaker: 'news', text: `We’re in ${district.name}. The city has chosen ${policy.name}. Before it takes effect, we’re asking a ${resident.occupation} who is a ${resident.housing_status}: what would this mean for your household?` },
-          { ...common, speaker: 'resident', label: `${resident.occupation} · ${district.name} · ${mood}`, text: impacts.length ? `${reason} Under this plan, ${impacts.slice(0, 2).join(', and ')}.` : `${reason} ${neighborhood}` },
+          { ...common, speaker: 'news', text: dialogue?.question ?? `We’re in ${district.name}. The city has chosen ${context.policy.name}. Before it takes effect, we’re asking a ${job} who is a ${resident.housing_status}: ${index === 0 ? 'what would this mean for your household?' : 'what matters most to you about this decision?'}` },
+          { ...common, speaker: 'resident', residentId: resident.id, residentAge: resident.age, label: `${identity.name} · ${job} · ${district.name}`, text: dialogue?.answer ?? (impacts.length ? `${reason} Under this plan, ${impacts.slice(0, 2).join(', and ')}.` : `${index === 0 ? 'My immediate concern is keeping everyday costs manageable.' : 'I’m looking beyond my own doorstep here.'} ${neighborhood} ${index === 0 ? 'I want to know whether this is worth the cost.' : 'Who gets the benefit matters as much as the overall price.'}`) },
         ];
       });
-    });
     return Response.json({ lines });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : 'Interviews unavailable.' }, { status: 409 });

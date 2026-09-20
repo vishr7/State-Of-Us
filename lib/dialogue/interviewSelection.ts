@@ -14,10 +14,18 @@ export function interviewImpact(before: Resident, after: Resident, district: Nei
   return { score: factors.reduce((sum,f) => sum + f.score, 0), mood, reason };
 }
 export function selectInterviewees<T extends { resident: Resident; score: number; mood: string }>(people: T[]): T[] {
-  const sorted = [...people].sort((a,b) => a.score - b.score || a.resident.id.localeCompare(b.resident.id));
-  if (sorted.length <= 3) return sorted;
-  const selected = [sorted[0], sorted[sorted.length - 1]];
-  const diversity = (p: T) => selected.reduce((sum, s) => sum + Number(p.resident.neighborhood_id !== s.resident.neighborhood_id) + Number(p.resident.housing_status !== s.resident.housing_status) + Number(p.resident.archetype !== s.resident.archetype) + Number(Math.floor(p.resident.age / 20) !== Math.floor(s.resident.age / 20)) + Number(Math.floor(p.resident.income / 30000) !== Math.floor(s.resident.income / 30000)) + 2 * Number(p.mood !== s.mood), 0);
-  const remaining = sorted.filter(p => !selected.includes(p)).sort((a,b) => diversity(b) - diversity(a) || Math.abs(a.score) - Math.abs(b.score));
-  return [...selected, remaining[0]];
+  const unique = [...new Map(people.map(p => [p.resident.id, p])).values()];
+  if (unique.length < 2) return unique;
+  const sorted = unique.sort((a,b) => Math.abs(b.score) - Math.abs(a.score) || a.resident.id.localeCompare(b.resident.id));
+  const first = sorted[0];
+  const otherDistricts = sorted.filter(p => p.resident.neighborhood_id !== first.resident.neighborhood_id);
+  const pool = otherDistricts.length ? otherDistricts : sorted.slice(1);
+  const diversity = (p: T) => Number(p.resident.housing_status !== first.resident.housing_status)
+    + Number(p.resident.archetype !== first.resident.archetype)
+    + Number(Math.floor(p.resident.age / 20) !== Math.floor(first.resident.age / 20))
+    + Number(Math.floor(p.resident.income / 30000) !== Math.floor(first.resident.income / 30000));
+  pool.sort((a,b) => Number(b.mood !== first.mood) - Number(a.mood !== first.mood)
+    || diversity(b) - diversity(a) || Math.abs(b.score - first.score) - Math.abs(a.score - first.score)
+    || a.resident.id.localeCompare(b.resident.id));
+  return [first, pool[0]];
 }

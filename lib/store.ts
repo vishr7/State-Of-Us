@@ -51,7 +51,7 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { tour?: string; label?: string; speaker?: 'mayor' | 'assistant' | 'news' | 'resident'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
+export interface ResidentAnnouncement { residentId?: string; residentAge?: number; tour?: string; label?: string; speaker?: 'mayor' | 'assistant' | 'news' | 'resident'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
   insights: CityInsight[];
