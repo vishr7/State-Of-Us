@@ -94,7 +94,7 @@ export default function WreckingBallDemolition({ width = '100%', height = 'auto'
       <path d="M478 150l-13 27 11 15-23 25 11 18-21 25 12 21-10 32" stroke="#483f3b" strokeWidth="3" fill="none" opacity={frame.crack} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - frame.crack} />
       <g opacity={frame.rubble} transform={`translate(0 ${frame.settle})`}>
         <path d="M381 329l29-28 29 7 22-31 28 27 29-12 38 32-72 36Z" fill="#8b7e70" stroke="#635e57" strokeWidth="2" />
-        {Array.from({ length: 20 }, (_, i) => {
+        {Array.from({ length: 12 }, (_, i) => {
           const x = 389 + i % 5 * 30 + (Math.floor(i / 5) % 2) * 10;
           const y = 313 + Math.floor(i / 5) * 9 - i % 3 * 8;
           return <g key={i}><path d={`M${x} ${y}l12-6 13 6-12 6Z`} fill={i % 3 ? '#bc8c67' : '#838d98'} />
@@ -112,9 +112,9 @@ export default function WreckingBallDemolition({ width = '100%', height = 'auto'
         <path d="M-15-18h11m-16 6h7" stroke="#bdc5bf" strokeWidth="3" />
       </g>
       <path d="M444 149l-14-9m20 19-20 3m80-13 14-9m-17 20 18 4" stroke="#f0d9a2" strokeWidth="4" opacity={frame.flash} />
-      {frame.debris.map((piece, i) => <path key={i} d="M0 0l7-3 5 4-7 3Z" fill={i % 2 ? '#b48463' : '#7c8693'} opacity={piece.opacity}
+      {frame.debris.slice(1, 7).map((piece, i) => <path key={i} d="M0 0l7-3 5 4-7 3Z" fill={i % 2 ? '#b48463' : '#7c8693'} opacity={piece.opacity}
         transform={`translate(${piece.x} ${piece.y}) rotate(${piece.rotate})`} />)}
-      {[0, 1, 2, 3, 4, 5].map((i) => <g key={i} opacity={frame.dust * .65} transform={`translate(${371 + i * 31 + (i - 2) * frame.scatter * 8} ${316 - frame.scatter * 31 - i % 2 * 11}) scale(${.5 + frame.scatter})`}>
+      {[0, 1, 2, 3].map((i) => <g key={i} opacity={frame.dust * .38} transform={`translate(${405 + i * 40 + (i - 1.5) * frame.scatter * 8} ${316 - frame.scatter * 24 - i % 2 * 8}) scale(${.5 + frame.scatter * .7})`}>
         <path d="M-24-8h8v-9h24v5h12v10h7v19H14v7h-29v-7h-13V-1h4Z" fill={i % 2 ? '#c5b394' : '#d8c8a8'} />
         <path d="M-16-7h10v-5H8v6h-9v5h-15Z" fill="#e3d6b8" />
       </g>)}

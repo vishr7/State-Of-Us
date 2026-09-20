@@ -11,7 +11,7 @@ import { drawCar } from './carSprite';
 import { drawBus } from './busSprite';
 import { addsBusService, useTransitAnimation } from '../animations/transit';
 import { useAnimationStore, tileKey } from '../animations/store';
-import { drawDemolition, DEMOLITION_IMPACT_MS, DEMOLITION_DURATION_MS } from '../animations/demolition';
+import { drawDemolition, drawRubble, DEMOLITION_IMPACT_MS, DEMOLITION_DURATION_MS } from '../animations/demolition';
 
 // ============================================================
 // CityCanvas — Procedural Isometric Pittsburgh City Renderer
@@ -591,7 +591,13 @@ export default function CityCanvas() {
   const replacements = useAnimationStore(s => s.replacements);
   const removedBuildings = useAnimationStore(s => s.removed);
   const demolition = useAnimationStore(s => s.queue[0]);
+  // The active lot is already rendered dynamically. Its impact must not rebuild
+  // the full map canvas and foreground pixel mask in the middle of playback.
+  const removedSceneKey = Object.entries(removedBuildings)
+    .filter(([key, removed]) => removed && key !== (demolition ? tileKey(demolition.tx, demolition.ty) : ''))
+    .map(([key]) => key).sort().join('|');
   const demolitionClock = useRef<{ id: string; start: number } | null>(null);
+  const demolitionSprites = useRef(new Map<string, number>());
   const activeEvents = useCityPulseStore(s => s.activeEvents);
   useEffect(() => {
     for (const event of activeEvents) {
@@ -781,7 +787,11 @@ export default function CityCanvas() {
         if (info.bridge === 'suspension') drawSuspensionBridge(ctx, cx, cy);
         else if (info.bridge === 'truss') drawTrussBridge(ctx, cx, cy);
         let sprite: number | null = null;
-        if (removedBuildings[tileKey(tx, ty)]) continue;
+        if (removedBuildings[tileKey(tx, ty)]) {
+          const setback = lotSetback(tx, ty);
+          if (demolition?.tx !== tx || demolition?.ty !== ty) drawRubble(ctx, cx + setback.x, cy + setback.y, TW * 1.04);
+          continue;
+        }
         if (info.landmarkSprite) {
           drawLandmarkSprite(ctx, landmarkAtlas, info.landmarkSprite, cx, cy);
           drawLandmarkSprite(foregroundCtx, landmarkAtlas, info.landmarkSprite, cx, cy);
@@ -806,6 +816,8 @@ export default function CityCanvas() {
         }
         if (replacements[tileKey(tx, ty)] !== undefined) sprite = replacements[tileKey(tx, ty)];
         if (sprite !== null) {
+          demolitionSprites.current.set(tileKey(tx, ty), sprite);
+          if (demolition?.tx === tx && demolition?.ty === ty) continue;
           const setback = lotSetback(tx, ty);
           drawSprite(ctx, atlas, sprite, cx + setback.x, cy + setback.y);
           drawSprite(foregroundCtx, atlas, sprite, cx + setback.x, cy + setback.y);
@@ -935,9 +947,13 @@ export default function CityCanvas() {
         if (demolitionClock.current?.id !== segment.id) demolitionClock.current = { id: segment.id, start: performance.now() };
         const elapsed = performance.now() - demolitionClock.current.start - (segment.redevelopment ? 1600 : 0);
         const target = tileToScreen(segment.tx, segment.ty);
-        if (elapsed >= 0 && elapsed < DEMOLITION_DURATION_MS) drawDemolition(ctx, target.x, target.y, elapsed, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        const demolitionSetback = lotSetback(segment.tx, segment.ty);
+        if (atlas && elapsed < DEMOLITION_DURATION_MS) drawDemolition(ctx, target.x + demolitionSetback.x, target.y + demolitionSetback.y, elapsed,
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+          { atlas, index: demolitionSprites.current.get(tileKey(segment.tx, segment.ty)) ?? 4, size: TW * 1.04, ground: TH * .5 });
         if (elapsed >= DEMOLITION_IMPACT_MS && !useAnimationStore.getState().removed[tileKey(segment.tx, segment.ty)]) useAnimationStore.getState().impact(segment);
         if (atlas && segment.redevelopment && elapsed >= DEMOLITION_DURATION_MS && segment.replacement !== undefined) {
+          drawRubble(ctx, target.x + demolitionSetback.x, target.y + demolitionSetback.y, TW * 1.04);
           const progress = Math.min(1, (elapsed - DEMOLITION_DURATION_MS) / 2200);
           const setback = lotSetback(segment.tx, segment.ty);
           const x = target.x + setback.x, y = target.y + setback.y;
@@ -985,7 +1001,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, buses, removedBuildings, replacements]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, ambientMotion, setMapViewport, walkers, cars, buses, removedSceneKey, replacements, demolition?.id]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });

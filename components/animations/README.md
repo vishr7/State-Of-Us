@@ -105,6 +105,17 @@ representative lot. This is a visual location, not a real street address.
 
 ## Standalone wrecking-ball demolition
 
+Gameplay uses `demolition.ts` inside `CityCanvas`, not the standalone SVG.
+The canvas renderer shares `demolitionScene.ts` motion curves and retains the
+original 1100ms impact / 2600ms completion schedule. It captures the actual atlas
+cell and uses the map sprite's size and lot setback for adjoining collapse pieces.
+Effects are clipped to a local 144 × 190 area per 100 units of sprite width;
+six debris fragments and four low-opacity pixel-shaped dust puffs stay local.
+Cleared lots retain rubble until a queued replacement is installed. Reduced
+motion skips the fall and collapse while preserving queue timing.
+
+The 360px demo panel is a sizing comparison only, not the gameplay integration.
+
 Run `npm run dev` and visit `/demo/demolition` for the standalone preview.
 
 ```tsx
