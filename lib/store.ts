@@ -1,3 +1,4 @@
+import { briefingSpeaker } from './dialogue/speakers';
 // ============================================================
 // CityPulse — Zustand Global Store
 // All game state + UI state live here.
@@ -48,7 +49,7 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
+export interface ResidentAnnouncement { speaker?: 'mayor' | 'assistant' | 'news'; duet?: boolean; id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; speechSource?: 'gemini' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
   insights: CityInsight[];
@@ -115,7 +116,14 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       set(state => ({ insights: [insight, ...state.insights.filter(item => item.id !== insight.id)].slice(0, 12) }));
       // Slow AI responses can be reviewed in history but must not interrupt a newer turn.
       if (speak && get().city.turn === insight.facts.turn) {
-        set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: insight.commentary.mayorSpeech, kind: 'info', source: insight.source, speechSource: insight.speechSource, turn: insight.facts.turn }] }));
+        const day = insight.facts.turn;
+        const speaker = briefingSpeaker(day, request.mode);
+        const duet = speaker === 'mayor';
+        const lines: ResidentAnnouncement[] = [];
+        if (duet) lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: day === 1 ? 'Mayor, the city is ready. Shall we walk through the first decision?' : 'Mayor, the latest results are in. What should we take from them?' });
+        lines.push({ id: ++announcementId, speaker, duet, text: day === 1 && speaker === 'mayor' ? 'Choose one of the five plans, check its cost and tradeoffs, and confirm your choice. That moves us into the next day. My assistant will guide you; I’ll return every third day to review the results. ' + insight.commentary.mayorSpeech.slice(0, 620) : insight.commentary.mayorSpeech, kind: 'info', source: insight.source, speechSource: insight.speechSource, turn: day });
+        if (duet) lines.push({ id: ++announcementId, speaker: 'assistant', duet: true, kind: 'info', turn: day, text: day === 1 ? 'And I’ll keep the paperwork under control. Your five plans are ready to explore.' : 'Noted. I’ll keep those tradeoffs in view as we look at the next plans.' });
+        set(state => ({ announcements: [...state.announcements, ...lines] }));
       }
       return insight;
     } catch (error) {
@@ -124,7 +132,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
     } finally { set(state => ({ insightsPending: Math.max(0, state.insightsPending - 1) })); }
   },
   announcements: [],
-  announce: (text, kind = 'info') => set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: text.replace(/^[✓✗⚡]\s*/, ''), kind }] })),
+  announce: (text, kind = 'info') => set(state => ({ announcements: [...state.announcements, { id: ++announcementId, speaker: kind === 'warning' ? 'news' : 'assistant', text: text.replace(/^[✓✗⚡]\s*/, ''), kind }] })),
   dismissAnnouncement: () => set(state => ({ announcements: state.announcements.slice(1) })),
   submittingPolicy: false,
   pendingPolicy: null,

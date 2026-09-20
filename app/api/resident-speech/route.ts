@@ -13,13 +13,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'This voice endpoint is only available from the game.' }, { status: 403 });
   }
   let text: unknown;
-  try { ({ text } = await request.json()); }
+  let speaker: unknown;
+  try { ({ text, speaker } = await request.json()); }
   catch { return NextResponse.json({ error: 'Invalid narration request.' }, { status: 400 }); }
   if (typeof text !== 'string' || !text.trim() || text.length > 900) {
     return NextResponse.json({ error: 'Narration must contain 1–900 characters.' }, { status: 400 });
   }
   const key = process.env.ELEVENLABS_API_KEY;
-  const voice = process.env.ELEVENLABS_RESIDENT_VOICE_ID;
+  if (speaker !== undefined && !['mayor', 'assistant', 'news', 'resident'].includes(String(speaker))) return NextResponse.json({ error: 'Unknown speaker.' }, { status: 400 });
+  const voices = { mayor: process.env.ELEVENLABS_MAYOR_VOICE_ID, assistant: process.env.ELEVENLABS_ASSISTANT_VOICE_ID, news: process.env.ELEVENLABS_NEWS_VOICE_ID, resident: process.env.ELEVENLABS_RESIDENT_VOICE_ID };
+  const voice = voices[(speaker ?? 'resident') as keyof typeof voices];
   if (!key || !voice) return NextResponse.json({ error: 'Resident voice is not configured. Captions are still available.' }, { status: 503 });
   const model = process.env.ELEVENLABS_TTS_MODEL_ID || 'eleven_multilingual_v2';
   const cacheKey = `${voice}:${model}:${text}`;

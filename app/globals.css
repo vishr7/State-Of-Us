@@ -444,3 +444,8 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 @keyframes day-fade-in { from { opacity:0; } to { opacity:1; } }
 @keyframes day-dawn { 0% { background:#102344ee; opacity:1; } 55% { background:#e8b77988; opacity:1; } 100% { background:#fff1c422; opacity:0; } }
 @media(prefers-reduced-motion:reduce) { .day-transition,.day-transition-orb { animation:none; transition:none; } }
+
+.city-gameplan .is-duet .mayor-dialogue { margin-right:130px; }
+.dialogue-partner { position:absolute; right:0; bottom:0; width:145px; height:245px; pointer-events:none; opacity:.65; }
+.dialogue-partner img { width:100%; height:100%; object-fit:contain; object-position:bottom; }
+@media(max-width:800px) { .dialogue-partner { width:85px; height:170px; } .city-gameplan .is-duet .mayor-dialogue { margin-right:70px; } }

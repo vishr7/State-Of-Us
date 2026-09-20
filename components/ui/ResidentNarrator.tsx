@@ -20,6 +20,9 @@ export default function ResidentNarrator() {
   const dismiss = useCityPulseStore(s => s.dismissAnnouncement);
   const otherPanel = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
   const otherDialogue = otherPanel;
+  const speaker = announcement?.speaker ?? 'assistant';
+  const speakerName = speaker === 'mayor' ? 'Mayor' : speaker === 'news' ? 'News anchor' : 'City assistant';
+  const portrait = speaker === 'mayor' ? 'mayor-professional' : speaker === 'news' ? 'news-anchor' : 'assistant';
   const day = useCityPulseStore(s => s.city.turn);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'speaking' | 'ready' | 'error'>('ready');
@@ -43,7 +46,7 @@ export default function ResidentNarrator() {
       try {
         const response = await fetch('/api/resident-speech', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: announcement!.text.slice(0, 900) }), signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
+          body: JSON.stringify({ text: announcement!.text.slice(0, 900), speaker }), signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
         });
         if (!response.ok) {
           const body = await response.json();
@@ -63,7 +66,7 @@ export default function ResidentNarrator() {
     }
     if (muted) captions(); else void speak();
     return () => { clearTimeout(timer); controller.abort(); if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); } audioRef.current = null; if (url) URL.revokeObjectURL(url); };
-  }, [announcement?.id, muted, replay, otherDialogue, dismiss]);
+  }, [announcement?.id, muted, replay, otherDialogue, dismiss, speaker]);
 
   useEffect(() => {
     if (!announcement || otherDialogue) return;
@@ -79,21 +82,22 @@ export default function ResidentNarrator() {
     setMuted(false); localStorage.setItem('resident-voice-muted', 'false'); setReplay(v => v + 1);
   };
   if (!announcement || otherDialogue) return null;
-  return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''}`} aria-label="Mayor's briefing">
+  return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''} ${announcement.duet ? 'is-duet' : ''}`} aria-label={`${speakerName} briefing`}>
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/avatars/mayor-professional.png" alt="" />
+      <img src={`/avatars/${portrait}.png`} alt="" />
     </div>
+    {announcement.duet && <div className="dialogue-partner" aria-hidden="true"><img src={`/avatars/${speaker === 'mayor' ? 'assistant' : 'mayor-professional'}.png`} alt="" /></div>}
     <div className="mayor-dialogue">
-      <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>Mayor</h3><span>CITY OF PITTSBURGH · DAY {day}</span></div></div>
+      <div className="mayor-nameplate"><span className="mayor-seal" aria-hidden="true">✦</span><div><h3>{speakerName}</h3><span>CITY OF PITTSBURGH · DAY {day}</span></div></div>
 
-      <div className="mayor-dialogue-heading">{announcement?.kind === 'warning' ? 'CITY UPDATE' : announcement?.kind === 'success' ? 'POLICY BRIEFING' : announcement?.kind === 'error' ? 'ACTION NEEDED' : 'FROM THE MAYOR’S OFFICE'}</div>
+      <div className="mayor-dialogue-heading">{announcement?.kind === 'warning' ? 'CITY UPDATE' : announcement?.kind === 'success' ? 'POLICY BRIEFING' : announcement?.kind === 'error' ? 'ACTION NEEDED' : speaker === 'news' ? 'BREAKING CITY NEWS' : speaker === 'assistant' ? 'YOUR DAILY GAMEPLAN' : 'MAYOR’S ASSESSMENT'}</div>
       <p className="mayor-caption" aria-live="polite">{announcement?.text ?? (generating ? 'I’m reviewing the decision and listening to how residents feel…' : 'Let’s plan our next move. Explore the five proposals below, review where the money goes, and choose a plan for Pittsburgh.')}</p>
       {error && !muted && <div className="mayor-voice-error" role="status">{error}</div>}
       <div className="mayor-controls">
         <span className="mayor-speaking"><span className="resident-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>{muted ? 'Captions only' : status === 'loading' ? 'Preparing voice…' : status === 'speaking' ? 'Speaking' : announcement?.speechSource === 'gemini' ? 'Gemini-transcribed briefing' : announcement?.source === 'nemotron' ? 'Nemotron briefing' : 'Voice briefing'}</span>
-        <button onClick={toggleMute} aria-label={muted ? 'Unmute Mayor voice' : 'Mute Mayor voice'}>{muted ? 'Unmute' : 'Mute'}</button>
+        <button onClick={toggleMute} aria-label={muted ? `Unmute ${speakerName} voice` : `Mute ${speakerName} voice`}>{muted ? 'Unmute' : 'Mute'}</button>
         <button onClick={playAgain} disabled={!announcement || status === 'loading'}>Replay</button>
 
       </div>
