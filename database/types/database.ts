@@ -226,6 +226,32 @@ export interface ExternalSignalRow {
   created_at: string;
 }
 
+/**
+ * One row = one scraped `ExternalSignalRow` the Gemini supervisor selected as
+ * one of that run's five events, plus the `PolicyEffects` Nemotron decided
+ * and `applyPolicyEffects.ts` already applied in the same transaction this
+ * row was written in. Audit trail for the UI event feed — never re-read as
+ * engine input (unlike `policies.effects`, which IS live engine input).
+ */
+export interface CityEventRow {
+  id: string;
+  city_id: string;
+  external_signal_id: string;
+  /** `cities.current_turn` at the moment this event was applied. */
+  turn: number;
+  category: SignalCategory;
+  headline: string;
+  summary: string;
+  /** Gemini supervisor's one-sentence reason this signal was picked. */
+  supervisor_rationale: string;
+  supervisor_source: 'gemini' | 'scripted';
+  /** PolicyEffects (version 1) already applied to city/neighborhoods/residents. */
+  effects: PolicyEffects;
+  effects_source: 'nemotron' | 'scripted';
+  effects_model: string | null;
+  created_at: string;
+}
+
 /* -------------------------------------------------------------------------- */
 /* JSONB contract: policies.effects                                            */
 /* -------------------------------------------------------------------------- */
@@ -436,6 +462,11 @@ export interface Database {
         Row: ExternalSignalRow;
         Insert: Insert<ExternalSignalRow, 'created_at'>;
         Update: Partial<ExternalSignalRow>;
+      };
+      city_events: {
+        Row: CityEventRow;
+        Insert: Insert<CityEventRow, 'id' | 'created_at'>;
+        Update: Partial<CityEventRow>;
       };
     };
     Views: Record<string, never>;

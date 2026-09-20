@@ -1,10 +1,78 @@
 import { createHash } from 'node:crypto';
-import { parseCommentary, type Commentary, type CityInsight, type InsightFacts } from './contracts';
+import { parseCommentary, parseEventEffects, type Commentary, type CityInsight, type InsightFacts, type EventEffects } from './contracts';
 import { generateMayorSpeech } from './gemini';
+import type { ExternalSignal } from '../signals/types';
 const cache = new Map<string, { expires: number; value: CityInsight }>();
 const pending = new Map<string, Promise<CityInsight>>();
 let calls = 0;
 let windowStart = Date.now();
+
+export interface EventEffectsFacts {
+  cityName: string;
+  neighborhoodNames: string[];
+  event: Pick<ExternalSignal, 'category' | 'headline' | 'summary' | 'geography' | 'status'>;
+}
+
+export interface EventEffectsResult { effects: EventEffects; source: 'nemotron' | 'scripted'; model: string | null; notice?: string }
+
+const effectsCache = new Map<string, { expires: number; value: EventEffectsResult }>();
+const effectsPending = new Map<string, Promise<EventEffectsResult>>();
+let effectsCalls = 0;
+let effectsWindowStart = Date.now();
+
+function scriptedEventEffects(): EventEffects {
+  // Small, bounded, direction-neutral nudge — used only when Nemotron is
+  // unavailable, so an event never fails to have SOME effect on population.
+  return { version: 1, city: { happiness: { op: 'add', value: -1 } } };
+}
+
+const effectsSystem = `You decide gameplay effects for one real-world-inspired event in State of Us, a fictional Pittsburgh city simulation. You receive JSON: the city name, its neighborhood names, and one "event" (category, headline, summary, geography, status). Return ONLY one valid JSON object matching exactly this contract (version 1 of the game's PolicyEffects schema):
+{"version":1,"city":{"<field>":{"op":"set|multiply|add","value":<number>}},"neighborhoods":[{"where":{"names":["<one of the supplied neighborhood names>"]},"set":{"<field>":{"op":"...","value":<number>}}}],"residents":[{"where":{},"set":{"<field>":{"op":"...","value":<number>}}}]}
+Allowed city fields: revenue, expenses, debt, treasury, happiness, approval, unemployment.
+Allowed neighborhood fields: property_value, housing_supply, jobs, transit_access, happiness.
+Allowed resident fields: income, housing_cost, commute_minutes, government_trust, happiness.
+"city", "neighborhoods", and "residents" are all optional; include only fields the event plausibly moves. Use "add" for small nudges, "multiply" for proportional shifts, "set" only when the event fixes a value outright. Keep every value small and realistic for a single day's news (e.g. happiness/approval moves of 0.5-4 points, not swings of 50). Only reference neighborhood names you were given. Never invent a numeric fact not implied by the event; never target a field outside the allowed lists; never add commentary outside the JSON object.`;
+
+/**
+ * The event-effects step: given one Gemini-supervisor-picked signal, asks
+ * Nemotron to decide its `PolicyEffects` (same contract/whitelist
+ * `applyPolicyEffects.ts` enforces). Falls back to a small scripted nudge if
+ * Nemotron is unconfigured, rate-limited, errors, or returns an invalid shape.
+ */
+export async function decideEventEffects(facts: EventEffectsFacts): Promise<EventEffectsResult> {
+  const model = process.env.NVIDIA_NEMOTRON_MODEL || 'nvidia/nemotron-3.5-lightning-30b-a3b';
+  const hash = createHash('sha256').update(JSON.stringify({ model, facts })).digest('hex');
+  const cached = effectsCache.get(hash);
+  if (cached && cached.expires > Date.now()) return cached.value;
+  const existing = effectsPending.get(hash); if (existing) return existing;
+  const work = (async (): Promise<EventEffectsResult> => {
+    const fallback = (notice: string): EventEffectsResult => ({ effects: scriptedEventEffects(), source: 'scripted', model: null, notice });
+    if (!process.env.NVIDIA_API_KEY) return fallback('NVIDIA is not configured. Applying a small scripted effect.');
+    if (Date.now() - effectsWindowStart > 60000) { effectsCalls = 0; effectsWindowStart = Date.now(); }
+    if (++effectsCalls > 15) return fallback('AI request limit reached. Applying a small scripted effect.');
+    try {
+      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST', headers: { Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, messages: [{ role: 'system', content: effectsSystem }, { role: 'user', content: JSON.stringify(facts) }], stream: false, temperature: .3, max_tokens: 1200, reasoning_budget: 0 }),
+        signal: AbortSignal.timeout(45000),
+      });
+      if (!response.ok) throw new Error(`NVIDIA status ${response.status}`);
+      const payload = await response.json();
+      const content = payload.choices?.[0]?.message?.content;
+      if (typeof content !== 'string') throw new Error('Missing model content');
+      const effects = parseEventEffects(content);
+      const value: EventEffectsResult = { effects, source: 'nemotron', model };
+      if (effectsCache.size >= 40) effectsCache.delete(effectsCache.keys().next().value!);
+      effectsCache.set(hash, { expires: Date.now() + 120000, value });
+      return value;
+    } catch (error) {
+      console.error('Nemotron event effects unavailable:', error instanceof Error ? error.message.slice(0, 180) : 'request failed');
+      return fallback('Nemotron is temporarily unavailable. Applying a small scripted effect.');
+    }
+  })();
+  effectsPending.set(hash, work);
+  try { return await work; } finally { effectsPending.delete(hash); }
+}
 
 export function fallbackCommentary(facts: InsightFacts): Commentary {
   const subject = facts.policies.map(p => p.name).join(' and ') || 'our city';
