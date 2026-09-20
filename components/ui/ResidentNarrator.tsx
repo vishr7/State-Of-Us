@@ -21,7 +21,7 @@ export default function ResidentNarrator() {
   const otherPanel = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
   const otherDialogue = otherPanel;
   const speaker = announcement?.speaker ?? 'assistant';
-  const speakerName = speaker === 'mayor' ? 'Mayor' : speaker === 'news' ? 'News anchor' : 'City assistant';
+  const speakerName = announcement?.label ?? (speaker === 'mayor' ? 'Mayor' : speaker === 'news' ? 'News anchor' : speaker === 'resident' ? 'Resident' : 'City assistant');
   const portrait = speaker === 'mayor' ? 'mayor-professional' : speaker === 'news' ? 'news-anchor' : 'assistant';
   const day = useCityPulseStore(s => s.city.turn);
   const [muted, setMuted] = useState(false);
@@ -86,7 +86,7 @@ export default function ResidentNarrator() {
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/avatars/${portrait}.png`} alt="" />
+      {speaker === 'resident' ? <div className="resident-interview-avatar">👤<small>Resident interview</small></div> : <img src={`/avatars/${portrait}.png`} alt="" />}
     </div>
     {announcement.duet && <div className="dialogue-partner" aria-hidden="true"><img src={`/avatars/${speaker === 'mayor' ? 'assistant' : 'mayor-professional'}.png`} alt="" /></div>}
     <div className="mayor-dialogue">

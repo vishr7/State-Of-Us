@@ -458,3 +458,6 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .daily-card-short { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; border:1px solid #a4526b66; background:#a4526b26; color:#f5b1c3; font-size:10px; font-weight:700; letter-spacing:.01em; text-transform:none; white-space:nowrap; }
 .daily-short-note { display:flex; gap:9px; align-items:flex-start; margin:0 0 10px; padding:9px 11px; border-radius:10px; border:1px solid #a4526b66; background:#a4526b1f; color:#f0c3cf; font-size:12px; line-height:1.4; }
 .daily-short-note strong { color:#ffd3de; }
+
+.resident-interview-avatar { background:#193447; border:2px solid #c2a574; border-radius:24px; text-align:center; padding:30px 12px; font-size:64px; color:#fff; }
+.resident-interview-avatar small { display:block; font-size:13px; }

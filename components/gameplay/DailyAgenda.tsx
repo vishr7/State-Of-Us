@@ -1,4 +1,5 @@
 'use client';
+import { outcomeNews } from '@/lib/dialogue/outcomeNews';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { create } from 'zustand';
 import { createPortal } from 'react-dom';
@@ -111,6 +112,16 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
     }, 4000);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [cityId, outcome]);
+  const reported = useRef(new Set<string>());
+  useEffect(() => {
+    if (!outcome || outcome.reactionStatus !== 'completed' || outcome.turn + 1 !== turn) return;
+    const key = `news:${outcome.cityId}:${outcome.decision.id}`;
+    if (reported.current.has(key) || sessionStorage.getItem(key)) return;
+    const lines = outcomeNews(outcome);
+    if (!lines.length) return;
+    reported.current.add(key); sessionStorage.setItem(key, '1');
+    useCityPulseStore.setState(state => ({ announcements: [...state.announcements, ...lines.map((line, index) => ({ ...line, id: -(Date.now() + index) }))] }));
+  }, [outcome, turn]);
   const prepare = async () => {
     const retry = /failed/i.test(error);
     setBusy(true); setError('');

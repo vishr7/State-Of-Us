@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
   const key = process.env.ELEVENLABS_API_KEY;
   if (speaker !== undefined && !['mayor', 'assistant', 'news', 'resident'].includes(String(speaker))) return NextResponse.json({ error: 'Unknown speaker.' }, { status: 400 });
-  const voices = { mayor: process.env.ELEVENLABS_MAYOR_VOICE_ID, assistant: process.env.ELEVENLABS_ASSISTANT_VOICE_ID, news: process.env.ELEVENLABS_NEWS_VOICE_ID, resident: process.env.ELEVENLABS_RESIDENT_VOICE_ID };
+  const voices = { mayor: process.env.ELEVENLABS_MAYOR_VOICE_ID, assistant: process.env.ELEVENLABS_ASSISTANT_VOICE_ID, news: process.env.ELEVENLABS_NEWS_VOICE_ID, resident: process.env.ELEVENLABS_RESIDENT_VOICE_ID || process.env.ELEVENLABS_ASSISTANT_VOICE_ID };
   const voice = voices[(speaker ?? 'resident') as keyof typeof voices];
   if (!key || !voice) return NextResponse.json({ error: 'Resident voice is not configured. Captions are still available.' }, { status: 503 });
   const model = process.env.ELEVENLABS_TTS_MODEL_ID || 'eleven_multilingual_v2';
