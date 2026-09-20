@@ -6,6 +6,7 @@ import { useCityPulseStore } from '@/lib/store';
 import type { GameDayResponse, GameDayOutcome, GameDayDecision } from '@/database/gameplay/contracts';
 import type { GeneratedEventCandidate } from '@/lib/signals/generated-events';
 import type { Policy } from '@/database/types/database';
+import { checkAffordability, insufficientFundsMessage } from '@/database/simulation/affordability';
 import { SpeakText } from '../ui/InsightView';
 
 export const useAgenda = create<{ open: boolean; setOpen: (open: boolean) => void }>(set => ({ open: true, setOpen: open => set({ open }) }));
@@ -63,6 +64,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const introHidden = useCityPulseStore(s => !!s.announcements[0]?.tour && s.announcements[0].tour !== 'choices');
   const resolving = useCityPulseStore(s => s.resolvingTurn);
   const pending = useCityPulseStore(s => s.pendingPolicy);
+  const treasury = useCityPulseStore(s => s.city.treasury);
   const [day, setDay] = useState<GameDayResponse | null>(null);
   const [choice, setChoice] = useState<GameDayDecision | null>(null);
   const [outcome, setOutcome] = useState<GameDayOutcome | null>(null);
@@ -147,6 +149,15 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
   const selected = day?.slate.decisions.find(c => c.id === expanded);
   const money = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
   const costs = (candidate: GeneratedEventCandidate) => catalog.find(p => p.id === candidate.policyId);
+  // The treasury may never go below $0: a plan the city can't pay for can't be chosen (the server refuses it too).
+  const affordabilityFor = (candidate: GeneratedEventCandidate) => {
+    const policy = costs(candidate);
+    const result = policy ? checkAffordability(treasury, policy.effects) : null;
+    return policy && result && !result.affordable ? { policy, result } : null;
+  };
+  const compactMoney = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(value);
+  const selectedShort = selected ? affordabilityFor(selected) : null;
+  const selectedShortfall = selectedShort ? insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result) : null;
   const canEnd = !!cityId && !!(day || choice || pending) && !busy && !resolving && !loadFailed && (!day?.slate.decisions.length || !!choice || !!pending);
   return <section hidden={introHidden} className="daily-dock" aria-label="Daily agenda">
     {transition && transitionContainer && createPortal(<div className={`day-transition day-transition-${transition}`} role="status" aria-live="polite" aria-label="Day transition"><div className="day-transition-orb" /><div className="day-transition-caption"><span>{transition === 'sunset' ? 'Evening falls over Pittsburgh' : transition === 'night' ? 'Putting your plan into action…' : `Good morning · Day ${turn + 1}`}</span><small>{transition === 'morning' ? 'Your next gameplan is on its way' : 'The city is moving into a new day'}</small></div></div>, transitionContainer)}
@@ -163,7 +174,7 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
           <h4>Where the money goes</h4><p>{costs(selected)?.description ?? 'Budget details are unavailable.'}</p>
           <p className="daily-money">{costs(selected) ? `${money(costs(selected)!.upfront_cost)} upfront · ${money(Math.abs(costs(selected)!.recurring_cost))} recurring ${costs(selected)!.recurring_cost < 0 ? 'revenue' : 'cost'}` : 'Loading budget…'}</p>
           <details><summary>Background, tradeoffs & sources</summary><p>{selected.description}</p>{selected.supportedBenefits.map((t,i)=><p key={`b${i}`}>Potential benefit: {t}</p>)}{selected.supportedRisks.map((t,i)=><p key={`r${i}`}>Tradeoff: {t}</p>)}{selected.sourceRefs.map((source,i)=><p key={i}>{/^https?:\/\//.test(source.url) ? <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> : source.title}</p>)}</details>
-        </div><div className="daily-choice-action"><label>Your reasoning (optional)<textarea maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label><button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : 'Choose this plan'}</button></div>
+        </div><div className="daily-choice-action"><label>Your reasoning (optional)<textarea maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label>{selectedShort && <p role="alert" className="daily-short-note"><span aria-hidden="true">🔒</span><span>Can’t afford this yet — you’re <strong>{money(selectedShort.result.shortfall)}</strong> short. {insufficientFundsMessage(selectedShort.policy.name, treasury, selectedShort.result).replace(/^Not enough cash for "[^"]*": /, '')}</span></p>}<button className="daily-end" disabled={busy || loadFailed || resolving || !!choice || !!pending || !selected.executable || !!selectedShortfall} onClick={()=>choose(selected)}>{choice?.candidate_id === selected.id ? 'Selected for today' : selectedShortfall ? 'Not enough cash' : 'Choose this plan'}</button></div>
       </div></PlanDialog>}
       {expanded === 'outcome' && outcome && <PlanDialog onClose={() => setExpanded(null)}><div className="daily-expanded"><div><h3>Day {outcome.turn+1} · {outcome.candidate.title}</h3><p>Happiness {outcome.before.city.happiness} → {outcome.after.city.happiness} · Treasury {money(outcome.before.city.treasury)} → {money(outcome.after.city.treasury)}</p><p>Resident reactions: {outcome.reactionStatus}</p>{outcome.reactions.map(r => {
         const resident = outcome.after.residents.find(p => p.id === r.residentId);
@@ -181,8 +192,9 @@ export default function DailyAgenda({ transitionContainer }: { transitionContain
       {day?.slate.decisions.length === 0 && <p className="daily-status">No choices available today. You can end the day.</p>}
       <div className="daily-card-row">{day?.slate.decisions.map((candidate,index) => {
         const policy = costs(candidate); const isSelected=choice?.candidate_id === candidate.id;
-        return <button key={candidate.id} className={`daily-choice-card ${expanded===candidate.id ? 'expanded' : ''} ${isSelected ? 'chosen' : ''}`} aria-expanded={expanded===candidate.id} aria-controls="daily-choice-details" onClick={()=>setExpanded(expanded===candidate.id ? null : candidate.id)}>
-          <span className="daily-card-top"><span className="daily-card-number">0{index+1}</span><span>{isSelected ? '✓ SELECTED' : candidate.category.replaceAll('_',' ')}</span></span>
+        const short = isSelected ? null : affordabilityFor(candidate);
+        return <button key={candidate.id} className={`daily-choice-card ${expanded===candidate.id ? 'expanded' : ''} ${isSelected ? 'chosen' : ''} ${short ? 'unaffordable' : ''}`} aria-expanded={expanded===candidate.id} aria-controls="daily-choice-details" onClick={()=>setExpanded(expanded===candidate.id ? null : candidate.id)}>
+          <span className="daily-card-top"><span className="daily-card-number">0{index+1}</span>{short ? <span className="daily-card-short" title={`You need ${money(short.result.shortfall)} more cash to afford this plan`}><span aria-hidden="true">🔒</span>{compactMoney(short.result.shortfall)} short</span> : <span>{isSelected ? '✓ SELECTED' : candidate.category.replaceAll('_',' ')}</span>}</span>
           <h3>{candidate.title}</h3><p>{policy?.description ?? candidate.proposedAction ?? candidate.description}</p>
           <div className="daily-card-budget"><strong>{policy ? money(policy.upfront_cost) : '—'}</strong><span>upfront</span></div>
           <div className="daily-card-foot"><span>{policy ? policy.recurring_cost === 0 ? 'No recurring cost' : `${money(Math.abs(policy.recurring_cost))} recurring ${policy.recurring_cost < 0 ? 'revenue' : 'cost'}` : 'Budget unavailable'}</span><b>{expanded===candidate.id ? 'Less −' : 'Details ↗'}</b></div>

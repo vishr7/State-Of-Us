@@ -93,6 +93,11 @@ describe('recalculateCityAggregates', () => {
     expect(result.unemployment).toBe(50);
   });
 
+  it('floors an overdrawn treasury at 0 (heals a city saved before the rule existed)', () => {
+    const result = recalculateCityAggregates(makeCity({ treasury: -2_520_000 }), []);
+    expect(result.treasury).toBe(0);
+  });
+
   it('leaves treasury/revenue/expenses/debt untouched (not derived)', () => {
     const city = makeCity({ treasury: 42, revenue: 7, expenses: 3, debt: 1 });
     const result = recalculateCityAggregates(city, [makeResident()]);

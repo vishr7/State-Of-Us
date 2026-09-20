@@ -1,6 +1,6 @@
 'use client';
 
-import { useCityPulseStore, selectPolicyLock } from '@/lib/store';
+import { useCityPulseStore, selectPolicyLock, unaffordableReason } from '@/lib/store';
 import { Policy } from '@/lib/types';
 
 const CATEGORY: Record<string, { color: string; icon: string }> = {
@@ -16,6 +16,8 @@ const money = (value: number) => `$${Math.abs(value).toLocaleString('en-US')}`;
 export default function PolicyCard({ policy }: { policy: Policy }) {
   const live = useCityPulseStore(s => !!s.backendLink);
   const lock = useCityPulseStore(selectPolicyLock);
+  const treasury = useCityPulseStore(s => s.city.treasury);
+  const shortfall = unaffordableReason(treasury, policy);
   const enactPolicyById = useCityPulseStore(s => s.enactPolicyById);
   const { color, icon } = CATEGORY[policy.category] ?? CATEGORY.housing;
   // Keep a tradeoff visible when a proposal has both benefits and drawbacks.
@@ -47,7 +49,7 @@ export default function PolicyCard({ policy }: { policy: Policy }) {
           <div className="flex items-baseline gap-1.5"><span className="text-sm font-semibold text-slate-100 tabular-nums">{policy.upfrontCost === 0 ? '$0' : `${policy.upfrontCost < 0 ? '+' : ''}${money(policy.upfrontCost)}`}</span><span className="text-[10px] text-slate-400">{policy.upfrontCost < 0 ? 'upfront revenue' : 'upfront'}</span></div>
           <div className="text-[10px] text-slate-400 mt-0.5 tabular-nums">{policy.recurringCost === 0 ? 'No recurring cost' : `${policy.recurringCost < 0 ? '+' : '−'}${money(policy.recurringCost)} / turn${policy.recurringCost < 0 ? ' revenue' : ''}`}</div>
         </div>
-        <button disabled={!!lock} title={lock ?? undefined} onClick={() => enactPolicyById(policy.id)} className="policy-enact-button" aria-label={`Enact ${policy.name}`}>{lock ? 'Decision locked' : 'Enact policy'} <span aria-hidden="true">→</span></button>
+        <button disabled={!!lock || !!shortfall} title={lock ?? shortfall ?? undefined} onClick={() => enactPolicyById(policy.id)} className="policy-enact-button" aria-label={`Enact ${policy.name}`}>{lock ? 'Decision locked' : shortfall ? 'Not enough cash' : 'Enact policy'} <span aria-hidden="true">→</span></button>
       </footer>
     </article>
   );

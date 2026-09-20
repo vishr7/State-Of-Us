@@ -181,8 +181,8 @@ describe('applyPolicyEffects', () => {
     });
 
     expect(result.city.revenue).toBe(0);
-    // Treasury has no CHECK constraint: cash on hand may go negative.
-    expect(result.city.treasury).toBe(1_000_000 - 5_000_000);
+    // The city can never be in the red.
+    expect(result.city.treasury).toBe(0);
     expect(result.neighborhoods[0].transit_access).toBe(100);
     expect(result.residents[0].happiness).toBe(100);
     expect(result.residents[0].government_trust).toBe(0);

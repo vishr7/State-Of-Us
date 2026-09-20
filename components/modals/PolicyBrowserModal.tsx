@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCityPulseStore, selectPolicyLock } from '@/lib/store';
+import { useCityPulseStore, selectPolicyLock, unaffordableReason } from '@/lib/store';
 import { CategoryId, Policy } from '@/lib/types';
 
 // ============================================================
@@ -35,6 +35,8 @@ interface PolicyRowProps {
 function PolicyRow({ policy, onEnact }: PolicyRowProps) {
   const live = useCityPulseStore(s => !!s.backendLink);
   const lock = useCityPulseStore(selectPolicyLock);
+  const treasury = useCityPulseStore(s => s.city.treasury);
+  const shortfall = unaffordableReason(treasury, policy);
   const [expanded, setExpanded] = useState(false);
   const { color, icon } = CAT_STYLE[policy.category] ?? { color: '#94A3B8', icon: '📋' };
   const fmt = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : `$${(n / 1_000).toFixed(0)}K`;
@@ -100,13 +102,13 @@ function PolicyRow({ policy, onEnact }: PolicyRowProps) {
           </div>
           {policy.status === 'proposed' && (
             <button
-              disabled={!!lock}
-              title={lock ?? undefined}
+              disabled={!!lock || !!shortfall}
+              title={lock ?? shortfall ?? undefined}
               onClick={e => { e.stopPropagation(); onEnact(policy.id); }}
               className="w-full mt-2 py-2 rounded-lg text-sm font-bold transition-all active:scale-95"
               style={{ background: '#3B82F6', color: 'white' }}
             >
-              {lock ? 'Decision locked — current policy in progress' : `Enact Policy — ${fmt(policy.upfrontCost)} upfront`}
+              {lock ? 'Decision locked — current policy in progress' : shortfall ? `Not enough cash — ${fmt(policy.upfrontCost)} needed` : `Enact Policy — ${fmt(policy.upfrontCost)} upfront`}
             </button>
           )}
         </div>

@@ -91,7 +91,7 @@ export interface City {
   current_turn: number;
   /** Sum of `family_size` across all residents in the city. */
   population: number;
-  /** Cash on hand; may be negative. */
+  /** Cash on hand, >= 0. Never negative (see affordability.ts and cities_treasury_non_negative). */
   treasury: number;
   /** Annual, >= 0. */
   revenue: number;

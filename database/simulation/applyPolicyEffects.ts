@@ -74,7 +74,10 @@ const RESIDENT_EFFECT_TARGETS = new Set<ResidentEffectTarget>([
 // back, and leave the offending decision queued — every later resolve-turn
 // would then fail the same way. Field names are unique to one range across
 // the city/neighborhood/resident entities (`happiness` is 0-100 on all three).
-// `treasury` is deliberately absent: cash on hand may go negative.
+// `treasury` is floored at 0 too: the city can never be in the red. Player
+// decisions that would overdraw it are refused before they are queued
+// (affordability.ts); this floor is the backstop for everything else that moves
+// cash, e.g. generated events.
 const FIELD_BOUNDS: Readonly<Record<string, readonly [number, number]>> = {
   happiness: [0, 100],
   approval: [0, 100],
@@ -85,6 +88,7 @@ const FIELD_BOUNDS: Readonly<Record<string, readonly [number, number]>> = {
   revenue: [0, Infinity],
   expenses: [0, Infinity],
   debt: [0, Infinity],
+  treasury: [0, Infinity],
   income: [0, Infinity],
   housing_cost: [0, Infinity],
   property_value: [0, Infinity],

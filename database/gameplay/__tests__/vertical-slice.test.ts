@@ -129,4 +129,39 @@ describe("real database vertical slice with mocked providers", () => {
     expect(await prepareGameDay(cityId, 0, dependencies)).toEqual(day);
     expect(dependencies.ingest).toHaveBeenCalledTimes(1);
   }, 30000);
+
+  it("refuses plans the city cannot afford, keeps the treasury >= 0, and allows them once funded", async () => {
+    const prepared = await prepareGameDay(cityId, 0, providers());
+    const candidate = prepared.slate.decisions[0]; // Expand Transit: $1.2M upfront
+    await holder.db.query("update cities set treasury = 500000 where id = $1", [cityId]);
+
+    await expect(chooseGameDayCandidate(cityId, 0, candidate.id)).rejects.toMatchObject({
+      status: 422,
+      message: expect.stringContaining("Not enough cash"),
+    });
+    expect((await holder.db.query("select id from decisions where city_id = $1", [cityId])).rows).toHaveLength(0);
+
+    // Last line of defence: the schema itself refuses an overdrawn city.
+    await expect(holder.db.query("update cities set treasury = -1 where id = $1", [cityId])).rejects.toThrow(/cities_treasury_non_negative/);
+
+    await holder.db.query("update cities set treasury = 5000000 where id = $1", [cityId]);
+    await expect(chooseGameDayCandidate(cityId, 0, candidate.id)).resolves.toMatchObject({ policy_id: TRANSIT_POLICY_ID });
+  }, 30000);
+
+  it("POST /decisions refuses an unaffordable policy with 422 and accepts it once funded", async () => {
+    const { POST } = await import("../../../app/api/city/[id]/decisions/route");
+    const post = (policyId: string) => POST(
+      new Request(`http://localhost/api/city/${cityId}/decisions`, { method: "POST", body: JSON.stringify({ policy_id: policyId }) }),
+      { params: Promise.resolve({ id: cityId }) },
+    );
+    await holder.db.query("update cities set treasury = 500000 where id = $1", [cityId]);
+
+    const refused = await post(TRANSIT_POLICY_ID);
+    expect(refused.status).toBe(422);
+    expect((await refused.json()).error).toContain("Not enough cash");
+    expect((await holder.db.query("select id from decisions where city_id = $1", [cityId])).rows).toHaveLength(0);
+
+    await holder.db.query("update cities set treasury = 5000000 where id = $1", [cityId]);
+    expect((await post(TRANSIT_POLICY_ID)).status).toBe(201);
+  }, 30000);
 });

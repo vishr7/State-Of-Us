@@ -1,6 +1,6 @@
 'use client';
 
-import { useCityPulseStore, selectActiveBridge } from '@/lib/store';
+import { useCityPulseStore, selectActiveBridge, unaffordableReason } from '@/lib/store';
 
 // ============================================================
 // BridgeModal — shows bridge condition + repair cost
@@ -10,12 +10,15 @@ export default function BridgeModal() {
   const bridge = useCityPulseStore(selectActiveBridge);
   const selectBridge = useCityPulseStore(s => s.selectBridge);
   const enactPolicyById = useCityPulseStore(s => s.enactPolicyById);
+  const treasury = useCityPulseStore(s => s.city.treasury);
+  const inspection = useCityPulseStore(s => s.policies.find(p => p.id === 'pol-bridge-inspection'));
 
   if (!bridge) return null;
 
   const condColor = bridge.condition >= 70 ? '#22C55E' : bridge.condition >= 50 ? '#EAB308' : '#EF4444';
   const condLabel = bridge.condition >= 70 ? 'Good' : bridge.condition >= 50 ? 'Fair' : 'Poor — Needs Immediate Repair';
 
+  const shortfall = inspection ? unaffordableReason(treasury, inspection) : null;
   const fmt = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : `$${(n / 1_000).toFixed(0)}K`;
 
   return (
@@ -102,11 +105,13 @@ export default function BridgeModal() {
           {/* Actions */}
           <div className="flex gap-2">
             <button
+              disabled={!!shortfall}
+              title={shortfall ?? undefined}
               onClick={() => { enactPolicyById('pol-bridge-inspection'); selectBridge(null); }}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95"
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: '#3B82F6', color: 'white' }}
             >
-              Fund Bridge Inspection Program
+              {shortfall ? 'Not enough cash for inspection program' : 'Fund Bridge Inspection Program'}
             </button>
             <button
               onClick={() => selectBridge(null)}

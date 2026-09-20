@@ -11,8 +11,8 @@ import { briefingSpeaker } from './dialogue/speakers';
 
 import { create } from 'zustand';
 import type { CityInsight, InsightRequest } from './ai/contracts';
-import { selectPolicyLock } from './policyProgress';
-export { selectPolicyLock } from './policyProgress';
+import { selectPolicyLock, unaffordableReason } from './policyProgress';
+export { selectPolicyLock, unaffordableReason } from './policyProgress';
 import { personaResidents } from './personas';
 import {
   GameState, City, Neighborhood, Resident, AgentGroup,
@@ -247,6 +247,12 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       activeEvents,
       consequenceQueue,
     );
+    // The treasury may never go below $0 (offline mirror of the engine's floor):
+    // recurring costs and simulated cash flow can otherwise overdraw it.
+    if (result.updatedCity.treasury < 0) {
+      result.updatedCity = { ...result.updatedCity, treasury: 0 };
+      result.snapshot = { ...result.snapshot, treasury: 0 };
+    }
 
     // Resolve events older than 3 turns
     const stillActive = activeEvents.filter(
@@ -301,6 +307,13 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
     const { city, neighborhoods, policies, consequenceQueue, residents, decisionHistory } = get();
     const policy = policies.find(p => p.id === policyId);
     if (!policy || policy.status !== 'proposed') return;
+
+    // The treasury may never go below $0 (the server refuses too; this saves the round trip).
+    const shortfall = unaffordableReason(city.treasury, policy);
+    if (shortfall) {
+      get().showToast(shortfall, 'error');
+      return;
+    }
 
     const { backendLink } = get();
     const backendPolicyId = backendLink?.policyIdByLocalId[policyId];

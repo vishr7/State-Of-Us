@@ -55,7 +55,7 @@ export function recalculateNeighborhoodAggregates(
  * Recomputes a city's derived fields from every resident in the city
  * (across all of its neighborhoods). `treasury`, `revenue`, `expenses`, and
  * `debt` are NOT derived — they move only via explicit policy effects, so
- * they are intentionally left untouched here.
+ * they are left as-is here (treasury is only floored at 0).
  */
 export function recalculateCityAggregates(city: City, residents: Resident[]): City {
   // Labour force excludes retired and student residents — matches the seed's
@@ -68,6 +68,9 @@ export function recalculateCityAggregates(city: City, residents: Resident[]): Ci
 
   return {
     ...city,
+    // Not derived from residents, but never negative: also heals a city saved
+    // before the floor existed on the next resolved turn.
+    treasury: Math.max(0, city.treasury),
     population: residents.reduce((sum, r) => sum + r.family_size, 0),
     happiness: round2(avgHappiness),
     // Approval blends lived experience with institutional trust, same weights

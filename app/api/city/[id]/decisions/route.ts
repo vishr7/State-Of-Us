@@ -4,6 +4,7 @@ import type { City, Decision, Policy } from '@database/types/database';
 import { z } from 'zod';
 import { chooseGameDayCandidate } from '@database/gameplay/chooseGameDayCandidate';
 import { GameplayError } from '@database/gameplay/contracts';
+import { checkAffordability, insufficientFundsMessage } from '@database/simulation/affordability';
 
 interface CreateDecisionBody {
   policy_id?: unknown;
@@ -96,6 +97,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const policy = policyResult.rows[0];
       if (!policy) {
         return NextResponse.json({ error: `Policy ${policyId} not found` }, { status: 404 });
+      }
+
+      // The treasury may never go below $0: refuse a policy the city can't pay for.
+      // 422 (not 409) so clients don't mistake it for "already decided".
+      const affordability = checkAffordability(city.treasury, policy.effects);
+      if (!affordability.affordable) {
+        return NextResponse.json({ error: insufficientFundsMessage(policy.name, city.treasury, affordability) }, { status: 422 });
       }
 
       const insertResult = await pool.query<Decision>(
