@@ -72,7 +72,7 @@ describe("real database vertical slice with mocked providers", () => {
     expect(dependencies.extract).toHaveBeenCalledTimes(1);
     const candidate = prepared.slate.decisions[0];
     const unselected = prepared.slate.candidatePoolIds.find((id) => !prepared.slate.selectedDecisionIds.includes(id))!;
-    await expect(chooseGameDayCandidate(cityId, 0, unselected)).rejects.toThrow("not selected");
+    await expect(chooseGameDayCandidate(cityId, 0, unselected)).rejects.toThrow("Today's choices have changed");
     const decision = await chooseGameDayCandidate(cityId, 0, candidate.id);
     expect(decision.policy_id).toBe(TRANSIT_POLICY_ID);
     expect((await chooseGameDayCandidate(cityId, 0, candidate.id)).id).toBe(decision.id);
