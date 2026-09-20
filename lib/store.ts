@@ -8,6 +8,7 @@
 'use client';
 
 import { create } from 'zustand';
+import type { CityInsight, InsightRequest } from './ai/contracts';
 import { selectPolicyLock } from './policyProgress';
 export { selectPolicyLock } from './policyProgress';
 import { personaResidents } from './personas';
@@ -47,9 +48,14 @@ const defaultUI: UIState = {
 
 // ------ Store Interface -------------------------------------
 
-export interface ResidentAnnouncement { id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error' }
+export interface ResidentAnnouncement { id: number; text: string; kind: 'info' | 'success' | 'warning' | 'error'; source?: 'nemotron' | 'scripted'; turn?: number }
 let announcementId = 0;
 interface CityPulseStore extends GameState {
+  insights: CityInsight[];
+  insightsPending: number;
+  insightsError: string | null;
+  requestInsights: (request: InsightRequest, speak?: boolean) => Promise<CityInsight | null>;
+
   announcements: ResidentAnnouncement[];
   announce: (text: string, kind?: ResidentAnnouncement['kind']) => void;
   dismissAnnouncement: () => void;
@@ -92,6 +98,31 @@ interface CityPulseStore extends GameState {
 // ------ Store Implementation --------------------------------
 
 export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
+  insights: [],
+  insightsPending: 0,
+  insightsError: null,
+  requestInsights: async (request, speak = false) => {
+    const link = get().backendLink;
+    if (!link) { set({ insightsError: 'Connect to the live database to generate grounded city analysis.' }); return null; }
+    set(state => ({ insightsPending: state.insightsPending + 1, insightsError: null }));
+    try {
+      const response = await fetch(`/api/city/${link.cityId}/insights`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request), signal: AbortSignal.timeout(55000),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not load city analysis.');
+      const insight = data as CityInsight;
+      set(state => ({ insights: [insight, ...state.insights.filter(item => item.id !== insight.id)].slice(0, 12) }));
+      // Slow AI responses can be reviewed in history but must not interrupt a newer turn.
+      if (speak && get().city.turn === insight.facts.turn) {
+        set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: insight.commentary.mayorSpeech, kind: 'info', source: insight.source, turn: insight.facts.turn }] }));
+      }
+      return insight;
+    } catch (error) {
+      set({ insightsError: error instanceof Error ? error.message : 'AI analysis unavailable.' });
+      return null;
+    } finally { set(state => ({ insightsPending: Math.max(0, state.insightsPending - 1) })); }
+  },
   announcements: [],
   announce: (text, kind = 'info') => set(state => ({ announcements: [...state.announcements, { id: ++announcementId, text: text.replace(/^[✓✗⚡]\s*/, ''), kind }] })),
   dismissAnnouncement: () => set(state => ({ announcements: state.announcements.slice(1) })),
@@ -135,6 +166,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
         pendingPolicy: world.pendingPolicy,
         city: world.city,
         neighborhoods: world.neighborhoods,
+        agentGroups: updateAgentGroups(get().agentGroups, world.neighborhoods),
         // Anything the DB already has a decision for is in force; don't let it be enacted twice.
         policies: state.policies.map(p =>
           world.decidedLocalPolicyIds.has(p.id)
@@ -148,6 +180,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
       get().announce(world.pendingPolicy
         ? `Welcome back. ${world.pendingPolicy.name} is still waiting to take effect. Other decisions will unlock once that turn resolves.`
         : "Welcome to the Mayor's office. Let's build a better Pittsburgh, one decision at a time. I'll brief you on new policies and developments across the city.");
+      void get().requestInsights({ mode: 'briefing', policyIds: [] }, true);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.info(`[CityPulse] Backend unavailable — running on the local mock engine. (${message})`);
@@ -428,6 +461,7 @@ async function enactViaBackend(
     pendingPolicy: { name: policy.name, turn: city.turn },
   }));
 
+  void get().requestInsights({ mode: 'decision', policyIds: [backendPolicyId] }, true);
   get().showToast(`"${policy.name}" is approved. ${policy.description} ${residentPerspective(policy.category)} Other decisions are locked until it takes effect. Press Play or advance one turn to continue.`, 'success');
 }
 
@@ -485,8 +519,10 @@ async function advanceViaBackend(get: Get, set: Set) {
 
     if (newEvent) {
       get().showToast(`⚡ ${newEvent.pittsburghFlavor}`, 'warning');
+      if (!result.applied_decisions.length) void get().requestInsights({ mode: 'event', policyIds: [], event: newEvent.pittsburghFlavor }, true);
     }
     if (result.applied_decisions.length > 0) {
+      void get().requestInsights({ mode: 'outcome', policyIds: result.applied_decisions.slice(0,2).map(d => d.policy_id), event: newEvent?.pittsburghFlavor }, true);
       get().showToast(`✓ ${result.applied_decisions.map(d => d.policy_name).join(', ')} took full effect. City happiness is now ${nextCity.happiness} out of 100, and approval is ${nextCity.approval} percent. You can now make your next decision.`, 'success');
     }
   } catch (err) {

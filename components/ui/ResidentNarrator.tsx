@@ -18,6 +18,7 @@ export default function ResidentNarrator() {
   const announcement = useCityPulseStore(s => s.announcements[0]);
   const waiting = useCityPulseStore(s => s.announcements.length);
   const dismiss = useCityPulseStore(s => s.dismissAnnouncement);
+  const otherDialogue = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'speaking' | 'ready' | 'error'>('ready');
   const [error, setError] = useState('');
@@ -26,7 +27,7 @@ export default function ResidentNarrator() {
 
   useEffect(() => { setMuted(localStorage.getItem('resident-voice-muted') === 'true'); }, []);
   useEffect(() => {
-    if (!announcement || muted) { setStatus('ready'); return; }
+    if (!announcement || muted || otherDialogue) { setStatus('ready'); return; }
     const controller = new AbortController();
     let url: string | undefined;
     let audio: HTMLAudioElement | undefined;
@@ -55,14 +56,14 @@ export default function ResidentNarrator() {
     }
     void speak();
     return () => { controller.abort(); if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); } audioRef.current = null; if (url) URL.revokeObjectURL(url); };
-  }, [announcement?.id, muted, replay]);
+  }, [announcement?.id, muted, replay, otherDialogue]);
 
   useEffect(() => {
-    if (!announcement) return;
+    if (!announcement || otherDialogue) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') dismiss(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [announcement?.id, dismiss]);
+  }, [announcement?.id, dismiss, otherDialogue]);
 
   const toggleMute = () => {
     const next = !muted; setMuted(next); localStorage.setItem('resident-voice-muted', String(next));
@@ -74,7 +75,7 @@ export default function ResidentNarrator() {
       void audio.play().then(() => { setStatus('speaking'); setError(''); }).catch(() => { setStatus('error'); setError('Playback blocked. Try again.'); });
     } else { setMuted(false); localStorage.setItem('resident-voice-muted', 'false'); setReplay(v => v + 1); }
   };
-  if (!announcement) return null;
+  if (!announcement || otherDialogue) return null;
   return <aside className={`mayor-scene ${status === 'speaking' ? 'is-speaking' : ''}`} aria-label="Mayor's briefing">
     <div className="mayor-scene-shade" aria-hidden="true" />
     <div className="mayor-character" aria-hidden="true">
@@ -88,7 +89,7 @@ export default function ResidentNarrator() {
       <p className="mayor-caption" aria-live="polite">{announcement.text}</p>
       {error && !muted && <div className="mayor-voice-error" role="status">{error}</div>}
       <div className="mayor-controls">
-        <span className="mayor-speaking"><span className="resident-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>{muted ? 'Captions only' : status === 'loading' ? 'Preparing voice…' : status === 'speaking' ? 'Speaking' : 'Voice briefing'}</span>
+        <span className="mayor-speaking"><span className="resident-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>{muted ? 'Captions only' : status === 'loading' ? 'Preparing voice…' : status === 'speaking' ? 'Speaking' : announcement.source === 'nemotron' ? 'Nemotron briefing' : 'Voice briefing'}</span>
         <button onClick={toggleMute} aria-label={muted ? 'Unmute Mayor voice' : 'Mute Mayor voice'}>{muted ? 'Unmute' : 'Mute'}</button>
         <button onClick={playAgain} disabled={status === 'loading'}>Replay</button>
         <button className="mayor-continue" onClick={dismiss}>{waiting > 1 ? `Next (${waiting - 1})` : 'Continue'} <span aria-hidden="true">▸</span></button>

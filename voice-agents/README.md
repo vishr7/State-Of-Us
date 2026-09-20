@@ -68,21 +68,35 @@ Pass only the context needed for the interview, not the entire city database.
 The signed-URL flow here is for WebSocket sessions. If choosing WebRTC instead,
 implement the conversation-token flow described in the React SDK documentation.
 
-## Where Nemotron fits
+## Nemotron city voices (implemented)
 
-For the first voice test, a dashboard LLM and fixed sample context are sufficient.
-For the intended architecture, Nemotron produces resident reasoning and the
-simulation provides the financial facts. You have two integration options:
+Set `NVIDIA_API_KEY` in the project-root `.env` and restart Next.js. The optional
+`NVIDIA_NEMOTRON_MODEL` defaults to `nvidia/nemotron-3.5-lightning-30b-a3b`.
+The server calls NVIDIA's hosted chat-completions endpoint; no key reaches the
+browser. ElevenLabs still provides speech using the existing resident voice ID.
 
-- Generate resident reactions with Nemotron on the backend and send the completed
-  text to ElevenLabs TTS. This is a straightforward path for spoken reactions.
-- For live interviews powered by Nemotron, configure an ElevenLabs custom LLM
-  backed by a compatible hosted endpoint or your own adapter. Verify endpoint,
-  streaming, and authentication compatibility before connecting it. Keep its
-  credentials server-side or in ElevenLabs secrets.
+Open **City voices** in the top bar for city briefings, selected resident thoughts,
+town-hall debates, and comparisons of two proposed policies. Resident profiles
+also offer policy-specific thoughts. The sidebar shows recent community voices.
+New decisions, resolved outcomes, and events request a Mayor briefing automatically.
+Use **Speak** to hear generated text. Live microphone interviews remain future work.
 
-Installing the ElevenLabs SDK does not connect Nemotron automatically. No NVIDIA
-credentials or endpoint are needed for the initial ElevenLabs-only voice test.
+`POST /api/city/:id/insights` reads a consistent database snapshot and returns
+validated commentary together with its source facts. Comparisons independently
+apply each option to a copy of that snapshot using the simulation's own policy
+math. They exclude other queued decisions and never enact a policy. Happiness,
+approval, and finances remain simulation-owned; resident stances and conversations
+are explicitly fictional opinions from synthetic personas, not individual scores
+or survey results. Autonomous policy enactment is not part of this feature.
+
+Generated analyses are cached for two minutes and requests are coalesced and
+rate-limited. Missing credentials, timeouts, and invalid responses produce a
+clearly labeled scripted fallback with the calculated facts still visible.
+Recent analyses are retained in browser memory for the current session and show
+their turn number. An automatic speech that finishes after the city advances is
+kept in history instead of interrupting the player with a stale briefing.
+
+See [NVIDIA model API documentation](https://docs.api.nvidia.com/nim/reference/nvidia-nemotron-3-5-lightning-30b-a3b-infer).
 
 ## Manual acceptance checklist
 

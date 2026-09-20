@@ -1,8 +1,8 @@
 'use client';
 
 import { useCityPulseStore, selectActiveResident } from '@/lib/store';
-import { getAgentReasoning } from '@/lib/mockAgents';
 import Avatar from '../ui/Avatar';
+import ResidentPolicyThought from '../ui/ResidentPolicyThought';
 
 // ============================================================
 // ResidentModal — resident profile + agent reasoning + memories
@@ -21,7 +21,6 @@ export default function ResidentModal() {
     ?? policies.find(p => p.status === 'proposed')
     ?? policies[0];
 
-  const reasoning = samplePolicy ? getAgentReasoning(resident, samplePolicy) : null;
 
   const moodColors: Record<string, string> = {
     hopeful: '#22C55E', content: '#3B82F6', neutral: '#EAB308',
@@ -97,6 +96,7 @@ export default function ResidentModal() {
           ))}
         </div>
 
+        {samplePolicy && <ResidentPolicyThought key={`${resident.id}-${samplePolicy.id}`} resident={resident} policy={samplePolicy} />}
         {/* Sensitivities */}
         <div className="rounded-xl p-3 mb-4" style={{ background: '#162236', border: '1px solid #1E3050' }}>
           <h3 className="text-xs font-bold mb-2.5" style={{ color: '#94A3B8' }}>POLICY SENSITIVITIES</h3>
@@ -119,41 +119,6 @@ export default function ResidentModal() {
         </div>
 
         {/* Agent Reasoning (stubbed Nemotron) */}
-        {reasoning && samplePolicy && (
-          <div className="rounded-xl p-4 mb-4" style={{ background: '#0D2035', border: '1px solid #1E3050' }}>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-bold" style={{ color: '#94A3B8' }}>
-                SIMULATED REACTION — "{samplePolicy.name}"
-              </h3>
-              <span
-                className="badge"
-                style={{
-                  background: reasoning.support >= 0.6 ? '#22C55E22' : '#EF444422',
-                  color: reasoning.support >= 0.6 ? '#22C55E' : '#EF4444',
-                }}
-              >
-                Support: {Math.round(reasoning.support * 100)}%
-              </span>
-            </div>
-            <p className="text-sm italic leading-relaxed" style={{ color: '#94A3B8' }}>
-              &ldquo;{reasoning.reason}&rdquo;
-            </p>
-            <div className="flex gap-3 mt-2">
-              <div className="text-xs" style={{ color: '#64748B' }}>
-                Trust change:&nbsp;
-                <span style={{ color: reasoning.trustChange >= 0 ? '#22C55E' : '#EF4444', fontWeight: 700 }}>
-                  {reasoning.trustChange >= 0 ? '+' : ''}{Math.round(reasoning.trustChange * 100)}%
-                </span>
-              </div>
-              {reasoning.suggestedPriority && (
-                <div className="text-xs" style={{ color: '#64748B' }}>
-                  Priority: <span style={{ color: '#FFB81C', fontWeight: 700 }}>{reasoning.suggestedPriority}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Current quote */}
         <div className="rounded-xl p-3 mb-4" style={{ background: '#162236', border: '1px solid #1E3050' }}>
           <div className="text-xs font-bold mb-1" style={{ color: '#64748B' }}>WHAT THEY SAY</div>

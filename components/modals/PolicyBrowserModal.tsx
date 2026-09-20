@@ -118,6 +118,7 @@ function PolicyRow({ policy, onEnact }: PolicyRowProps) {
 // ------ Main Modal -------------------------------------------
 
 export default function PolicyBrowserModal() {
+  const openVoices = () => { useCityPulseStore.getState().setPolicyBrowser(false); useCityPulseStore.getState().setTownHall(true); };
   const [filter, setFilter] = useState<CategoryId | 'all'>('all');
   const policies = useCityPulseStore(s => s.policies);
   const setPolicyBrowser = useCityPulseStore(s => s.setPolicyBrowser);
@@ -141,6 +142,7 @@ export default function PolicyBrowserModal() {
         className="rounded-2xl flex flex-col w-full max-w-2xl"
         style={{ background: '#0F1B2D', border: '1px solid #1E3050', height: '80vh' }}
       >
+        <button onClick={openVoices} className="m-3 px-3 py-2 rounded-lg bg-slate-800 text-amber-200 text-sm">Compare policies & hear residents →</button>
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4"
