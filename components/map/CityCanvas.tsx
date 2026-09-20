@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import NextImage from 'next/image';
 import { createWalkers, drawWalker, walkerPosition, hitTestWalker } from './residentWalkers';
 import { useCityPulseStore } from '@/lib/store';
 
@@ -22,7 +23,7 @@ import {
 
 // ── Colors ───────────────────────────────────────────────────
 // Bright pixel-art palette — no gradients anywhere.
-const SKY_COLOR    = '#ded7c9';
+const SKY_COLOR    = '#aac4cf';
 const GRASS_A      = '#718e51';
 const GRASS_B      = '#718e51';
 const PARK_COLOR   = '#71964e';
@@ -35,7 +36,7 @@ const ROAD_COLOR   = '#59616a';
 function fillPoly(
   ctx: CanvasRenderingContext2D,
   pts: [number, number][],
-  fill: string,
+  fill: string | CanvasGradient,
   stroke?: string,
 ) {
   ctx.beginPath();
@@ -65,8 +66,30 @@ function drawLandmarkSprite(ctx: CanvasRenderingContext2D, atlas: HTMLImageEleme
   const index = landmarkCells[kind];
   const sw = atlas.naturalWidth / 3, sh = atlas.naturalHeight / 2;
   const size = kind === 'cathedral' ? 190 : kind === 'skyscraper' ? 154 : kind === 'hospital' ? 145 : kind === 'office' ? 128 : 112;
-  ctx.drawImage(atlas, (index % 3) * sw, Math.floor(index / 3) * sh, sw, sh,
-    x - size / 2, y - size * 0.9 + TH * 0.45, size, size);
+  // The second atlas row contains the bottom tips of the row above it.
+  // Trim only that narrow strip and keep the building's scale and anchor.
+  const trim = index >= 3 ? 26 : 0;
+  const trimOnMap = trim / sh * size;
+  ctx.drawImage(atlas, (index % 3) * sw, Math.floor(index / 3) * sh + trim, sw, sh - trim,
+    x - size / 2, y - size * 0.9 + TH * 0.45 + trimOnMap, size, size - trimOnMap);
+}
+
+function drawStandaloneLandmark(ctx: CanvasRenderingContext2D, sprite: HTMLImageElement, x: number, y: number, width: number) {
+  const height = width * sprite.naturalHeight / sprite.naturalWidth;
+  ctx.drawImage(sprite, x - width / 2, y - height + TH / 2, width, height);
+}
+
+// A small setback keeps the illustrated ground diamonds inside their lots.
+// Roofs and tree canopies can rise above the lot without shrinking the art.
+function lotSetback(tx: number, ty: number) {
+  const blocked = (dx: number, dy: number) => {
+    const ground = classifyTile(tx + dx, ty + dy).ground;
+    return ground === 'road' || ground === 'water';
+  };
+  return {
+    x: (Number(blocked(-1, 0)) - Number(blocked(1, 0)) + Number(blocked(0, 1)) - Number(blocked(0, -1))) * 5,
+    y: (Number(blocked(-1, 0)) - Number(blocked(1, 0)) - Number(blocked(0, 1)) + Number(blocked(0, -1))) * 2.5,
+  };
 }
 
 // Draw streets in tile-local coordinates so lanes meet at every intersection.
@@ -243,7 +266,7 @@ function drawPointFountain(ctx: CanvasRenderingContext2D, x: number, y: number) 
   ctx.stroke();
 }
 
-function drawStadium(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
+function drawStadium(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.save();
   ctx.translate(x, y - 8);
   ctx.scale(1, 0.55);
@@ -254,32 +277,14 @@ function drawStadium(ctx: CanvasRenderingContext2D, x: number, y: number, label:
   ctx.ellipse(0, 0, 34, 24, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = label === 'PNC' ? '#3d8f4a' : '#2f5f9c';
+  ctx.fillStyle = '#2f5f9c';
   ctx.beginPath();
   ctx.ellipse(0, 0, 23, 14, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  if (label !== 'PNC') {
-    ctx.fillStyle = '#FFB81C';
-    ctx.fillRect(x - 20, y - 27, 40, 5);
-    ctx.fillRect(x - 20, y - 11, 40, 5);
-  }
-}
-
-function drawIncline(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.save();
-  ctx.strokeStyle = '#322b24';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(x - 42, y + 22);
-  ctx.lineTo(x + 24, y - 48);
-  ctx.moveTo(x - 34, y + 26);
-  ctx.lineTo(x + 32, y - 44);
-  ctx.stroke();
-  fillPoly(ctx, [[x - 12, y - 7], [x + 8, y - 17], [x + 20, y - 9], [x, y + 2]], '#FFB81C', '#6b3f15');
-  ctx.fillStyle = '#17304f';
-  ctx.fillRect(x + 1, y - 13, 8, 5);
-  ctx.restore();
+  ctx.fillStyle = '#FFB81C';
+  ctx.fillRect(x - 20, y - 27, 40, 5);
+  ctx.fillRect(x - 20, y - 11, 40, 5);
 }
 
 function drawLandmark(ctx: CanvasRenderingContext2D, landmark: PittsburghLandmark) {
@@ -289,12 +294,180 @@ function drawLandmark(ctx: CanvasRenderingContext2D, landmark: PittsburghLandmar
     return;
   }
   if (landmark.kind === 'stadium') {
-    drawStadium(ctx, x, y, landmark.label);
+    drawStadium(ctx, x, y);
     return;
   }
-  if (landmark.kind === 'incline') {
-    drawIncline(ctx, x, y);
+}
+
+type FrontEdge = { ax: number; ay: number; bx: number; by: number; water: boolean; side: 'left' | 'right' };
+
+function frontMapEdges(): FrontEdge[] {
+  const edges: FrontEdge[] = [];
+  for (let ty = 0; ty < GH; ty++) {
+    const tx = GW - 1;
+    const { x, y } = tileToScreen(tx, ty);
+    edges.push({ ax: x + TW / 2, ay: y, bx: x, by: y + TH / 2,
+      water: classifyTile(tx, ty).ground === 'water', side: 'right' });
   }
+  for (let tx = 0; tx < GW; tx++) {
+    const ty = GH - 1;
+    const { x, y } = tileToScreen(tx, ty);
+    edges.push({ ax: x - TW / 2, ay: y, bx: x, by: y + TH / 2,
+      water: classifyTile(tx, ty).ground === 'water', side: 'left' });
+  }
+  return edges;
+}
+
+function drawWaterfallEdges(ctx: CanvasRenderingContext2D, edges: FrontEdge[], time: number) {
+  const depth = 48;
+  for (const edge of edges) {
+    if (!edge.water) continue;
+    const midY = (edge.ay + edge.by) / 2;
+    const face = ctx.createLinearGradient(0, midY, 0, midY + depth);
+    face.addColorStop(0, WATER_COLOR);
+    face.addColorStop(0.55, '#47718c');
+    face.addColorStop(1, '#385f78');
+    fillPoly(ctx, [[edge.ax, edge.ay], [edge.bx, edge.by],
+      [edge.bx, edge.by + depth], [edge.ax, edge.ay + depth]], face);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(190,218,227,0.75)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(edge.ax, edge.ay + 1);
+    ctx.lineTo(edge.bx, edge.by + 1);
+    ctx.stroke();
+
+    // The same short, sparse highlights used on the river surface continue
+    // down the front face, with a slight motion as water passes the edge.
+    for (let i = 1; i <= 6; i++) {
+      const t = i / 7;
+      const x = edge.ax + (edge.bx - edge.ax) * t;
+      const y = edge.ay + (edge.by - edge.ay) * t;
+      const drift = (time * 13 + i * 11 + x * 0.17) % 15;
+      ctx.strokeStyle = i % 2 ? 'rgba(194,221,231,0.48)' : 'rgba(156,197,214,0.38)';
+      ctx.lineWidth = i % 3 === 0 ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y + 5 + drift);
+      ctx.lineTo(x, y + Math.min(depth - 5, 24 + drift));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawLandEdgeFog(ctx: CanvasRenderingContext2D, edges: FrontEdge[]) {
+  ctx.save();
+  for (const edge of edges) {
+    if (edge.water) continue;
+    const x = (edge.ax + edge.bx) / 2;
+    const y = (edge.ay + edge.by) / 2 + 14;
+    const mist = ctx.createRadialGradient(x, y, 2, x, y, 42);
+    mist.addColorStop(0, 'rgba(191,207,201,0.24)');
+    mist.addColorStop(0.65, 'rgba(191,207,201,0.10)');
+    mist.addColorStop(1, 'rgba(191,207,201,0)');
+    ctx.fillStyle = mist;
+    ctx.beginPath();
+    ctx.ellipse(x, y, 46, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function mapDiamond() {
+  const topTile = tileToScreen(0, 0);
+  const rightTile = tileToScreen(GW - 1, 0);
+  const bottomTile = tileToScreen(GW - 1, GH - 1);
+  const leftTile = tileToScreen(0, GH - 1);
+  return [
+    { x: 0, y: topTile.y - TH / 2 },
+    { x: rightTile.x + TW / 2, y: rightTile.y },
+    { x: 0, y: bottomTile.y + TH / 2 },
+    { x: leftTile.x - TW / 2, y: leftTile.y },
+  ];
+}
+
+type CloudAsset = 'tall' | 'wide' | 'puff';
+type CloudPlacement = { x: number; y: number; width: number; asset: CloudAsset; flip?: boolean; opacity?: number };
+
+const CLOUD_ASSETS: Record<CloudAsset, { src: string; width: number; height: number }> = {
+  tall: { src: '/sprites/cloud-bank-tall.png', width: 1774, height: 887 },
+  wide: { src: '/sprites/cloud-bank-wide.png', width: 1774, height: 887 },
+  puff: { src: '/sprites/cloud-puff.png', width: 1536, height: 1024 },
+};
+
+function edgeCloud(side: number, t: number, offset: number, width: number,
+  asset: CloudAsset, flip = false, opacity = 1): CloudPlacement {
+  const corners = mapDiamond();
+  const a = corners[side];
+  const b = corners[(side + 1) % corners.length];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const length = Math.hypot(dx, dy);
+  return {
+    x: a.x + dx * t + dy / length * offset,
+    y: a.y + dy * t - dx / length * offset,
+    width, asset, flip, opacity,
+  };
+}
+
+// Hand placed clusters leave irregular openings in the sky and keep the
+// river's waterfall at the south tip clear.
+const BACK_CLOUDS: CloudPlacement[] = [
+  edgeCloud(0, 0.08, 360, 190, 'puff', false, 0.68),
+  edgeCloud(0, 0.28, 255, 220, 'wide', true, 0.76),
+  edgeCloud(0, 0.48, 410, 155, 'puff', true, 0.58),
+  edgeCloud(0, 0.71, 290, 255, 'tall', false, 0.72),
+  edgeCloud(0, 0.93, 425, 175, 'puff', false, 0.6),
+  edgeCloud(3, 0.1, 380, 180, 'puff', true, 0.65),
+  edgeCloud(3, 0.32, 260, 235, 'tall', true, 0.72),
+  edgeCloud(3, 0.55, 420, 160, 'puff', false, 0.55),
+  edgeCloud(3, 0.77, 305, 215, 'wide', false, 0.72),
+  edgeCloud(3, 0.94, 445, 170, 'puff', true, 0.6),
+  edgeCloud(1, 0.17, 355, 185, 'puff', false, 0.58),
+  edgeCloud(1, 0.51, 335, 235, 'wide', true, 0.7),
+  edgeCloud(1, 0.79, 445, 160, 'puff', false, 0.55),
+  edgeCloud(2, 0.16, 420, 175, 'puff', true, 0.58),
+  edgeCloud(2, 0.46, 335, 240, 'tall', false, 0.7),
+  edgeCloud(2, 0.83, 390, 190, 'puff', false, 0.62),
+];
+
+const FRONT_CLOUDS: CloudPlacement[] = [
+  edgeCloud(0, 0.9, 145, 365, 'wide', true),
+  edgeCloud(1, 0.08, 170, 430, 'tall'),
+  edgeCloud(1, 0.43, 190, 470, 'tall', true),
+  edgeCloud(1, 0.64, 155, 340, 'wide'),
+  edgeCloud(2, 0.36, 165, 390, 'tall', true),
+  edgeCloud(2, 0.55, 180, 455, 'wide'),
+  edgeCloud(2, 0.75, 155, 350, 'tall'),
+  edgeCloud(2, 0.94, 165, 410, 'wide', true),
+  edgeCloud(3, 0.09, 140, 345, 'tall', true),
+];
+
+function CloudSprites({ placements }: { placements: CloudPlacement[] }) {
+  return placements.map((cloud, index) => {
+    const asset = CLOUD_ASSETS[cloud.asset];
+    return (
+      <NextImage
+        key={`${cloud.asset}-${index}`}
+        src={asset.src}
+        alt=""
+        width={asset.width}
+        height={asset.height}
+        unoptimized
+        draggable={false}
+        className="absolute pointer-events-none max-w-none select-none"
+        style={{
+          left: cloud.x,
+          top: cloud.y,
+          width: cloud.width,
+          height: 'auto',
+          opacity: cloud.opacity ?? 1,
+          transform: `translate(-50%, -50%) scaleX(${cloud.flip ? -1 : 1})`,
+        }}
+      />
+    );
+  });
 }
 
 function drawLandmarkLabels(ctx: CanvasRenderingContext2D) {
@@ -311,14 +484,16 @@ function drawLandmarkLabels(ctx: CanvasRenderingContext2D) {
     const { x, y } = tileToScreen(landmark.tx, landmark.ty);
     const left = x - width / 2;
     const right = x + width / 2;
-    const preferredTop = y - (landmark.kind === 'cathedral' ? 175 : landmark.kind === 'hospital' ? 118 : 58);
+    const preferredTop = y - (landmark.kind === 'pncTower' ? 190 : landmark.kind === 'cathedral' ? 175
+      : landmark.kind === 'hospital' ? 118 : landmark.kind === 'incline' ? 182
+      : landmark.kind === 'pncPark' ? 142 : 58);
     const nearby = placed.filter(box => left < box.right + gap && right + gap > box.left);
     const candidates = [preferredTop, ...nearby.flatMap(box => [box.top - height - gap, box.bottom + gap])]
       .sort((a, b) => Math.abs(a - preferredTop) - Math.abs(b - preferredTop) || a - b);
     const top = candidates.find(candidate => nearby.every(box =>
       candidate + height + gap <= box.top || candidate >= box.bottom + gap)) ?? preferredTop;
     const color = landmark.kind === 'point' ? '#BFE7F3'
-      : landmark.kind === 'stadium' || landmark.kind === 'incline' ? '#F7D35B'
+      : landmark.kind === 'stadium' || landmark.kind === 'pncPark' || landmark.kind === 'pncTower' || landmark.kind === 'incline' ? '#F7D35B'
       : landmark.kind === 'bridgeCluster' ? '#FFB81C' : '#F4E7C5';
     drawLandmarkLabel(ctx, landmark.label, x, top, width, color);
     placed.push({ left, right, top, bottom: top + height });
@@ -328,6 +503,8 @@ function drawLandmarkLabels(ctx: CanvasRenderingContext2D) {
 export default function CityCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const backCloudRef = useRef<HTMLDivElement>(null);
+  const frontCloudRef = useRef<HTMLDivElement>(null);
   const residents = useCityPulseStore(s => s.residents);
   const selectResident = useCityPulseStore(s => s.selectResident);
   const walkers = useMemo(() => createWalkers(residents), [residents]);
@@ -358,6 +535,9 @@ export default function CityCanvas() {
   }, []);
   const [atlas, setAtlas] = useState<HTMLImageElement | null>(null);
   const [landmarkAtlas, setLandmarkAtlas] = useState<HTMLImageElement | null>(null);
+  const [mtWashingtonSprite, setMtWashingtonSprite] = useState<HTMLImageElement | null>(null);
+  const [pncParkSprite, setPncParkSprite] = useState<HTMLImageElement | null>(null);
+  const [pncTowerSprite, setPncTowerSprite] = useState<HTMLImageElement | null>(null);
   const [assetError, setAssetError] = useState(false);
   const policies = useCityPulseStore(s => s.policies);
   const turn = useCityPulseStore(s => s.city.turn);
@@ -371,7 +551,19 @@ export default function CityCanvas() {
     landmarks.onload = () => setLandmarkAtlas(landmarks);
     landmarks.onerror = () => setAssetError(true);
     landmarks.src = '/sprites/pittsburgh-landmarks.png';
-    return () => { img.onload = null; img.onerror = null; landmarks.onload = null; landmarks.onerror = null; };
+    const mtWashington = new Image();
+    mtWashington.onload = () => setMtWashingtonSprite(mtWashington);
+    mtWashington.onerror = () => setAssetError(true);
+    mtWashington.src = '/sprites/mt-washington.png';
+    const pncPark = new Image();
+    pncPark.onload = () => setPncParkSprite(pncPark);
+    pncPark.onerror = () => setAssetError(true);
+    pncPark.src = '/sprites/pnc-park.png';
+    const pncTower = new Image();
+    pncTower.onload = () => setPncTowerSprite(pncTower);
+    pncTower.onerror = () => setAssetError(true);
+    pncTower.src = '/sprites/pnc-tower.png';
+    return () => { img.onload = null; img.onerror = null; landmarks.onload = null; landmarks.onerror = null; mtWashington.onload = null; mtWashington.onerror = null; pncPark.onload = null; pncPark.onerror = null; pncTower.onload = null; pncTower.onerror = null; };
   }, []);
   const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
   // Issue 4 fix: track mount state to avoid hydration mismatch
@@ -397,7 +589,7 @@ export default function CityCanvas() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container || !atlas || !landmarkAtlas) return;
+    if (!canvas || !container || !atlas || !landmarkAtlas || !mtWashingtonSprite || !pncParkSprite || !pncTowerSprite) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -430,6 +622,7 @@ export default function CityCanvas() {
       }
 
     tiles.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
+    const mapEdges = frontMapEdges();
 
     // Bake the detailed city once. Camera motion only composites this layer;
     // no sprite scaling, street classification or policy lookup per drag frame.
@@ -452,6 +645,8 @@ export default function CityCanvas() {
       ctx.translate(scene.width / 2, scene.height / 2);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
+      // Keep the fog beneath the land so only a narrow exterior bank shows.
+      drawLandEdgeFog(ctx, mapEdges);
       // ── Pass 1: Ground tiles ────────────────────────────────
       for (const { tx, ty, cx, cy, info } of tiles) {
         switch (info.ground) {
@@ -511,18 +706,27 @@ export default function CityCanvas() {
           }
         }
         if (sprite !== null) {
-          drawSprite(ctx, atlas, sprite, cx, cy);
-          drawSprite(foregroundCtx, atlas, sprite, cx, cy);
-        }
-        if (info.ground === 'road' && !info.bridge && (tx + ty) % 3 === 0) {
-          const lx = cx - 34, ly = cy;
-          ctx.fillStyle = '#344b47'; ctx.fillRect(lx, ly - 18, 2, 20);
-          ctx.fillStyle = '#f3dca0'; ctx.fillRect(lx - 2, ly - 20, 6, 4);
-
+          const setback = lotSetback(tx, ty);
+          drawSprite(ctx, atlas, sprite, cx + setback.x, cy + setback.y);
+          drawSprite(foregroundCtx, atlas, sprite, cx + setback.x, cy + setback.y);
         }
       }
 
-      for (const landmark of PITTSBURGH_LANDMARKS) drawLandmark(ctx, landmark);
+      for (const landmark of PITTSBURGH_LANDMARKS) {
+        if (landmark.kind === 'incline') {
+          const { x, y } = tileToScreen(landmark.tx, landmark.ty);
+          drawStandaloneLandmark(ctx, mtWashingtonSprite, x, y, 205);
+          drawStandaloneLandmark(foregroundCtx, mtWashingtonSprite, x, y, 205);
+        } else if (landmark.kind === 'pncPark' || landmark.kind === 'pncTower') {
+          const { x, y } = tileToScreen(landmark.tx, landmark.ty);
+          const image = landmark.kind === 'pncPark' ? pncParkSprite : pncTowerSprite;
+          const width = landmark.kind === 'pncPark' ? 205 : 145;
+          drawStandaloneLandmark(ctx, image, x, y, width);
+          drawStandaloneLandmark(foregroundCtx, image, x, y, width);
+        } else {
+          drawLandmark(ctx, landmark);
+        }
+      }
     }
     const foregroundPixels = foregroundCtx.getImageData(0, 0, foreground.width, foreground.height).data;
     const trafficTiles = tiles.filter(t => t.info.ground === 'road' && !t.info.bridge && (t.tx + t.ty) % 5 === 0).map(t => ({ ...t, alongX: classifyTile(t.tx + 1, t.ty).ground === 'road' || classifyTile(t.tx - 1, t.ty).ground === 'road' }));
@@ -550,13 +754,16 @@ export default function CityCanvas() {
       }
       const cw = canvas.width, ch = canvas.height;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      ctx.fillStyle = SKY_COLOR;
-      ctx.fillRect(0, 0, cw, ch);
+      ctx.clearRect(0, 0, cw, ch);
+      const cloudTransform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`;
+      if (backCloudRef.current) backCloudRef.current.style.transform = cloudTransform;
+      if (frontCloudRef.current) frontCloudRef.current.style.transform = cloudTransform;
       ctx.save();
       ctx.translate(cw / 2 + camera.x * dpr, ch / 2 + camera.y * dpr);
       ctx.scale(camera.zoom * dpr, camera.zoom * dpr);
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(scene, -scene.width / 2, -scene.height / 2);
+      drawWaterfallEdges(ctx, mapEdges, time);
       ctx.strokeStyle = WATER_SHINE;
       ctx.lineWidth = 0.8;
       ctx.globalAlpha = 0.18 + Math.sin(time) * 0.08;
@@ -614,7 +821,7 @@ export default function CityCanvas() {
 
     animId = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, [atlas, landmarkAtlas, policies, turn, isPlaying, setMapViewport, walkers]);
+  }, [atlas, landmarkAtlas, mtWashingtonSprite, pncParkSprite, pncTowerSprite, policies, turn, isPlaying, setMapViewport, walkers]);
 
   // ── Input handlers ───────────────────────────────────────────
   const commitCamera = () => setMapViewport({ ...cameraRef.current });
@@ -707,8 +914,8 @@ export default function CityCanvas() {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full relative overflow-hidden select-none cursor-grab active:cursor-grabbing"
-      style={{ touchAction: 'none', background: SKY_COLOR }}
+      className="w-full h-full relative isolate overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      style={{ touchAction: 'none', background: `linear-gradient(180deg, #91afc5 0%, ${SKY_COLOR} 56%, #d6e1df 100%)` }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -716,17 +923,33 @@ export default function CityCanvas() {
       onPointerCancel={handlePointerUp}
       onLostPointerCapture={handlePointerUp}
     >
+      <div
+        aria-hidden="true"
+        ref={backCloudRef}
+        className="absolute left-1/2 top-1/2 z-0 h-0 w-0 pointer-events-none"
+        style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }}
+      >
+        <CloudSprites placements={BACK_CLOUDS} />
+      </div>
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full block pointer-events-none"
+        className="absolute inset-0 z-10 w-full h-full block pointer-events-none"
       />
+      <div
+        aria-hidden="true"
+        ref={frontCloudRef}
+        className="absolute left-1/2 top-1/2 z-20 h-0 w-0 pointer-events-none"
+        style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }}
+      >
+        <CloudSprites placements={FRONT_CLOUDS} />
+      </div>
 
-      {(!atlas || !landmarkAtlas) && <div className="absolute inset-0 grid place-items-center text-slate-200 bg-slate-900" role="status">
+      {(!atlas || !landmarkAtlas || !mtWashingtonSprite || !pncParkSprite || !pncTowerSprite) && <div className="absolute inset-0 z-50 grid place-items-center text-slate-200 bg-slate-900" role="status">
         {assetError ? 'City artwork could not load. Refresh to try again.' : 'Loading your illustrated city…'}
       </div>}
       {/* Neighborhood badges — only rendered client-side (avoids hydration mismatch) */}
       {mounted && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
           {badges.map(b => {
             const cw = containerRef.current?.clientWidth  ?? 800;
             const ch = containerRef.current?.clientHeight ?? 600;
@@ -772,7 +995,7 @@ export default function CityCanvas() {
         </div>
       )}
 
-      <div className="hud-ctrl absolute top-3 right-3 z-20 rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-xs text-slate-200">
+      <div className="hud-ctrl absolute top-3 right-3 z-40 rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-xs text-slate-200">
         <label htmlFor="map-resident-picker" className="block mb-1 text-[10px] text-slate-400">{walkers.length} synthetic residents · {isPlaying ? 'Walking' : 'Paused — press Play'}</label>
         <select id="map-resident-picker" aria-label="Explore a resident" value="" onChange={e => selectResident(e.target.value)} className="w-44 bg-slate-900 text-slate-200 outline-none">
           <option value="" disabled>Explore a resident…</option>
@@ -780,7 +1003,7 @@ export default function CityCanvas() {
         </select>
       </div>
       {/* HUD controls */}
-      <div className="hud-ctrl absolute bottom-4 right-4 flex items-center gap-1.5 z-20">
+      <div className="hud-ctrl absolute bottom-4 right-4 flex items-center gap-1.5 z-40">
         {([
           { label: '+',     title: 'Zoom In',    onClick: handleZoomIn,  cls: 'w-9 h-9 text-lg font-black' },
           { label: '−',     title: 'Zoom Out',   onClick: handleZoomOut, cls: 'w-9 h-9 text-lg font-black' },
@@ -800,7 +1023,7 @@ export default function CityCanvas() {
 
       {/* Interaction hint */}
       <div
-        className="hud-ctrl absolute top-[166px] left-4 px-3 py-1.5 rounded-lg text-xs hidden md:flex items-center gap-2 pointer-events-none z-20 backdrop-blur-md"
+        className="hud-ctrl absolute top-[166px] left-4 px-3 py-1.5 rounded-lg text-xs hidden md:flex items-center gap-2 pointer-events-none z-40 backdrop-blur-md"
         style={{ background: 'rgba(10,22,40,0.85)', border: '1px solid rgba(30,48,80,0.7)', color: '#94A3B8' }}
       >
         <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />

@@ -95,8 +95,14 @@ export function isBridge(tx: number, ty: number) {
 }
 
 // Cathedral of Learning: special single tile in Oakland
-export const CATHEDRAL_TX = 20;
-export const CATHEDRAL_TY = 17;
+export const CATHEDRAL_TX = 21;
+export const CATHEDRAL_TY = 18;
+export const PNC_PARK_TX = 9;
+export const PNC_PARK_TY = 10;
+export const PNC_TOWER_TX = 14;
+export const PNC_TOWER_TY = 15;
+export const MT_WASHINGTON_TX = 14;
+export const MT_WASHINGTON_TY = 27;
 
 // ── Tile Classification ──────────────────────────────────────
 export type Zone = 'wealthy' | 'middle' | 'lower' | 'tower' | 'civic';
@@ -123,10 +129,28 @@ export function classifyTile(tx: number, ty: number): TileInfo {
     return bridge ? { ground: 'road', bridge } : { ground: 'water' };
   }
   const r = rng(tx, ty);
-  if (tx === CATHEDRAL_TX && ty === CATHEDRAL_TY) return { ground: 'grass', cathedral: true, landmarkSprite: 'cathedral' };
-  if (tx === 18 && ty === 17) return { ground: 'grass', landmarkSprite: 'hospital' };
+  // Large landmarks occupy a small campus or plaza instead of sharing lots
+  // with houses, trees, or another landmark sprite.
+  if (tx >= PNC_PARK_TX - 1 && tx <= PNC_PARK_TX + 1 &&
+      ty >= PNC_PARK_TY - 1 && ty <= PNC_PARK_TY + 1) return { ground: 'grass' };
+  if (tx >= CATHEDRAL_TX - 1 && tx <= CATHEDRAL_TX + 1 &&
+      ty >= CATHEDRAL_TY - 1 && ty <= CATHEDRAL_TY + 1) {
+    return tx === CATHEDRAL_TX && ty === CATHEDRAL_TY
+      ? { ground: 'grass', cathedral: true, landmarkSprite: 'cathedral' }
+      : { ground: 'grass' };
+  }
+  if (tx >= 17 && tx <= 18 && ty >= 17 && ty <= 19) {
+    return tx === 18 && ty === 18
+      ? { ground: 'grass', landmarkSprite: 'hospital' }
+      : { ground: 'grass' };
+  }
+  if (tx >= PNC_TOWER_TX - 1 && tx <= PNC_TOWER_TX &&
+      ty >= PNC_TOWER_TY - 1 && ty <= PNC_TOWER_TY) return { ground: 'grass' };
   if (tx === 14 && ty === 17) return { ground: 'grass', landmarkSprite: 'police' };
   if ((tx === 20 || tx === 22) && ty === 19) return { ground: 'grass', landmarkSprite: 'university' };
+  // Keep the incline on a hillside block south of the road at ty 23.
+  if (tx >= MT_WASHINGTON_TX - 1 && tx <= MT_WASHINGTON_TX + 1 &&
+      ty >= MT_WASHINGTON_TY - 2 && ty <= MT_WASHINGTON_TY) return { ground: 'hillside' };
 
   // Continuous bridge approaches and east-west avenues connect the districts.
   const bridgeApproach = (BRIDGE_TX.has(tx) && Math.abs(ty - alleghenyY(tx)) < 3.1)
@@ -159,7 +183,7 @@ export function classifyTile(tx: number, ty: number): TileInfo {
   }
 
   // North Shore and outer residential hills: fewer trees, legible housing blocks.
-  if (tx === 6 && ty === 12 || tx === 9 && ty === 12) return { ground: 'grass' };
+  if (tx === 6 && ty === 12) return { ground: 'grass' };
   if (tx === 3 || tx === 7 || tx === 11 || tx === 17 || tx === 22 || ty === 7 || ty === 12 || ty === 23) return { ground: 'road' };
   const hillside = ty > monY(tx) + 2;
   if (tx === 0 || ty === 0 || tx === GW - 1 || ty === GH - 1) return { ground: 'park', tree: r < 0.3 };
@@ -175,7 +199,7 @@ export const MAP_AREAS = [
   { id: 'suburbs', name: 'SUBURBS', subtitle: 'Residential hills & garden streets', tx: 6, ty: 6, color: '#c4d7a0' },
 ].map(area => ({ ...area, ...tileToScreen(area.tx, area.ty) }));
 
-export type LandmarkKind = 'point' | 'stadium' | 'incline' | 'cathedral' | 'hospital' | 'police' | 'bridgeCluster';
+export type LandmarkKind = 'point' | 'stadium' | 'pncPark' | 'pncTower' | 'incline' | 'cathedral' | 'hospital' | 'police' | 'bridgeCluster';
 
 export interface PittsburghLandmark {
   id: string;
@@ -188,13 +212,14 @@ export interface PittsburghLandmark {
 }
 
 export const PITTSBURGH_LANDMARKS: PittsburghLandmark[] = [
-  { id: 'upmc', label: 'UPMC HOSPITAL', kind: 'hospital', tx: 18, ty: 17, wx: tileToScreen(18,17).x, wy: tileToScreen(18,17).y },
+  { id: 'upmc', label: 'UPMC HOSPITAL', kind: 'hospital', tx: 18, ty: 18, wx: tileToScreen(18,18).x, wy: tileToScreen(18,18).y },
   { id: 'police', label: 'POLICE', kind: 'police', tx: 14, ty: 17, wx: tileToScreen(14,17).x, wy: tileToScreen(14,17).y },
   { id: 'point-state-park', label: 'POINT', kind: 'point', tx: 9, ty: POINT_TY, wx: tileToScreen(9, POINT_TY).x, wy: tileToScreen(9, POINT_TY).y },
   { id: 'acrisure-stadium', label: 'ACRISURE', kind: 'stadium', tx: 6, ty: 12, wx: tileToScreen(6, 12).x, wy: tileToScreen(6, 12).y },
-  { id: 'pnc-park', label: 'PNC', kind: 'stadium', tx: 9, ty: 12, wx: tileToScreen(9, 12).x, wy: tileToScreen(9, 12).y },
+  { id: 'pnc-park', label: 'PNC PARK', kind: 'pncPark', tx: PNC_PARK_TX, ty: PNC_PARK_TY, wx: tileToScreen(PNC_PARK_TX, PNC_PARK_TY).x, wy: tileToScreen(PNC_PARK_TX, PNC_PARK_TY).y },
+  { id: 'pnc-tower', label: 'PNC TOWER', kind: 'pncTower', tx: PNC_TOWER_TX, ty: PNC_TOWER_TY, wx: tileToScreen(PNC_TOWER_TX, PNC_TOWER_TY).x, wy: tileToScreen(PNC_TOWER_TX, PNC_TOWER_TY).y },
   { id: 'three-sisters', label: '3 SISTERS', kind: 'bridgeCluster', tx: 12, ty: 11, wx: tileToScreen(12, 11).x, wy: tileToScreen(12, 11).y },
-  { id: 'mt-washington', label: 'MT. WASHINGTON', kind: 'incline', tx: 12, ty: 23, wx: tileToScreen(12, 23).x, wy: tileToScreen(12, 23).y },
+  { id: 'mt-washington', label: 'MT. WASHINGTON', kind: 'incline', tx: MT_WASHINGTON_TX, ty: MT_WASHINGTON_TY, wx: tileToScreen(MT_WASHINGTON_TX, MT_WASHINGTON_TY).x, wy: tileToScreen(MT_WASHINGTON_TX, MT_WASHINGTON_TY).y },
   { id: 'cathedral-learning', label: 'CATHEDRAL OF LEARNING', kind: 'cathedral', tx: CATHEDRAL_TX, ty: CATHEDRAL_TY, wx: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).x, wy: tileToScreen(CATHEDRAL_TX, CATHEDRAL_TY).y },
 ];
 
