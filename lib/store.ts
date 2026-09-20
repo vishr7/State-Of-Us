@@ -74,7 +74,7 @@ interface CityPulseStore extends GameState {
   turnIntervalId: ReturnType<typeof setInterval> | null;
   startPlaying: () => void;
   stopPlaying: () => void;
-  advanceTurn: () => void;
+  advanceTurn: () => void | Promise<void>;
 
   // Policy actions
   enactPolicyById: (policyId: string) => void;
@@ -216,8 +216,7 @@ export const useCityPulseStore = create<CityPulseStore>((set, get) => ({
 
   advanceTurn: () => {
     if (get().backendLink) {
-      void advanceViaBackend(get, set);
-      return;
+      return advanceViaBackend(get, set);
     }
     const { city, neighborhoods, agentGroups, activeEvents, consequenceQueue, snapshots, policies } = get();
 
@@ -487,7 +486,7 @@ async function advanceViaBackend(get: Get, set: Set) {
     const nextCity: City = { ...cityAfter, day, season, year };
 
     const stillActive = activeEvents.filter(e => !e.resolved && e.startTurn >= nextCity.turn - 3);
-    const newEvent = rollEvent(nextCity.turn, nextCity.season);
+    const newEvent = result.outcome ? null : rollEvent(nextCity.turn, nextCity.season);
     const nextEvents = newEvent ? [...stillActive, newEvent] : stillActive;
 
     // Fill in the real outcome of decisions that just resolved.

@@ -1,16 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useAgenda } from '../gameplay/DailyAgenda';
 import { useCityPulseStore, selectPolicyLock } from '@/lib/store';
 
 export function PolicyProgress() {
   const lock = useCityPulseStore(selectPolicyLock);
-  const advance = useCityPulseStore(s => s.advanceTurn);
   const busy = useCityPulseStore(s => s.resolvingTurn || s.submittingPolicy || s.backend.status === 'connecting' || s.backend.status === 'idle');
   if (!lock) return null;
   return <div className="policy-progress" role="status">
     <span aria-hidden="true">◷</span><span className="flex-1">{lock}</span>
-    <button disabled={busy} onClick={advance}>{busy ? 'Please wait…' : 'Advance one turn →'}</button>
+    <button disabled={busy} onClick={() => useAgenda.getState().setOpen(true)}>{busy ? 'Please wait…' : 'Review daily agenda →'}</button>
   </div>;
 }
 
@@ -18,7 +18,9 @@ export default function ResidentNarrator() {
   const announcement = useCityPulseStore(s => s.announcements[0]);
   const waiting = useCityPulseStore(s => s.announcements.length);
   const dismiss = useCityPulseStore(s => s.dismissAnnouncement);
-  const otherDialogue = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
+  const agendaOpen = useAgenda(s => s.open);
+  const otherPanel = useCityPulseStore(s => s.ui.showTownHall || s.ui.selectedResidentId !== null);
+  const otherDialogue = otherPanel || agendaOpen;
   const day = useCityPulseStore(s => s.city.turn);
   const [muted, setMuted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'speaking' | 'ready' | 'error'>('ready');

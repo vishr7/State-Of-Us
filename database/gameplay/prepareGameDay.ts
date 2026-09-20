@@ -1,3 +1,4 @@
+import { fillDailyChoices } from './catalogChoices';
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
@@ -27,12 +28,19 @@ export async function getGameDay(cityId: string, turn: number) {
   return gameDayResponse(row);
 }
 
-export interface PrepareDependencies { ingest?: typeof ingestFeeds; gemini?: GeminiClient; directory?: string }
+export interface PrepareDependencies { ingest?: typeof ingestFeeds; gemini?: GeminiClient; directory?: string; retryFailed?: boolean }
 export async function prepareGameDay(cityId: string, turn: number, dependencies: PrepareDependencies = {}): Promise<GameDayResponse> {
   const claim = await withTransaction(async (db) => {
     const city = (await db.query<City>("select * from cities where id=$1 for update", [cityId])).rows[0];
     if (!city) throw new GameplayError("City not found.", 404);
     const existing = (await db.query<GameDayRow>("select * from game_days where city_id=$1 and turn=$2", [cityId, turn])).rows[0];
+    if (existing && dependencies.retryFailed && existing.status === "failed") {
+      if (city.current_turn !== turn) throw new GameplayError("Cannot retry a past day.");
+      const chosen = await db.query("select id from decisions where game_day_id=$1", [existing.id]);
+      if (chosen.rows.length) throw new GameplayError("Cannot retry a day with a chosen decision.");
+      await db.query("update game_days set status='preparing',error=null,completed_at=null where id=$1", [existing.id]);
+      return { city, existing: null, id: existing.id };
+    }
     if (existing) return { city, existing, id: existing.id };
     if (city.current_turn !== turn) throw new GameplayError("Requested turn is not the city's current turn.");
     const row = (await db.query<GameDayRow>("insert into game_days(city_id,turn,status) values($1,$2,'preparing') returning *", [cityId, turn])).rows[0];
@@ -64,7 +72,12 @@ export async function prepareGameDay(cityId: string, turn: number, dependencies:
     // Retain the validated pool even if selection fails later.
     await getPool().query("update game_days set candidate_pool=$2::jsonb,policy_hashes=$3::jsonb,generation_metadata=$4::jsonb where id=$1", [claim.id, JSON.stringify(bound), JSON.stringify(hashes), JSON.stringify(metadata)]);
     const previous = (await getPool().query<{ selected_ids: string[] }>("select selected_ids from game_days where city_id=$1 and status='ready' and turn<$2", [cityId, turn])).rows.flatMap((row) => row.selected_ids);
-    const selected = await selectEventsWithGemini({ candidates: bound.filter((candidate) => candidate.executable), cityContext, previouslyShownIds: previous }, dependencies.gemini);
+    const newsSelected = await selectEventsWithGemini({ candidates: bound.filter((candidate) => candidate.executable), cityContext, previouslyShownIds: previous }, dependencies.gemini);
+    const choices = fillDailyChoices(bound.filter(c => newsSelected.includes(c.id)), catalog, turn);
+    const selected = choices.map(c => c.id);
+    const completePool = [...bound, ...choices.filter(c => !bound.some(b => b.id === c.id))];
+    const completeHashes = Object.fromEntries(catalog.filter(p => choices.some(c => c.policyId === p.id)).map(p => [p.id, policyFingerprint(p)]));
+    await getPool().query("update game_days set candidate_pool=$2::jsonb,policy_hashes=$3::jsonb where id=$1", [claim.id, JSON.stringify(completePool), JSON.stringify(completeHashes)]);
     return await withTransaction(async (db) => {
       const current = (await db.query<City>("select * from cities where id=$1 for update", [cityId])).rows[0];
       if (current.current_turn !== turn) throw new GameplayError("Turn advanced during game-day preparation.");

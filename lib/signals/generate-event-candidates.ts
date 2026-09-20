@@ -9,7 +9,9 @@ export const GENERATOR_PROMPT_VERSION = "grounded-generator-v1";
 export interface GenerateEventsInput { cityId: string; turn: number; signals: ExternalSignal[]; cityContext: Readonly<SimulationState["city"]>; targetCount: 10 }
 
 export async function generateEventCandidates(input: GenerateEventsInput, client: GeminiClient = geminiJson): Promise<GeneratedEventCandidate[]> {
-  const signals = input.signals.map((signal) => externalSignalSchema.parse(signal));
+  // Repeated extractions of one article must not look like independent sources.
+  const validated = input.signals.map((signal) => externalSignalSchema.parse(signal));
+  const signals = [...new Map(validated.map(signal => [signal.documentId, signal])).values()];
   if (!signals.length) return [];
   const model = process.env.GEMINI_MODEL?.trim();
   if (!model) throw new Error("Configure GEMINI_MODEL.");

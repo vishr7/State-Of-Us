@@ -1,6 +1,7 @@
 'use client';
 
 import { useCityPulseStore } from '@/lib/store';
+import { useAgenda } from '../gameplay/DailyAgenda';
 
 // ============================================================
 // TopBar — full-width fixed 64px header bar
@@ -107,8 +108,6 @@ const GearIcon = () => (
 
 export default function TopBar() {
   const city = useCityPulseStore(s => s.city);
-  const isPlaying = useCityPulseStore(s => s.ui.isPlaying);
-  const startPlaying = useCityPulseStore(s => s.startPlaying);
   const stopPlaying = useCityPulseStore(s => s.stopPlaying);
   const setAnalytics = useCityPulseStore(s => s.setAnalytics);
   const lastSnapshot = useCityPulseStore(s => s.lastSnapshot);
@@ -200,29 +199,7 @@ export default function TopBar() {
 
       {/* === PLAY / PAUSE CONTROLS === */}
       <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-        <div
-          className="flex items-center rounded-xl overflow-hidden"
-          style={{ border: '1px solid #1E3050', background: '#162236' }}
-        >
-          {/* Pause */}
-          <button
-            onClick={stopPlaying}
-            className="flex items-center justify-center w-9 h-9 transition-colors"
-            style={{ color: isPlaying ? '#64748B' : '#F0F4FA', background: isPlaying ? 'transparent' : '#1E3050' }}
-            title="Pause"
-          >
-            <PauseIcon />
-          </button>
-          {/* Play */}
-          <button
-            onClick={startPlaying}
-            className="flex items-center justify-center w-9 h-9 transition-colors"
-            style={{ color: isPlaying ? '#F0F4FA' : '#64748B', background: isPlaying ? '#3B82F6' : 'transparent' }}
-            title="Play"
-          >
-            <PlayIcon />
-          </button>
-        </div>
+        <button className="px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 bg-slate-800" onClick={() => { stopPlaying(); useAgenda.getState().setOpen(true); }}>Day {city.turn} · Agenda</button>
         {/* Settings / Analytics */}
         <button
           onClick={() => setAnalytics(true)}

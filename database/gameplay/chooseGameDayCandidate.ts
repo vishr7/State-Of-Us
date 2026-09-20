@@ -1,3 +1,4 @@
+import { validCatalogChoice } from './catalogChoices';
 import { getPool, withTransaction } from "../lib/db";
 import type { City, Policy } from "../types/database";
 import { bindExecutableActions, policyFingerprint } from "../simulation/bindExecutableActions";
@@ -16,7 +17,7 @@ export async function chooseGameDayCandidate(cityId: string, turn: number, candi
     const candidate = generatedEventSchema.parse(day.candidate_pool.find((item) => item.id === candidateId));
     if (!candidate.executable || !candidate.policyId) throw new GameplayError("Candidate has no executable binding.", 400);
     const policy = (await db.query<Policy>("select * from policies where id=$1", [candidate.policyId])).rows[0];
-    if (!policy || !bindExecutableActions([candidate], [policy])[0].executable || day.policy_hashes[policy.id] !== policyFingerprint(policy)) throw new GameplayError("Authored binding changed; choice rejected.");
+    if (!policy || !(validCatalogChoice(candidate, policy) || bindExecutableActions([candidate], [policy])[0].executable) || day.policy_hashes[policy.id] !== policyFingerprint(policy)) throw new GameplayError("Authored binding changed; choice rejected.");
     const pending = await db.query("select id from decisions where city_id=$1 and turn=$2", [cityId, turn]);
     if (pending.rows.length) throw new GameplayError("A decision is already queued for this turn.");
     return (await db.query<GameDayDecision>("insert into decisions(city_id,policy_id,turn,player_reasoning,game_day_id,candidate_id) values($1,$2,$3,$4,$5,$6) returning *", [cityId, policy.id, turn, playerReasoning ?? null, day.id, candidateId])).rows[0];

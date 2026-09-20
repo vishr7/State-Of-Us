@@ -56,10 +56,10 @@ describe("Gemini generation, binding and selection", () => {
 describe("Gemini transport", () => {
   it("requests schema JSON and validates provider output", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-secret"); vi.stubEnv("GEMINI_MODEL", "fixture-model");
-    const fetch = vi.fn(async () => Response.json({ candidates: [{ finishReason: "STOP", content: { parts: [{ text: '{"ok":true}' }] } }] }));
+    const fetch = vi.fn(async () => Response.json({ status: 'completed', steps: [{ type: 'model_output', content: [{ type: 'text', text: '{"ok":true}' }] }] }));
     vi.stubGlobal("fetch", fetch);
     expect(await geminiJson({ system: "Test", input: {}, schema: z.object({ ok: z.boolean() }).strict() })).toEqual({ ok: true });
-    expect(JSON.parse((fetch.mock.calls[0] as unknown as [string, RequestInit])[1].body as string).generationConfig.responseMimeType).toBe("application/json");
+    expect(JSON.parse((fetch.mock.calls[0] as unknown as [string, RequestInit])[1].body as string).response_format.mime_type).toBe("application/json");
   });
   it("fails on malformed or incomplete provider responses and HTTP/network errors", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-secret"); vi.stubEnv("GEMINI_MODEL", "fixture-model");

@@ -62,8 +62,8 @@ describe("real database vertical slice with mocked providers", () => {
   it("prepares, chooses, deterministically resolves, reacts after commit, and safely retries", async () => {
     const dependencies = providers();
     const prepared = await prepareGameDay(cityId, 0, dependencies);
-    expect(prepared.slate.decisions).toHaveLength(1);
-    expect(prepared.slate.candidatePoolIds).toHaveLength(2);
+    expect(prepared.slate.decisions).toHaveLength(5);
+    expect(prepared.slate.candidatePoolIds).toHaveLength(6);
     expect(dependencies.calls).toEqual(["generator", "selector"]);
     expect((await holder.db.query("select * from external_signals")).rows).toHaveLength(1);
     expect(await getGameDay(cityId, 0)).toEqual(prepared);
@@ -71,7 +71,7 @@ describe("real database vertical slice with mocked providers", () => {
     expect(dependencies.ingest).toHaveBeenCalledTimes(1);
     expect(dependencies.extract).toHaveBeenCalledTimes(1);
     const candidate = prepared.slate.decisions[0];
-    const unselected = prepared.slate.candidatePoolIds.find((id) => id !== candidate.id)!;
+    const unselected = prepared.slate.candidatePoolIds.find((id) => !prepared.slate.selectedDecisionIds.includes(id))!;
     await expect(chooseGameDayCandidate(cityId, 0, unselected)).rejects.toThrow("not selected");
     const decision = await chooseGameDayCandidate(cityId, 0, candidate.id);
     expect(decision.policy_id).toBe(TRANSIT_POLICY_ID);
@@ -103,7 +103,8 @@ describe("real database vertical slice with mocked providers", () => {
     expect(savedReactions[0].provenance.promptVersion).toBe("resident-outcome-v2");
     expect((await holder.db.query("select * from simulation_snapshots where city_id=$1", [cityId])).rows).toHaveLength(2);
     const next = await prepareGameDay(cityId, 1, dependencies);
-    expect(next.slate.decisions).toEqual([]); // previously shown source/action IDs excluded
+    expect(next.slate.decisions).toHaveLength(5);
+    expect(next.slate.decisions.every(c => c.generation.model === 'authored-catalog')).toBe(true); // previously shown source/action IDs excluded
     expect(dependencies.extract).toHaveBeenCalledTimes(1); // feed dedupe survives the next day
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   }, 30000);

@@ -6,7 +6,7 @@ export type NemotronProvider = (input: ResidentOutcomePrompt) => Promise<unknown
 /** Isolated OpenAI-compatible NIM transport; no DB handle or writable canonical state. */
 export const nemotronJson: NemotronProvider = async (input) => {
   if (typeof window !== "undefined") throw new Error("Nemotron is server-only.");
-  const base = process.env.NEMOTRON_BASE_URL?.trim(), key = process.env.NEMOTRON_API_KEY?.trim(), model = process.env.NEMOTRON_MODEL?.trim();
+  const base = process.env.NEMOTRON_BASE_URL?.trim() || 'https://integrate.api.nvidia.com/v1', key = process.env.NEMOTRON_API_KEY?.trim() || process.env.NVIDIA_API_KEY?.trim(), model = process.env.NEMOTRON_MODEL?.trim() || process.env.NVIDIA_NEMOTRON_MODEL?.trim() || 'nvidia/nemotron-3.5-lightning-30b-a3b';
   if (!base || !key || !model) throw new NemotronUnconfiguredError("Nemotron is not configured.");
   let response: Response;
   try {

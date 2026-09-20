@@ -3,24 +3,31 @@ import { z } from "zod";
 export interface GeminiRequest<T> { system: string; input: unknown; schema: z.ZodType<T>; model?: string }
 export type GeminiClient = <T>(request: GeminiRequest<T>) => Promise<T>;
 
-/** Server-only transport. Strict local parsing is required even with provider JSON schema mode. */
+// Gemini accepts the structural subset; Zod still enforces every constraint locally.
+export function geminiSchema(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(geminiSchema);
+  if (!value || typeof value !== 'object') return value;
+  const unsupported = new Set(['$schema','minLength','maxLength','minimum','maximum','minItems','maxItems','additionalProperties']);
+  return Object.fromEntries(Object.entries(value).filter(([key]) => !unsupported.has(key)).map(([key, item]) => [key, geminiSchema(item)]));
+}
+
+/** Server-only Interactions transport; local validation remains authoritative. */
 export const geminiJson: GeminiClient = async ({ system, input, schema, model = process.env.GEMINI_MODEL }) => {
   if (typeof window !== "undefined") throw new Error("Gemini is server-only.");
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key || !model?.trim()) throw new Error("Configure GEMINI_API_KEY and GEMINI_MODEL.");
   let response: Response;
   try {
-    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST", signal: AbortSignal.timeout(90_000),
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: "user", parts: [{ text: JSON.stringify(input) }] }],
-        generationConfig: { responseMimeType: "application/json", responseJsonSchema: z.toJSONSchema(schema), temperature: 0, maxOutputTokens: 12000 } }),
+    response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST', signal: AbortSignal.timeout(90_000),
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({ model: model.trim(), system_instruction: `${system}\nReturn only JSON matching this schema: ${JSON.stringify(z.toJSONSchema(schema))}`, input: JSON.stringify(input), store: false,
+        response_format: { type: 'text', mime_type: 'application/json', schema: geminiSchema(z.toJSONSchema(schema)) } }),
     });
-  } catch { throw new Error("Gemini request failed or timed out."); }
+  } catch { throw new Error('Gemini request failed or timed out.'); }
   if (!response.ok) throw new Error(`Gemini returned HTTP ${response.status}.`);
-  const body = z.object({ candidates: z.array(z.object({ finishReason: z.literal("STOP"), content: z.object({ parts: z.array(z.object({ text: z.string().optional(), thought: z.boolean().optional() })) }) })).length(1) }).parse(await response.json());
-  const text = body.candidates[0].content.parts.filter((part) => !part.thought).map((part) => part.text ?? "").join("");
+  const body = z.object({ status: z.literal('completed'), steps: z.array(z.object({ type: z.string(), content: z.array(z.object({ type: z.string(), text: z.string().optional() })).optional() })) }).parse(await response.json());
+  const text = body.steps.filter(step => step.type === 'model_output').flatMap(step => step.content ?? []).filter(part => part.type === 'text').map(part => part.text ?? '').join('');
   try { return schema.parse(JSON.parse(text)); }
-  catch { throw new Error("Gemini returned invalid structured JSON."); }
+  catch (error) { throw new Error('Gemini returned invalid structured JSON.' + (error instanceof z.ZodError ? ' ' + error.issues.map(issue => `${issue.path.join('.')}: ${issue.code}`).join('; ') : ' JSON parse failed.')); }
 };

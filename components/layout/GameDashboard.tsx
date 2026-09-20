@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import TopBar from './TopBar';
+import DailyAgenda from '../gameplay/DailyAgenda';
 import MiniMap from '../sidebar/MiniMap';
 import RightSidebar from '../sidebar/RightSidebar';
 import Toast from '../ui/Toast';
@@ -56,6 +57,7 @@ export default function GameDashboard() {
 
       {/* TOAST NOTIFICATIONS */}
       <Toast />
+      <DailyAgenda />
 
       {/* MODALS — rendered over everything */}
       {ui.selectedNeighborhoodId && <NeighborhoodDrawer />}
